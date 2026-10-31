@@ -1,0 +1,159 @@
+---
+import { site, footerLinks, socials } from '@/config/site';
+import SocialIcon from '../ui/SocialIcon.astro';
+---
+
+<footer class="footer">
+  <div class="container-wide footer__container">
+    <div class="footer__row footer__row--brand">
+      <div class="footer__group">
+        <div class="footer__logos">
+          <img class="footer__logo" src={site.logo.src} alt={site.logo.alt} width="122" height="50" loading="lazy" />
+          <img
+            class="footer__qr"
+            src="/assets/site/bb216b8e-unnamed.png"
+            alt="QR code with WeChat logo and Chinese text prompting to search for StrideSocial global influencer marketing."
+            width="636"
+            height="282"
+            loading="lazy"
+          />
+        </div>
+      </div>
+      <div class="footer__group">
+        <div class="footer__social">
+          {socials.map((s) => <SocialIcon {...s} />)}
+        </div>
+      </div>
+    </div>
+    <div class="footer__row">
+      <nav class="footer__group footer__links" aria-label="Footer">
+        {footerLinks.map((l) => <a class="footer__link" href={l.href}>{l.label}</a>)}
+      </nav>
+      <div class="footer__group">
+        <p class="footer__legal">© {site.legalName} - {site.companyNumber}. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    z-index: 1;
+    background-color: var(--accent);
+  }
+
+  .footer__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .footer__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    padding-top: 2rem;
+    padding-bottom: 28px;
+    border-top: 1px solid var(--color-navy-mute);
+  }
+
+  .footer__row--brand {
+    border-top: 0;
+  }
+
+  .footer__group {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 22px;
+  }
+
+  .footer__logos {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .footer__logo {
+    width: auto;
+    height: 50px;
+  }
+
+  .footer__qr {
+    width: 9.4rem;
+    height: auto;
+  }
+
+  .footer__social {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.625rem;
+  }
+
+  /* The live site keeps an empty first link, which pushes the row in by one gap. */
+  .footer__links {
+    padding-left: 22px;
+  }
+
+  .footer__link,
+  .footer__legal {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-navy-mute);
+  }
+
+  .footer__link:hover {
+    color: var(--color-navy);
+  }
+
+  @media screen and (max-width: 991px) {
+    .footer__row {
+      flex-direction: column;
+      gap: 35px;
+    }
+
+    .footer__group {
+      justify-content: space-between;
+      gap: 0;
+      text-align: center;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .footer__legal {
+      text-align: left;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .footer__group {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* The live footer has empty first/last links; their gaps add 20px above and below. */
+    .footer__links {
+      padding: 20px 0;
+    }
+
+    .footer__logos {
+      flex-direction: column;
+    }
+
+    .footer__qr {
+      width: 9rem;
+    }
+
+    .footer__social {
+      justify-content: center;
+    }
+
+    .footer__legal {
+      text-align: center;
+    }
+  }
+</style>

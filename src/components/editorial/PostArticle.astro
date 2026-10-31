@@ -1,0 +1,176 @@
+---
+// Blog post body: date/author row, the article (CMS rich text) beside a sticky image that
+// follows the reader down the page, then whatever is passed in the slot ("more..." list).
+// Below 992px the image drops under the article.
+import RichText from '@/components/ui/RichText.astro';
+
+export interface Props {
+  date?: string | null;
+  dateLabel?: string | null;
+  author?: string | null;
+  /** Rendered article HTML. */
+  html: string;
+  /** Local image path; anything else (e.g. the CMS placeholder) renders an empty frame like the live page. */
+  asideImage?: string | null;
+}
+
+const { date, dateLabel, author, html, asideImage } = Astro.props;
+const image = asideImage?.startsWith('/') ? asideImage : null;
+// Wide tables scroll inside their own box instead of widening the page on phones.
+const body = html.replace(/<table>/g, '<div class="post-table"><table>').replace(/<\/table>/g, '</table></div>');
+---
+
+<section class="post">
+  <div class="post__meta">
+    {dateLabel && <p class="post__meta-item"><time datetime={date ?? undefined}>{dateLabel}</time></p>}
+    {author && <p class="post__meta-item"><span>Author -</span> <span>{author}</span></p>}
+  </div>
+
+  <div class="post__grid">
+    <div class="post__content">
+      <RichText html={body} width="full" padded class="post__richtext" />
+    </div>
+    <div class="post__aside">
+      <div class="post__aside-frame">
+        {image && <img class="cover-image" src={image} alt="" loading="lazy" />}
+      </div>
+    </div>
+  </div>
+
+  <slot />
+</section>
+
+<style>
+  .post {
+    position: relative;
+    z-index: 1;
+    padding: 0 45px 45px;
+    background-color: var(--color-smoke-2);
+  }
+
+  .post__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 2rem 0;
+    border-bottom: 1px solid #0000001a;
+  }
+
+  .post__meta-item {
+    display: flex;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--color-navy-mute);
+  }
+
+  .post__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .post__content {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 0;
+    font-family: var(--font-sans);
+    color: var(--color-navy);
+  }
+
+  .post__aside {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 1rem 0;
+  }
+
+  .post__aside-frame {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ---- Article typography: matches the live blog template on top of ui/RichText ---- */
+  /* Long single words (e.g. a domain as a heading) wrap instead of widening the page.
+     Not on tables: it would change how their columns share the width. */
+  .post__content :global(.rich-text :is(h1, h2, h3, h4, h5, h6, p, li, blockquote)) {
+    overflow-wrap: anywhere;
+  }
+
+  .post__content :global(.rich-text :is(td, th) :is(p, li)) {
+    overflow-wrap: normal;
+  }
+
+  .post__content :global(.rich-text p > img) {
+    display: inline-block;
+    margin-bottom: 0;
+    vertical-align: middle;
+  }
+
+  .post__content :global(.rich-text figure) {
+    display: table;
+    max-width: 60%;
+    margin: 0 auto 10px;
+  }
+
+  .post__content :global(.rich-text figure img) {
+    margin-bottom: 0;
+  }
+
+  .post__content :global(.rich-text .post-table) {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .post__content :global(.rich-text table) {
+    margin-bottom: 0;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .post__content :global(.rich-text th),
+  .post__content :global(.rich-text td) {
+    padding: 0;
+    vertical-align: middle;
+  }
+
+  .post__content :global(.rich-text th) {
+    text-align: center;
+  }
+
+  @media screen and (max-width: 991px) {
+    .post__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .post {
+      padding-inline: 25px;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .post__meta {
+      align-items: center;
+    }
+
+    .post__meta-item {
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+    }
+
+    .post__meta-item > * {
+      margin-right: 6px;
+    }
+
+    .post__aside {
+      height: 70vh;
+    }
+  }
+</style>

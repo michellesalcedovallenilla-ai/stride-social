@@ -1,0 +1,30 @@
+---
+// Body copy of the story columns. `html` keeps the live page's inline markup (<br>, <strong>).
+export interface Props {
+  html: string;
+}
+
+const { html } = Astro.props;
+---
+
+<div class="story-copy" set:html={html} />
+
+<style>
+  .story-copy {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    line-height: 1.4;
+    color: var(--color-text);
+  }
+
+  .story-copy :global(strong) {
+    font-weight: 700;
+  }
+
+  @media screen and (max-width: 479px) {
+    .story-copy {
+      font-size: 1rem;
+      color: var(--color-navy-mute);
+    }
+  }
+</style>

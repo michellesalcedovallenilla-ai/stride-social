@@ -1,0 +1,77 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import HeroVideo from '@/components/sections/HeroVideo.astro';
+import LogoTicker from '@/components/sections/LogoTicker.astro';
+import Statement from '@/components/sections/home/Statement.astro';
+import RecentWorks from '@/components/sections/home/RecentWorks.astro';
+import StrategiesShowcase from '@/components/sections/home/StrategiesShowcase.astro';
+import ServicesAccordion from '@/components/sections/ServicesAccordion.astro';
+import Testimonials from '@/components/sections/Testimonials.astro';
+import { footerCtas } from '@/config/site';
+// Kept identical to the live page; see docs/INVENTORY.md for the issues with these blocks.
+import jsonLd from '@/data/home-jsonld.json';
+
+const works = (await getCollection('caseStudies'))
+  .filter((c) => c.data.home)
+  .sort((a, b) => a.data.home!.order - b.data.home!.order)
+  .map((c) => ({ href: `/case-studies/${c.id}`, title: c.data.title, blurb: c.data.home!.blurb, front: c.data.home!.front, back: c.data.home!.back }));
+
+const badge = { src: '/assets/site/013a1a70-88952.webp', alt: 'Badge from Influencer Marketing Hub recognizing top TikTok talent management agencies for 2025 with three stars.' };
+---
+
+<BaseLayout
+  title="Stride Social | Influencer Advertising & Talent Agency"
+  description="Stride Social is an influencer Advertising and Talent Agency helping brands grow through powerful creator partnerships and digital storytelling. Since our 2021, we’ve been helping brands in AI, tech, and lifestyle unlock meaningful growth through strategy-led influencer campaigns and social-first content. Our team has executed campaigns across multiple markets, blending creativity with performance to drive awareness, engagement, and real results. Whether it’s influencer marketing, seeding strategies, or UGC production, we take care of it end-to-end—leveraging our global talent network and smart campaign processes. With a growing team and partners across the UK, US, and Europe, we’re proud to be known not just as an agency—but as a trusted growth engine for the next generation of brands."
+  footerCta={footerCtas.home}
+  jsonLd={jsonLd}
+>
+  <HeroVideo
+    title="iNFLUENCER advertising done right."
+    badges={[badge, badge]}
+    video={{
+      mp4: '/assets/video/1236e597-1029-transcode.mp4',
+      webm: '/assets/video/1236e597-1029-transcode.webm',
+      poster: '/assets/site/1236e597-1029-poster-00001.jpg',
+      mobile: {
+        mp4: '/assets/video/926f3517-1029-1-transcode.mp4',
+        webm: '/assets/video/926f3517-1029-1-transcode.webm',
+        poster: '/assets/site/926f3517-1029-1-poster-00001.jpg',
+      },
+    }}
+  />
+
+  <div class="home-dark">
+    <LogoTicker />
+    <Statement
+      label="Leading influencer advertising & talent management agency since 2021"
+      heading="Stride specialises in scaling world class brands through data-driven influencer strategies."
+      body="We offer High-Impact Influencer Campaigns, Managed End-to-End."
+      cta={{ label: 'See all our projects', href: '/case-studies' }}
+    />
+    <RecentWorks heading="recent works" cta={{ label: 'Current projects', href: '/case-studies' }} items={works} />
+  </div>
+
+  <StrategiesShowcase
+    topRow={['Events', '-', 'UGC', '-', 'SEEDING', '-', 'Activations']}
+    bottomRow={[{ text: 'OUR strategies' }, { text: 'INfluencer strategies', highlight: true }, { text: 'Our strategies' }]}
+    heading="Your brand, powered by the right strategy."
+    stats={[
+      { value: '2 billion', label: 'combined followers' },
+      { value: '4000+', label: 'campaigns launched' },
+      { value: 'Global', label: 'engaged audiences' },
+    ]}
+    cta={{ label: 'view our strategies we offer', href: '/influencer-strategies' }}
+  />
+
+  <ServicesAccordion />
+  <Testimonials />
+</BaseLayout>
+
+<style>
+  .home-dark {
+    position: relative;
+    z-index: 1;
+    background-color: var(--color-navy);
+  }
+</style>

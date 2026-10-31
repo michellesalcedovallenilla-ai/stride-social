@@ -1,0 +1,274 @@
+---
+// "What people say about us" — draggable horizontal quote slider (native scroll-snap).
+import { getCollection } from 'astro:content';
+import MonoLabel from '../ui/MonoLabel.astro';
+import StrideMark from '../ui/StrideMark.astro';
+
+export interface Props {
+  label?: string;
+}
+
+const { label = 'What people say about us' } = Astro.props;
+const items = (await getCollection('testimonials')).sort((a, b) => a.id.localeCompare(b.id));
+---
+
+<section class="testimonials">
+  <div class="testimonials__outer">
+    <div class="testimonials__inner">
+      <MonoLabel tone="light">{label}</MonoLabel>
+      <div class="testimonials__slider">
+        <div class="testimonials__top">
+          <StrideMark class="testimonials__mark" />
+        </div>
+        <div class="testimonials__track" data-drag-scroll tabindex="0" aria-label="Testimonials">
+          {items.map(({ data }) => (
+            <figure class="quote">
+              <blockquote class="quote__text">{data.quote}</blockquote>
+              <figcaption class="quote__credit">
+                <span class="quote__avatar">
+                  <img src={data.avatar} alt="" width="80" height="80" loading="lazy" />
+                </span>
+                <span class="quote__person">
+                  <span class="quote__name">{data.name}</span>
+                  <span class="quote__role">{data.role}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .testimonials {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 4rem;
+    overflow: hidden;
+    background-color: var(--color-navy);
+  }
+
+  .testimonials__outer {
+    padding-inline: 40px;
+  }
+
+  .testimonials__inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-inline: 2rem;
+    padding: 8rem 0;
+  }
+
+  .testimonials__slider {
+    position: relative;
+  }
+
+  .testimonials__top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-top: 2rem;
+  }
+
+  .testimonials__mark {
+    width: 4rem;
+    margin: 2rem 0;
+    color: var(--accent);
+  }
+
+  /* Slides run past the container to the viewport edge, like the original Swiper. */
+  .testimonials__track {
+    --bleed: 72px;
+    display: flex;
+    margin-right: calc(-1 * var(--bleed));
+    padding-right: var(--bleed);
+    padding-bottom: 1rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    cursor: grab;
+  }
+
+  .testimonials__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .testimonials__track.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+  }
+
+  .quote {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    width: 45rem;
+    margin: 0;
+    padding-right: 6rem;
+    scroll-snap-align: start;
+  }
+
+  .quote__text {
+    max-width: 40ch;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 115%;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+
+  .quote__credit {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .quote__avatar {
+    position: relative;
+    flex: none;
+    width: 5rem;
+    height: 5rem;
+    overflow: hidden;
+  }
+
+  .quote__avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .quote__person {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-transform: uppercase;
+    font-family: var(--font-sans);
+  }
+
+  .quote__name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 20px;
+    color: var(--color-smoke);
+  }
+
+  .quote__role {
+    font-size: 0.875rem;
+    font-weight: 300;
+    line-height: 20px;
+    color: var(--color-grey);
+  }
+
+  @media screen and (max-width: 991px) {
+    .testimonials__inner {
+      padding: 1.7rem 1.7rem 0.5rem;
+    }
+
+    .quote {
+      width: 80%;
+      padding-right: 4rem;
+    }
+
+    .quote__text {
+      font-size: 2.4rem;
+      line-height: 120%;
+    }
+
+    .quote__name {
+      font-size: 1rem;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .testimonials__inner {
+      padding: 1.3rem 1.3rem 0.25rem 0;
+    }
+
+    .testimonials__top {
+      margin-bottom: -0.5rem;
+    }
+
+    .testimonials__track {
+      padding-bottom: 2.5rem;
+    }
+
+    .quote {
+      width: 100%;
+      padding-left: 1.5rem;
+      padding-right: 0;
+    }
+
+    .quote__text {
+      font-size: 2.2rem;
+    }
+
+    .quote__name {
+      font-size: 1.25rem;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .testimonials {
+      padding-bottom: 0;
+    }
+
+    .testimonials__outer {
+      padding-left: 20px;
+      padding-right: 40px;
+    }
+
+    .testimonials__inner {
+      margin-left: 0;
+      margin-right: 1rem;
+      padding: 1.3rem 0 6rem;
+    }
+
+    .testimonials__track {
+      --bleed: 56px;
+    }
+
+    .quote {
+      padding-left: 0;
+    }
+
+    .quote__text {
+      max-width: 89%;
+      font-size: 1.2rem;
+      white-space: pre-wrap;
+    }
+
+    .quote__avatar {
+      width: 4rem;
+      height: 4rem;
+    }
+
+    .quote__name {
+      font-size: 0.9rem;
+      line-height: 100%;
+    }
+
+    .quote__role {
+      font-size: 0.7rem;
+    }
+  }
+</style>
+
+<script>
+  import { initDragScroll } from '@/scripts/drag-scroll';
+  initDragScroll();
+</script>

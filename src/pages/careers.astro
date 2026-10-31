@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MarqueeHero from '@/components/sections/MarqueeHero.astro';
+import JobList from '@/components/company/JobList.astro';
+
+const jobs = (await getCollection('jobs'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((j) => ({ href: `/jobs/${j.id}`, title: j.data.title, location: j.data.location }));
+---
+
+<BaseLayout
+  title="Stride Social | Careers"
+  description="Stride Social is a creator management and marketing agency exclusively managing some of the best creators from all around the world."
+  nav="solid"
+  background="smoke"
+>
+  <MarqueeHero
+    tone="light"
+    title="Careers"
+    intro="We are currently hiring for the following positions, we look forward to speaking with you!"
+  />
+  <JobList
+    jobs={jobs}
+    noteHeading="Don’t see a role that suits you?"
+    noteText="Email your CV to"
+    email="careers@stride-social.com"
+  />
+</BaseLayout>

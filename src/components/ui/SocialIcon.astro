@@ -1,0 +1,69 @@
+---
+// Round social link; the icon rolls up on hover (duplicate glyph slides in from below).
+import instagram from '@/assets/icons/instagram.svg?raw';
+import linkedin from '@/assets/icons/linkedin.svg?raw';
+
+const icons: Record<string, string> = { instagram, linkedin };
+
+export interface Props {
+  label: string;
+  href: string;
+  icon: string;
+  tone?: 'light' | 'dark';
+}
+
+const { label, href, icon, tone = 'dark' } = Astro.props;
+const svg = icons[icon] ?? '';
+---
+
+<a class:list={['social-icon', `social-icon--${tone}`]} href={href} target="_blank" rel="noopener" aria-label={label}>
+  <span class="social-icon__clip">
+    <span class="social-icon__glyph" set:html={svg} />
+    <span class="social-icon__glyph social-icon__glyph--next" set:html={svg} aria-hidden="true" />
+  </span>
+</a>
+
+<style>
+  .social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 100rem;
+  }
+
+  .social-icon--dark {
+    color: var(--color-navy);
+  }
+
+  .social-icon--light {
+    color: var(--color-white);
+  }
+
+  .social-icon__clip {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .social-icon__glyph {
+    display: flex;
+    width: 1.5rem;
+    transition: transform 0.35s var(--ease-out);
+  }
+
+  .social-icon__glyph--next {
+    position: absolute;
+    top: 100%;
+  }
+
+  .social-icon:hover .social-icon__glyph {
+    transform: translateY(-100%);
+  }
+
+  .social-icon__glyph :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import DetailHero from '@/components/sections/DetailHero.astro';
+import RichText from '@/components/ui/RichText.astro';
+import JobMeta from '@/components/company/JobMeta.astro';
+import { footerCtas } from '@/config/site';
+
+export async function getStaticPaths() {
+  const jobs = await getCollection('jobs');
+  return jobs.map((job) => ({ params: { slug: job.id }, props: { job } }));
+}
+
+interface Props {
+  job: CollectionEntry<'jobs'>;
+}
+
+const { job } = Astro.props;
+const { title, tag, summary, location, salary, seo } = job.data;
+const email = 'careers@stride-social.com';
+const { Content } = await render(job);
+---
+
+<BaseLayout
+  title={seo?.title ?? `${title} - Jobs at Stride Social`}
+  description={seo?.description ?? summary}
+  ogImage={seo?.ogImage}
+  nav="solid"
+  background="smoke"
+  footerCta={footerCtas.standard}
+  footer={false}
+>
+  <DetailHero tag={tag} title={title} summary={summary} size="long" alignBottom />
+  <JobMeta location={location} salary={salary} />
+
+  <section class="job-body">
+    <div class="job-body__inner">
+      <RichText><Content /></RichText>
+      <p class="job-body__apply">
+        We are looking for young and enthusiastic person who wants to join the Stride team. If this sounds like a role that was made for you please send over your CV and application to <a href={`mailto:${email}`}>{email}</a> and we will get back to you!
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .job-body {
+    position: relative;
+    padding: 0 45px 3rem;
+    background-color: var(--color-smoke-2);
+  }
+
+  .job-body__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 3rem;
+    border-top: 1px solid #0003;
+  }
+
+  .job-body__apply {
+    max-width: 60%;
+    font-size: 1.2rem;
+    line-height: 1.1;
+    color: var(--color-text);
+  }
+
+  /* The live site sets weight 300 here, but its Mona Sans 300 face is the Bold file. */
+  .job-body__apply a {
+    font-weight: 700;
+  }
+
+  @media screen and (max-width: 767px) {
+    .job-body {
+      padding-inline: 1rem;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .job-body {
+      padding-bottom: 6rem;
+    }
+  }
+</style>

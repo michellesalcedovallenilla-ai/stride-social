@@ -1,0 +1,52 @@
+[
+  {
+    "id": "01",
+    "title": "Influencer advertising",
+    "description": "We specialize in the architecture and execution of high-volume influencer campaigns. Whether deploying hundreds of creators across <strong>TikTok, Instagram, YouTube, or LinkedIn</strong>, we manage the entire lifecycle of your advertising strategy. From initial conceptualization and creative briefing to talent communication and performance reporting, we provide an end-to-end solution designed to deliver the only thing that matters: measurable growth.",
+    "bullets": [
+      "Activations",
+      "Events",
+      "Promotions"
+    ]
+  },
+  {
+    "id": "02",
+    "title": "Brand Content - UGC",
+    "description": "User-generated content (UGC) is the buzzword in influencer marketing – and there’s reason for it. We help brands create authentic UGC at scale for paid ads and social media, spanning fashion, tech products, and more. By tapping into influencers' authentic voices, we produce high-quality, on-brand content that resonates with audiences and drives genuine connections.",
+    "bullets": [
+      "High converting Ad's",
+      "Fully tailored to you",
+      "500 UGC each month"
+    ]
+  },
+  {
+    "id": "03",
+    "title": "Stride talent (MANAGEMENT division)",
+    "description": "Behind every successful creator is a strategic partnership. At Stride Talent, we manage the top talent in their niche and support them with <strong>growth that really matters.</strong> We act as the vital bridge between both sides of the industry. Connecting our elite roster with market-leading brands, while providing those brands with direct access to the world’s most influential creators. By turning creative passion into a sustainable business, we curate the authentic connections that define the modern digital landscape.",
+    "bullets": [
+      "Brand Collaborations",
+      "Creator growth",
+      "Career support"
+    ]
+  },
+  {
+    "id": "04",
+    "title": "NEW BUSINESS FOR INFLUENCERS",
+    "description": "At Stride, we empower talent to transform content creation into a legacy career. Our mission is to build sustainable business ecosystems around a creator’s influence ranging from end-to-end product development to custom mobile app launches. To further maximize our roster's earning potential, we offer <strong>Content Syndication.</strong> We breathe new life into your existing content by distributing it across platforms like Facebook and MSN, generating significant passive revenue and expanding your global footprint with zero extra effort from you.",
+    "bullets": [
+      "Content Syndication",
+      "Brand Building",
+      "Building IP"
+    ]
+  },
+  {
+    "id": "05",
+    "title": "TikTok shop Livestreams",
+    "description": "We provide a total turnkey solution for TikTok Shop success. Stride manages your shop integration and builds custom livestream sets optimized for social commerce. With our roster of sales-trained presenters and dedicated backend support team, we ensure every stream is a seamless, high-revenue event.",
+    "bullets": [
+      "TikTok Shop",
+      "TikTok Shop livestreams",
+      "E-Comm specific"
+    ]
+  }
+]

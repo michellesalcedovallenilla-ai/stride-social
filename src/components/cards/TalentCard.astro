@@ -1,0 +1,171 @@
+---
+// Square image card used for creators, case studies and blog posts. On hover a dark
+// diagonal shard slides up and the tag / metric / name slide in from the right.
+export interface Props {
+  href: string;
+  /** Omit for a blank card (e.g. a creator without a photo). */
+  image?: string | null;
+  name: string;
+  tag?: string | null;
+  metric?: string | null;
+  metricLabel?: string;
+  /** Blog cards use a smaller name and hide the metric on phones. */
+  variant?: 'default' | 'blog';
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { href, image, name, tag, metric, metricLabel, variant = 'default', headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
+---
+
+<a class:list={['talent-card', `talent-card--${variant}`]} href={href}>
+  {image && <img class="talent-card__image" src={image} alt="" loading="lazy" />}
+  <span class="talent-card__shard" aria-hidden="true">
+    <svg viewBox="0 0 438 438" preserveAspectRatio="none"><path d="M438 438H0L438 0v438Z" fill="currentColor" fill-opacity="0.4"></path></svg>
+  </span>
+  <span class="talent-card__info">
+    {tag && <span class="talent-card__tag">{tag}</span>}
+    {(metric || metricLabel) && (
+      <span class="talent-card__metric">
+        {metric && <span>{metric}</span>}
+        {metricLabel && <span>{metricLabel}</span>}
+      </span>
+    )}
+    <Heading class="talent-card__name">{name}</Heading>
+  </span>
+</a>
+
+<style>
+  .talent-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+
+  .talent-card__image {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .talent-card__shard {
+    position: absolute;
+    inset: auto 0 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: #000;
+    transform: translateY(100%);
+    transition: transform 0.5s var(--ease-out);
+  }
+
+  .talent-card__shard svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .talent-card__info {
+    position: absolute;
+    inset: auto 16px 16px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    max-width: 88%;
+  }
+
+  .talent-card__tag,
+  .talent-card__metric,
+  .talent-card__name {
+    transform: translateX(calc(100% + 16px));
+    transition: transform 0.5s var(--ease-out);
+  }
+
+  .talent-card__metric {
+    transition-delay: 0.05s;
+  }
+
+  .talent-card__name {
+    transition-delay: 0.1s;
+  }
+
+  .talent-card:hover .talent-card__shard,
+  .talent-card:focus-visible .talent-card__shard,
+  .talent-card:hover .talent-card__tag,
+  .talent-card:focus-visible .talent-card__tag,
+  .talent-card:hover .talent-card__metric,
+  .talent-card:focus-visible .talent-card__metric,
+  .talent-card:hover .talent-card__name,
+  .talent-card:focus-visible .talent-card__name {
+    transform: none;
+  }
+
+  .talent-card__tag {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: right;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .talent-card__metric {
+    display: flex;
+    gap: 6px;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.2;
+    text-align: right;
+    color: #ffffffb3;
+  }
+
+  .talent-card__name {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: right;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+
+  .talent-card--blog .talent-card__name {
+    font-size: 1.4rem;
+  }
+
+  /* Touch layouts: the live site always shows the shard and labels at tablet size and below. */
+  @media screen and (max-width: 991px) {
+    .talent-card__shard,
+    .talent-card__tag,
+    .talent-card__metric,
+    .talent-card__name {
+      transform: none;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .talent-card__name {
+      font-size: 1.4rem;
+    }
+
+    .talent-card--blog .talent-card__name {
+      font-size: 1.1rem;
+    }
+
+    .talent-card--blog .talent-card__metric {
+      display: none;
+    }
+  }
+</style>

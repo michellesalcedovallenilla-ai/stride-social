@@ -1,0 +1,6 @@
+# Normalise text files to LF in the repository (consistent diffs across Windows, macOS and CI)
+* text=auto eol=lf
+
+# Video files are stored with Git LFS
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.webm filter=lfs diff=lfs merge=lfs -text

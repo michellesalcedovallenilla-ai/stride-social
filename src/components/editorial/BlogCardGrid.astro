@@ -1,0 +1,119 @@
+---
+// Grid of blog TalentCards. `hero` = the two large featured cards, `small` = the 4-up list,
+// `related` = the 4-up "more..." list under a post (smaller titles, faint overlay, no date).
+import TalentCard from '@/components/cards/TalentCard.astro';
+
+export interface BlogCard {
+  href: string;
+  image: string;
+  name: string;
+  tag?: string | null;
+  date?: string | null;
+}
+
+export interface Props {
+  cards: BlogCard[];
+  layout?: 'hero' | 'small' | 'related';
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { cards, layout = 'small', headingLevel = 'h2' } = Astro.props;
+---
+
+<div class:list={['blog-grid', `blog-grid--${layout}`]}>
+  <ul class="blog-grid__list" role="list">
+    {cards.map((card) => (
+      <li class="blog-grid__item">
+        <TalentCard
+          href={card.href}
+          image={card.image}
+          name={card.name}
+          tag={card.tag}
+          metric={card.date ? 'Published' : null}
+          metricLabel={card.date ?? undefined}
+          variant="blog"
+          headingLevel={headingLevel}
+        />
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .blog-grid {
+    width: 100%;
+    padding: 0 45px 8rem;
+  }
+
+  .blog-grid--hero {
+    padding-bottom: 1rem;
+  }
+
+  .blog-grid--related {
+    margin-top: 3rem;
+    padding: 0;
+  }
+
+  .blog-grid__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    /* Two explicit rows like the live grid: a single row of four keeps an empty second row + gap. */
+    grid-template-rows: auto auto;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .blog-grid--hero .blog-grid__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+
+  .blog-grid.blog-grid--related :global(.talent-card .talent-card__name) {
+    font-size: 1.2rem;
+  }
+
+  .blog-grid--related :global(.talent-card)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: #0000001a;
+    pointer-events: none;
+  }
+
+  .blog-grid--related :global(.talent-card__info) {
+    z-index: 1;
+  }
+
+  @media screen and (max-width: 991px) {
+    .blog-grid__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .blog-grid--small .blog-grid__list,
+    .blog-grid--related .blog-grid__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .blog-grid {
+      padding-inline: 15px;
+    }
+
+    .blog-grid--related {
+      padding-inline: 0;
+    }
+
+    .blog-grid--hero .blog-grid__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .blog-grid.blog-grid--related :global(.talent-card .talent-card__name) {
+      font-size: 1rem;
+    }
+  }
+</style>

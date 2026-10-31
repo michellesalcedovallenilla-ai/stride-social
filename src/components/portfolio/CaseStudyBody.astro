@@ -1,0 +1,111 @@
+---
+// Case study body: sticky campaign image on the left, stats rows and the write-up on the right.
+// The write-up (rendered Markdown) goes in the slot.
+import InfoRows from '@/components/ui/InfoRows.astro';
+import RichText from '@/components/ui/RichText.astro';
+
+export interface Props {
+  image: string;
+  imageAlt?: string;
+  stats: { label: string; value: string }[];
+}
+
+const { image, imageAlt = '', stats } = Astro.props;
+---
+
+<section class="case-body">
+  <div class="case-body__spacer" aria-hidden="true"></div>
+  <div class="case-body__grid">
+    <div class="case-body__media">
+      <img class="case-body__image" src={image} alt={imageAlt} loading="lazy" />
+    </div>
+    <div class="case-body__content">
+      <div class="case-body__stats">
+        {stats.length > 0 && <InfoRows rows={stats} />}
+      </div>
+      <RichText width="full" class="case-body__text"><slot /></RichText>
+    </div>
+  </div>
+</section>
+
+<style>
+  .case-body {
+    position: relative;
+    padding: 0 45px 45px;
+    background-color: var(--color-smoke-2);
+  }
+
+  .case-body__spacer {
+    height: 4rem;
+  }
+
+  .case-body__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .case-body__media {
+    position: sticky;
+    top: 4rem;
+    height: 90vh;
+    overflow: hidden;
+  }
+
+  .case-body__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .case-body__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-self: center;
+    padding: 0 2rem;
+  }
+
+  /* On the live site the closing "At Stride Social…" paragraph is a separate rich-text
+     block: it sits a paragraph margin + block margin + the column gap (35 + 35 + 32px)
+     below the write-up. Paragraph margins collapse here, hence a single 102px. */
+  .case-body__content :global(.case-body__text > p:last-child:not(:first-child)) {
+    margin-top: calc(70px + 2rem);
+  }
+
+  @media screen and (max-width: 991px) {
+    .case-body__media {
+      height: 40vh;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .case-body {
+      padding-left: 25px;
+      padding-right: 25px;
+    }
+
+    .case-body__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .case-body__grid {
+      gap: 3rem;
+    }
+
+    .case-body__media {
+      position: relative;
+      top: 0;
+      height: 30vh;
+    }
+
+    .case-body__content {
+      padding: 0;
+    }
+  }
+</style>

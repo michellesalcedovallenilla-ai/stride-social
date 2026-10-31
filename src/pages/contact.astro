@@ -1,0 +1,91 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MultiStepForm, { type FormStep } from '@/components/editorial/MultiStepForm.astro';
+
+// Copy mirrors the live Webflow form. The live form posts to Webflow's form backend; set
+// PUBLIC_CONTACT_FORM_ACTION to a form endpoint to collect submissions (otherwise the last
+// step opens the visitor's mail app addressed to the team).
+const action = import.meta.env.PUBLIC_CONTACT_FORM_ACTION || null;
+const email = 'team@stride-social.com';
+
+const steps: FormStep[] = [
+  {
+    title: 'your name',
+    text: 'Please fill in the details below so that we can get in contact with you.',
+    fields: [
+      { name: 'First-name', label: 'First name', placeholder: 'First name', required: true },
+      { name: 'Last-name', label: 'Last name', placeholder: 'Last name', required: true },
+    ],
+  },
+  {
+    title: 'Company name',
+    text: 'What is your company name',
+    fields: [{ name: 'Company-name', label: 'Company name', placeholder: 'Company name', required: true }],
+  },
+  {
+    title: 'im interested in ...',
+    choices: {
+      name: 'Interest',
+      label: 'Interest',
+      icon: 'video',
+      options: [
+        { label: 'influencer Activations', value: 'influencer activations' },
+        { label: 'TikTok Shop Support', value: 'TikTok Shop Support' },
+        { label: 'influencer seeding', value: 'influencer seeding' },
+        { label: 'UGC', value: 'UGC' },
+      ],
+    },
+  },
+  {
+    title: 'Contact detials',
+    text: 'What number would you like us to contact you on to continue the chat?',
+    fields: [{ type: 'tel', name: 'Phone', label: 'Phone', placeholder: 'Contact number' }],
+  },
+  {
+    title: 'BUdget',
+    choices: {
+      name: 'Budget',
+      label: 'Budget',
+      icon: 'briefcase',
+      options: [
+        { label: '$2-5k', value: '$2-5k' },
+        { label: '$5-10k', value: '$5-10k' },
+        { label: '$10-20k', value: '$10-20k' },
+        { label: '$20-30k', value: '$20-30k' },
+        { label: '$30-40k', value: '$30-40k' },
+        { label: '$40k+', value: '$40k+' },
+      ],
+    },
+  },
+  {
+    title: 'Additional information',
+    text: 'Please detail what you are looking for so we can help in the best possible way',
+    fields: [{ type: 'textarea', name: 'Message', label: 'Message', placeholder: 'Message', required: true, maxlength: 5000 }],
+  },
+  {
+    title: 'Lastly',
+    text: 'What email would you like us to contact you on to continue the chat?',
+    fields: [{ type: 'email', name: 'Email', label: 'Email', placeholder: 'Work email', required: true }],
+  },
+];
+---
+
+<BaseLayout
+  title="Stride Social | Contact Us"
+  description="If you are a content creator or would like to work with our talent roster then get in touch and we will be happy to work with you"
+  nav="solid"
+  footerCta={null}
+  footer={false}
+  background="smoke"
+>
+  <MultiStepForm
+    id="contact-form"
+    name="Contact form"
+    welcome={{ heading: 'contact us', button: 'get started', link: { label: 'Direct email', href: `mailto:${email}?subject=Web%20enquiry` } }}
+    steps={steps}
+    success={{ image: '/assets/site/e823e54e-party.png', imageAlt: 'Smiley face wearing a red party hat, blowing a blue party horn with colorful confetti around.', title: 'Thanks', text: 'We will be in touch soon' }}
+    error="Oops! Something went wrong while submitting the form."
+    action={action}
+    fallbackEmail={email}
+  />
+</BaseLayout>

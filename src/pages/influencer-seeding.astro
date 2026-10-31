@@ -1,0 +1,45 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MarqueeHero from '@/components/sections/MarqueeHero.astro';
+import LogoTicker from '@/components/sections/LogoTicker.astro';
+import Button from '@/components/ui/Button.astro';
+import SeedingWhy from '@/components/offering/SeedingWhy.astro';
+import StoryLayout from '@/components/offering/StoryLayout.astro';
+import StoryBlock from '@/components/offering/StoryBlock.astro';
+import StoryItem from '@/components/offering/StoryItem.astro';
+import ProofNumbers from '@/components/offering/ProofNumbers.astro';
+import LiveCampaigns from '@/components/offering/LiveCampaigns.astro';
+import { footerCtas } from '@/config/site';
+import seeding from '@/data/offering-seeding.json';
+// WebPage + Service structured data kept as on the live page (logo points at the migrated copy).
+import jsonLd from '@/data/offering-seeding-jsonld.json';
+
+const [whatWeDo, benefits] = seeding.blocks;
+---
+
+<BaseLayout
+  title="Influencer Seeding"
+  description="Start influencer seeding with content creators from all industries today, with the help of Stride Social"
+  nav="transparent"
+  footerCta={footerCtas.seeding}
+  jsonLd={jsonLd}
+>
+  <MarqueeHero tone="dark" title="Influencer Seeding" intro={seeding.hero.intro}>
+    <Button href={seeding.hero.cta.href} variant="light">{seeding.hero.cta.label}</Button>
+  </MarqueeHero>
+
+  <SeedingWhy label={seeding.why.label} html={seeding.why.html} sectors={seeding.why.sectors} />
+
+  <LogoTicker />
+
+  <StoryLayout image={seeding.image} media="clear" card="full" inset={false} top="regular">
+    <StoryBlock variant="block" label={whatWeDo.label} heading={whatWeDo.heading} html={whatWeDo.html} />
+    <StoryBlock variant="block" label={benefits.label} heading={benefits.heading} html={benefits.html} />
+    <StoryBlock variant="heading" label={seeding.process.label} heading={seeding.process.heading} spaced />
+    {seeding.process.steps.map((step) => <StoryItem label={step.label} title={step.title} html={step.html} />)}
+  </StoryLayout>
+
+  <ProofNumbers {...seeding.proof} />
+
+  <LiveCampaigns heading="Live Campaigns" />
+</BaseLayout>

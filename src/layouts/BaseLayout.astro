@@ -1,0 +1,86 @@
+---
+import '@/styles/global.css';
+import Seo from '@/components/ui/Seo.astro';
+import Navbar from '@/components/layout/Navbar.astro';
+import FooterCta, { type FooterCtaProps } from '@/components/layout/FooterCta.astro';
+import Footer from '@/components/layout/Footer.astro';
+import { site } from '@/config/site';
+import { defaultDivision, type DivisionId } from '@/config/divisions';
+
+export interface Props {
+  title: string;
+  description?: string | null;
+  ogImage?: string | null;
+  /** Grey bar with logo (default) or transparent bar for dark-hero pages. */
+  nav?: 'solid' | 'transparent';
+  /** Sticky reveal CTA above the footer; omit for pages that end without it. */
+  footerCta?: FooterCtaProps | null;
+  /** The logo/links footer. Job, contact and sign-up pages on the live site have none. */
+  footer?: boolean;
+  division?: DivisionId;
+  jsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+  /** Background behind the page content (seen in gaps and on short pages). */
+  background?: 'white' | 'navy' | 'smoke';
+}
+
+const {
+  title,
+  description,
+  ogImage,
+  nav = 'solid',
+  footerCta = null,
+  footer = true,
+  division = defaultDivision,
+  jsonLd,
+  noindex,
+  background = 'white',
+} = Astro.props;
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') || '/';
+---
+
+<!doctype html>
+<html lang="en" data-division={division}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <Seo title={title} description={description} ogImage={ogImage} path={path} jsonLd={jsonLd} noindex={noindex} />
+    <link rel="icon" href={site.favicon} type="image/png" />
+    <link rel="apple-touch-icon" href={site.appleTouchIcon} />
+    <slot name="head" />
+  </head>
+  <body class={`bg-${background}`}>
+    <Navbar variant={nav} path={path} />
+    <main class="page-main">
+      <slot />
+    </main>
+    {footerCta && <FooterCta {...footerCta} />}
+    {footer && <Footer />}
+    <script>
+      import { initSmoothScroll } from '@/scripts/smooth-scroll';
+      import { initSplitText } from '@/scripts/split-text';
+      import { initScrollMotion } from '@/scripts/scroll-motion';
+      import { initReveal } from '@/scripts/reveal';
+      initSmoothScroll();
+      initSplitText();
+      initScrollMotion();
+      initReveal();
+    </script>
+  </body>
+</html>
+
+<style>
+  .page-main {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bg-navy {
+    background-color: var(--color-navy);
+  }
+
+  .bg-smoke {
+    background-color: var(--color-smoke-2);
+  }
+</style>

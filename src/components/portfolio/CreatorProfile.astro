@@ -1,0 +1,274 @@
+---
+// Creator profile: portrait on the left (sticky on desktop), facts, relationship heading,
+// bio (slot) and enquiry button on the right.
+import MonoLabel from '@/components/ui/MonoLabel.astro';
+import InfoRows from '@/components/ui/InfoRows.astro';
+import RichText from '@/components/ui/RichText.astro';
+import Button from '@/components/ui/Button.astro';
+import tiktok from './icons/tiktok.svg?raw';
+import x from './icons/x.svg?raw';
+import instagram from './icons/instagram.svg?raw';
+import youtube from './icons/youtube.svg?raw';
+
+export interface Props {
+  name: string;
+  /** null when the creator has no photo (the frame stays empty, as on the live site). */
+  image: string | null;
+  type?: string | null;
+  category?: string | null;
+  followers?: string | null;
+  biggestChannel?: string | null;
+  relationship?: 'managed' | 'ugc-partner';
+  socials?: Record<string, string>;
+}
+
+const { name, image, type, category, followers, biggestChannel, relationship, socials = {} } = Astro.props;
+
+// Same order as the live template.
+const platforms = [
+  { key: 'tiktok', label: 'TikTok', svg: tiktok },
+  { key: 'x', label: 'X', svg: x },
+  { key: 'instagram', label: 'Instagram', svg: instagram },
+  { key: 'youtube', label: 'YouTube', svg: youtube },
+];
+const links = platforms.filter((p) => socials[p.key]).map((p) => ({ ...p, href: socials[p.key] }));
+
+const rows = [
+  { label: 'Category', value: category ?? '' },
+  { label: `${name}'s followers`, value: followers ?? '' },
+  { label: `${name}'s biggest channel`, value: biggestChannel ?? '' },
+];
+
+const statement = relationship === 'managed' ? 'is managed by stride social' : 'is a stride social UGC partner';
+---
+
+<section class="creator">
+  <div class="creator__container">
+    <MonoLabel tone="light">WHO are stride social?</MonoLabel>
+    <div class="creator__grid">
+      <div class="creator__media">
+        {image && <img class="creator__image" src={image} alt={name} />}
+      </div>
+      <div class="creator__content">
+        <div class="creator__heading">
+          {type && <p class="creator__type">{type}</p>}
+          <h1 class="creator__name">{name}</h1>
+        </div>
+        <InfoRows rows={rows} plain>
+          <div class="creator__socials">
+            <dt class="creator__socials-label">{name} socials</dt>
+            <dd class="creator__socials-links">
+              {links.map((l) => (
+                <a class="creator__social" href={l.href} target="_blank" rel="noopener" aria-label={`${name} on ${l.label}`} set:html={l.svg} />
+              ))}
+            </dd>
+          </div>
+        </InfoRows>
+        <h2 class="creator__statement"><span>{name}</span><span>{statement}</span></h2>
+        <RichText class="creator__bio"><slot /></RichText>
+        <Button href="/contact" variant="dark" external>Enquire about this creator</Button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .creator {
+    position: relative;
+    background-color: var(--color-smoke-2);
+  }
+
+  .creator__container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    max-width: var(--container-wide);
+    margin: 0 auto;
+    padding: 3rem 45px 22rem;
+  }
+
+  .creator__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    column-gap: 50px;
+    row-gap: 16px;
+  }
+
+  .creator__media {
+    position: sticky;
+    top: 4rem;
+    height: 90vh;
+    overflow: hidden;
+  }
+
+  .creator__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .creator__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6rem;
+    align-self: center;
+    padding: 21rem 2rem 0;
+  }
+
+  .creator__heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+    max-width: 100%;
+  }
+
+  .creator__type {
+    padding: 6px 12px 4px;
+    border-radius: 0.3em;
+    font-family: var(--font-sans);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--color-text);
+    background-color: var(--accent);
+  }
+
+  .creator__name {
+    max-width: 100%;
+    font-family: var(--font-sans);
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: normal;
+    word-break: break-all;
+    text-transform: uppercase;
+    color: var(--color-navy);
+  }
+
+  .creator__socials {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    border-top: 1px solid var(--color-navy-20);
+    border-bottom: 1px solid var(--color-navy-20);
+  }
+
+  .creator__socials-label {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--color-navy-mute);
+  }
+
+  .creator__socials-links {
+    display: flex;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .creator__social {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.5rem;
+    color: var(--color-navy);
+  }
+
+  .creator__social :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .creator__statement {
+    padding-right: 10.7rem;
+    font-family: var(--font-sans);
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--color-navy);
+  }
+
+  .creator__statement span {
+    margin-right: 10px;
+  }
+
+  @media screen and (max-width: 991px) {
+    .creator__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .creator__media {
+      position: relative;
+      top: auto;
+      height: 60vh;
+    }
+
+    .creator__content {
+      padding: 4rem 0 0;
+    }
+
+    .creator__name {
+      font-size: 4.6rem;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .creator__name {
+      font-size: 10vw;
+    }
+
+    .creator__statement {
+      max-width: 100%;
+      padding-right: 0;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .creator__container {
+      padding: 3rem 20px 12rem;
+    }
+
+    .creator__media {
+      height: 50vh;
+    }
+
+    .creator__content {
+      gap: 4rem;
+    }
+
+    .creator__type {
+      font-size: 0.9rem;
+    }
+
+    .creator__name {
+      width: 100%;
+      font-size: 3.1rem;
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .creator__socials-label {
+      margin-right: 6px;
+      font-size: 0.8rem;
+    }
+
+    .creator__social {
+      width: 1.2rem;
+    }
+
+    .creator__statement {
+      font-size: 2rem;
+      line-height: 1;
+    }
+  }
+</style>

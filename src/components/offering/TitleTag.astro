@@ -1,0 +1,43 @@
+---
+// Ice-blue square + tiny mono caption that sits above headings in the story columns.
+export interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div class:list={['title-tag', className]}>
+  <span class="title-tag__mark" aria-hidden="true"></span>
+  <span class="title-tag__text"><slot /></span>
+</div>
+
+<style>
+  .title-tag {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .title-tag__mark {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    background-color: var(--accent);
+  }
+
+  .title-tag__text {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 400;
+    line-height: 20px;
+    text-transform: uppercase;
+    color: var(--color-text);
+  }
+
+  @media screen and (max-width: 479px) {
+    .title-tag {
+      gap: 1rem;
+    }
+  }
+</style>

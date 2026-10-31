@@ -1,0 +1,62 @@
+/*
+ * Design tokens. Values come from the live site's Webflow variables and styles.
+ * Breakpoints (used literally in media queries, mirroring Webflow):
+ *   tablet  ≤ 991px · mobile landscape ≤ 767px · mobile portrait ≤ 479px
+ */
+:root {
+  /* Brand palette */
+  --color-navy: #06142b;
+  --color-navy-mute: #06142b80;
+  --color-navy-20: #06142b33;
+  --color-ice: #c3f2fb;
+  --color-white: #fff;
+  --color-smoke: #f0f0f0;
+  --color-smoke-2: #ebebeb;
+  --color-line: #dbdbdb;
+  --color-grey: #757575;
+  --color-grey-dark: #999;
+  --color-text: #333;
+  --color-text-strong: #363636;
+  --color-link-current: #0082f3;
+
+  /* Semantic roles (overridden per division below) */
+  --surface-dark: var(--color-navy);
+  --surface-light: var(--color-smoke);
+  --surface-muted: var(--color-smoke-2);
+  --accent: var(--color-ice);
+  --on-accent: var(--color-navy);
+  --on-dark: var(--color-smoke);
+
+  /* Type */
+  --font-sans: 'Inter Variable', Inter, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-alt: 'Mona Sans Variable', 'Mona Sans', system-ui, sans-serif;
+
+  /* Layout */
+  --gutter: 45px;
+  --container-wide: 2200px;
+  --container-med: 1200px;
+  --nav-height: 7.4em;
+  --radius-button: 6px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media screen and (max-width: 479px) {
+  :root {
+    --gutter: 20px;
+    --nav-height: 6.1em;
+  }
+}
+
+/* Division themes: only accent roles change, so every component works in every division. */
+[data-division='talent'] {
+  --accent: #ffd6e7;
+  --on-accent: var(--color-navy);
+}
+
+[data-division='education'] {
+  --accent: #d9f99d;
+  --on-accent: var(--color-navy);
+}

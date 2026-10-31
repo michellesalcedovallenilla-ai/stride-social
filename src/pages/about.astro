@@ -1,0 +1,59 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MarqueeHero from '@/components/sections/MarqueeHero.astro';
+import AboutWho from '@/components/company/AboutWho.astro';
+import AboutStory from '@/components/company/AboutStory.astro';
+import { footerCtas } from '@/config/site';
+import about from '@/data/company-about.json';
+// AboutPage structured data kept as on the live page (images point at the migrated copies).
+import jsonLd from '@/data/company-about-jsonld.json';
+---
+
+<BaseLayout
+  title="Stride Social | About Our Influencer Marketing Agency"
+  description="Stride social provide user generated content and marketing services, find out more about us and how to work with creators"
+  nav="transparent"
+  footerCta={footerCtas.about}
+  jsonLd={[jsonLd]}
+>
+  <MarqueeHero
+    tone="dark"
+    title="About us"
+    intro="Stride Social is a superior creator management & influencer marketing agency, started by two best friends"
+  />
+
+  <AboutWho
+    label="WHO are stride social?"
+    leadStrong={'Stride Group is a dual-force agency home to Stride Social and Stride Talent. Founded by lifelong friends, we bridge the gap between brand strategy and creator growth.\nA Creator-First Legacy.'}
+    lead="Stride was born from the creator community. Being one of the first creator-founded agencies in the space"
+    rows={[
+      { label: 'Industry experience combined', value: '21 years' },
+      { label: 'Paid to influencers since 2021', value: '$5M+' },
+    ]}
+    founders={[
+      {
+        name: 'Ollie Kitson',
+        role: 'Co-founder | Background in building ecom brands',
+        image: '/assets/site/d091383f-ollie-kitson-stride-social.webp',
+        alt: 'Young man with short brown hair wearing a black shirt, standing in an office with a white brick wall and computer monitors in the background.',
+      },
+      {
+        name: 'Alex Hendy',
+        role: 'Co-founder | EX-CREATOR WITH OVER 6M FOLLOWERS',
+        image: '/assets/site/5288f252-alex-hendy-stride-social.webp',
+        alt: 'Young man with short curly hair and beard wearing a light blue shirt, standing in a bright office with computer screens and large windows behind him.',
+      },
+    ]}
+  />
+
+  <AboutStory
+    image={{
+      src: '/assets/site/d0919a45-stride-social.webp',
+      alt: 'Three men smiling and posing with thumbs up in front of a large Insta360 screen showing a racing car on a track.',
+    }}
+    story={{ tag: 'WHO WE ARE', heading: 'Meet the 2 co-founders of Stride Social Alex & Ollie.', body: about.storyBody }}
+    timelineTag="OUR timeline"
+    timelineHeading="Creators first. We know the industry best, because we live it first hand."
+    timeline={about.timeline}
+  />
+</BaseLayout>

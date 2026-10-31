@@ -1,0 +1,151 @@
+---
+// Hero for collection detail pages (case study, blog post, job): tag pill, big title, summary.
+export interface Props {
+  tag?: string | null;
+  title: string;
+  summary?: string | null;
+  /** `long` titles (blog, jobs) use the smaller size and normal word breaking. */
+  size?: 'default' | 'long';
+  /** Pin content to the bottom on phones (blog/jobs). */
+  alignBottom?: boolean;
+}
+
+const { tag, title, summary, size = 'default', alignBottom = false } = Astro.props;
+---
+
+<section class="detail-hero">
+  <div class:list={['detail-hero__wrapper', { 'detail-hero__wrapper--bottom': alignBottom }]}>
+    <div class="detail-hero__content">
+      {tag && <p class="detail-hero__tag">{tag}</p>}
+      <h1 class:list={['detail-hero__title', { 'detail-hero__title--long': size === 'long' }]}>{title}</h1>
+      {summary && <p class="detail-hero__summary">{summary}</p>}
+    </div>
+  </div>
+</section>
+
+<style>
+  .detail-hero {
+    position: relative;
+    z-index: 1;
+    padding-inline: 45px;
+    background-color: var(--color-smoke-2);
+  }
+
+  .detail-hero__wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80vh;
+    padding-top: 3rem;
+  }
+
+  .detail-hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3rem;
+    width: 80vw;
+  }
+
+  .detail-hero__tag {
+    padding: 6px 12px 4px;
+    border-radius: 0.3em;
+    font-family: var(--font-sans);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--color-text);
+    background-color: var(--accent);
+  }
+
+  .detail-hero__title {
+    font-family: var(--font-sans);
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: normal;
+    word-break: break-all;
+    text-transform: uppercase;
+    color: var(--color-navy);
+  }
+
+  .detail-hero__title--long {
+    font-size: 5rem;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-hero__summary {
+    width: 90%;
+    font-family: var(--font-sans);
+    font-size: 2.5em;
+    font-weight: 200;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: var(--color-navy);
+  }
+
+  @media screen and (max-width: 991px) {
+    .detail-hero__title {
+      font-size: 4.6rem;
+    }
+
+    .detail-hero__title--long {
+      font-size: 4.5rem;
+    }
+
+    .detail-hero__summary {
+      font-size: 2em;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .detail-hero {
+      padding-inline: 25px;
+    }
+
+    .detail-hero__title {
+      font-size: 10vw;
+    }
+
+    .detail-hero__title--long {
+      font-size: 3.9rem;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .detail-hero__wrapper {
+      min-height: 70vh;
+      padding-top: 2rem;
+    }
+
+    .detail-hero__wrapper--bottom {
+      justify-content: flex-end;
+    }
+
+    .detail-hero__content {
+      width: 100%;
+    }
+
+    .detail-hero__tag {
+      font-size: 0.9rem;
+    }
+
+    .detail-hero__title {
+      width: 100%;
+      font-size: 3.1rem;
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-hero__title--long {
+      font-size: 11vw;
+    }
+
+    .detail-hero__summary {
+      font-size: 1.4em;
+      line-height: 1.4;
+    }
+  }
+</style>

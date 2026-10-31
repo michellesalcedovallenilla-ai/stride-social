@@ -1,0 +1,107 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Influencer Strategies",
+    "url": "/influencer-strategies",
+    "description": "We provide a range or services and strategies from social media marketing, talent management and google media buying and ads. find out more about our services here",
+    "inLanguage": "en",
+    "about": {
+      "@type": "Organization",
+      "name": "Stride Social",
+      "description": "A wholistic approach to marketing through our services",
+      "url": "https://www.stride-social.com/assets/site/202a2630-stride-social-logo-b.webp",
+      "makesOffer": [
+        {
+          "@type": "Service",
+          "name": "Influencer Activations",
+          "description": "Influencer marketing activations for brand campaigns"
+        },
+        {
+          "@type": "Service",
+          "name": "Influencer Seeding",
+          "description": "Performance-based and cost effective influencer marketing"
+        },
+        {
+          "@type": "Service",
+          "name": "Influencer Affiliate Program",
+          "description": "Influencer affiliate programs and user generated content (UGC)"
+        },
+        {
+          "@type": "Service",
+          "name": "Content Creation for Paid & Organic Socials (UGC)",
+          "description": "User generated content creation for paid and organic social media"
+        },
+        {
+          "@type": "Service",
+          "name": "Mobile Game & App Ambassador Programs",
+          "description": "Influencer ambassador programs for mobile games and apps"
+        },
+        {
+          "@type": "Service",
+          "name": "Social Media Management",
+          "description": "Comprehensive social media management services"
+        },
+        {
+          "@type": "Service",
+          "name": "Brand Influencer Events",
+          "description": "Product launches, brand activations, and influencer relationship building"
+        }
+      ],
+      "review": [
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Organization",
+            "name": "Govee China"
+          },
+          "reviewBody": "Stride Social responses in projects are on time. Our cooperation was very close and they provided a lot of support!"
+        },
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "Justice Buys"
+          },
+          "reviewBody": "Stride Social have been amazing to work with! Not only do they give creators freedom and flexibility, but they are also fun to work with. Looking forward to many years collaborating with them"
+        },
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "Agustina",
+            "affiliation": {
+              "@type": "Organization",
+              "name": "Papaya Gaming"
+            }
+          },
+          "reviewBody": "We've worked with Stride for 2 years. The experience has been amazing. Great supply of creators, huge capabilities for negotiating budgets. Super happy with their service!"
+        },
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "Lilly Guang"
+          },
+          "reviewBody": "It was a pleasure working with Stride, a very efficient, responsive and professional Agency"
+        },
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "Jack Chalmers"
+          },
+          "reviewBody": "Honestly, the best management ever! Always on hand to give you any help you need! Can't recommend enough!"
+        },
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "Sam Shan Shops"
+          },
+          "reviewBody": "Stride has helped me work with some amazing brands. They are a pleasure to work with and recommend them to any other creator!"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,30 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MarqueeHero from '@/components/sections/MarqueeHero.astro';
+import StoryLayout from '@/components/offering/StoryLayout.astro';
+import StoryBlock from '@/components/offering/StoryBlock.astro';
+import StoryItem from '@/components/offering/StoryItem.astro';
+import { footerCtas } from '@/config/site';
+import services from '@/data/offering-services.json';
+// WebPage structured data kept as on the live page (asset URLs point at the migrated copies).
+import jsonLd from '@/data/offering-services-jsonld.json';
+---
+
+<BaseLayout
+  title="Stride Social | Our Services"
+  description="We provide a range or services from social media marketing, talent management and google media buying and ads. find out more about our services here"
+  nav="transparent"
+  footerCta={footerCtas.standard}
+  jsonLd={jsonLd}
+>
+  <MarqueeHero
+    tone="dark"
+    title="Our services"
+    intro="Our services are predominantly Influencer marketing for our global clients and creator management, but its not all we do"
+  />
+
+  <StoryLayout image={services.image} media="navy" card="wide">
+    <StoryBlock label={services.intro.label} heading={services.intro.heading} html={services.intro.html} spaced />
+    {services.items.map((item) => <StoryItem label={item.label} title={item.title} html={item.html} />)}
+  </StoryLayout>
+</BaseLayout>

@@ -1,0 +1,38 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Stride",
+    "url": "https://stride-social.com/home/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://stride-social.com/home/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Stride",
+    "url": "https://stride-social.com/home/",
+    "logo": "https://cdn.prod.website-files.com/641e53d831b1086e897f5f8f/641e541631b1085bf87f635b_Stride%20Icon%20Logo_Full%20Color.png",
+    "sameAs": [
+      "https://www.facebook.com/stridesocial",
+      "https://www.instagram.com/stridesocial",
+      "https://www.linkedin.com/company/stridesocial",
+      "https://twitter.com/stridesocial"
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Stride - A New Way to Connect",
+    "url": "https://stride-social.com/home",
+    "description": "Stride is a new social platform that helps you connect with like-minded individuals based on your interests and passions.",
+    "inLanguage": "en-US",
+    "isPartOf": {
+      "@type": "WebSite",
+      "url": "https://stride-social.com/home/"
+    }
+  }
+]

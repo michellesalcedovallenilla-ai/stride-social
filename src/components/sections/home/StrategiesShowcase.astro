@@ -1,0 +1,206 @@
+---
+// Two rows of giant words that slide in opposite directions with scroll, followed by the
+// "Your brand, powered by the right strategy." statement and headline stats.
+import Button from '../../ui/Button.astro';
+
+export interface Props {
+  topRow: string[];
+  bottomRow: { text: string; highlight?: boolean }[];
+  heading: string;
+  stats: { value: string; label: string }[];
+  cta: { label: string; href: string };
+}
+
+const { topRow, bottomRow, heading, stats, cta } = Astro.props;
+---
+
+<section class="strategies">
+  <div class="strategies__ticker" data-scroll-scope="0.565,1.085">
+    <div class="strategies__row">
+      {topRow.map((word) => <div class="strategies__word strategies__word--light" data-scroll-x="25vw,-80vw">{word}</div>)}
+    </div>
+    <div class="strategies__row strategies__row--bottom">
+      {bottomRow.map((w) => (
+        <div class:list={['strategies__word', { 'strategies__word--highlight': w.highlight }]} data-scroll-x="-160vw,80vw">
+          {w.text}
+        </div>
+      ))}
+    </div>
+  </div>
+  <div class="strategies__body">
+    <div class="container-med strategies__grid">
+      <h2 class="strategies__heading" data-split="scrub-each-word">{heading}</h2>
+      <div class="strategies__stats">
+        {stats.map((s) => (
+          <p class="strategies__stat" data-split="letters-slide-up">
+            <span class="strategies__stat-value">{s.value}</span>
+            {s.label}
+          </p>
+        ))}
+      </div>
+      <Button href={cta.href}>{cta.label}</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .strategies {
+    position: relative;
+    z-index: 1;
+    padding-top: 15vh;
+    overflow: hidden;
+    background-color: var(--color-navy);
+  }
+
+  .strategies__ticker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    padding-top: 8em;
+    padding-bottom: 6em;
+    background-color: var(--color-navy);
+  }
+
+  .strategies__row {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    overflow: hidden;
+  }
+
+  .strategies__row--bottom {
+    position: relative;
+    z-index: 7;
+  }
+
+  .strategies__word {
+    flex: none;
+    font-family: var(--font-sans);
+    font-size: 10.8em;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+
+  .strategies__word--light {
+    font-weight: 400;
+    transform: translateX(25vw);
+  }
+
+  .strategies__row--bottom .strategies__word {
+    transform: translateX(-160vw);
+  }
+
+  .strategies__word--highlight {
+    color: var(--accent);
+  }
+
+  .strategies__body {
+    padding-bottom: 10rem;
+    background-color: var(--color-navy);
+  }
+
+  .strategies__grid {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+  }
+
+  .strategies__heading {
+    max-width: 49rem;
+    font-family: var(--font-sans);
+    font-size: 8em;
+    font-weight: 900;
+    line-height: 0.9;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+
+  .strategies__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    place-items: center;
+    gap: 5.7rem 4rem;
+    max-width: 70%;
+    padding-top: 4em;
+    padding-bottom: 4em;
+  }
+
+  .strategies__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+  }
+
+  .strategies__stat-value {
+    color: var(--accent);
+  }
+
+  @media screen and (max-width: 991px) {
+    .strategies__stats {
+      gap: 5.7rem 1.1rem;
+      max-width: 90%;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .strategies__ticker {
+      padding-top: 3em;
+      padding-bottom: 3em;
+    }
+
+    .strategies__word {
+      font-size: 7em;
+    }
+
+    .strategies__heading {
+      font-size: 6em;
+    }
+
+    .strategies__stat {
+      font-size: 1.3rem;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .strategies {
+      padding-top: 5vh;
+    }
+
+    .strategies__word {
+      font-size: 6em;
+    }
+
+    .strategies__body {
+      padding-bottom: 6rem;
+    }
+
+    .strategies__heading {
+      font-size: 14vw;
+    }
+
+    .strategies__stats {
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      max-width: 70%;
+    }
+
+    .strategies__stat {
+      font-size: 1.1rem;
+      line-height: 1.2;
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+// Infinite horizontal loop. The slot is rendered twice; each copy slides by its own width.
+// `duration` is the time for one copy to pass (the live site loops tickers every ~35s).
+export interface Props {
+  duration?: number;
+  gap?: string;
+  reverse?: boolean;
+  class?: string;
+}
+
+const { duration = 35, gap = '2.5rem', reverse = false, class: className, ...rest } = Astro.props;
+---
+
+<div class:list={['marquee', className, { 'marquee--reverse': reverse }]} style={`--marquee-duration: ${duration}s; --marquee-gap: ${gap};`} {...rest}>
+  <div class="marquee__track">
+    <slot />
+  </div>
+  <div class="marquee__track" aria-hidden="true">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .marquee {
+    display: flex;
+    gap: var(--marquee-gap);
+    overflow: hidden;
+  }
+
+  .marquee__track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--marquee-gap);
+    animation: marquee var(--marquee-duration) linear infinite;
+  }
+
+  .marquee--reverse .marquee__track {
+    animation-direction: reverse;
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(calc(-100% - var(--marquee-gap)));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track {
+      animation: none;
+    }
+  }
+</style>

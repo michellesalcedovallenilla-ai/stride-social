@@ -1,0 +1,27 @@
+# Dependencies and build output
+node_modules/
+dist/
+.astro/
+
+# Environment and secrets (set these in the host's dashboard instead)
+.env
+.env.*
+!.env.example
+
+# Local Phase 1 backup copy (kept on disk, never committed; Phase 1 is tagged `phase-1-recreation`)
+duplicade-stride/
+
+# Hosting CLIs
+.vercel/
+.netlify/
+.wrangler/
+
+# Test and tool output
+playwright-report/
+test-results/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

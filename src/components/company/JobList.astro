@@ -1,0 +1,161 @@
+---
+// Careers: open roles as grey rows (location · title) linking to the job pages, followed by
+// the "Don't see a role that suits you?" note.
+export interface Job {
+  href: string;
+  title: string;
+  location: string | null;
+}
+
+export interface Props {
+  jobs: Job[];
+  noteHeading: string;
+  noteText: string;
+  email: string;
+}
+
+const { jobs, noteHeading, noteText, email } = Astro.props;
+---
+
+<section class="job-list">
+  <div class="job-list__inner">
+    <ul class="job-list__grid" role="list">
+      {jobs.map((job) => (
+        <li>
+          <a class="job-row" href={job.href}>
+            <span class="job-row__location">{job.location}</span>
+            <span class="job-row__title">{job.title}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<div class="job-note">
+  <div class="job-note__inner">
+    <p class="job-note__text">
+      <strong>{noteHeading}<br /><br /></strong>{noteText} <a href={`mailto:${email}`}>{email}</a>
+    </p>
+  </div>
+</div>
+
+<style>
+  .job-list,
+  .job-note {
+    position: relative;
+    z-index: 4;
+    background-color: var(--color-smoke-2);
+  }
+
+  .job-list__inner,
+  .job-note__inner {
+    padding: 0 45px 3rem;
+  }
+
+  .job-list__grid {
+    display: grid;
+    grid-template-columns: minmax(0, auto);
+    justify-content: center;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .job-row {
+    display: grid;
+    grid-template-columns: 0.25fr 1fr;
+    align-items: center;
+    gap: 16px;
+    min-width: 56em;
+    height: 100%;
+    padding: 1.5rem;
+    color: var(--color-navy);
+    background-color: var(--color-line);
+  }
+
+  .job-row__location {
+    line-height: 20px;
+    color: var(--color-navy-mute);
+  }
+
+  .job-row__title {
+    justify-self: end;
+    font-size: 1.2rem;
+    line-height: 1.4;
+  }
+
+  .job-note {
+    padding-block: 4rem;
+  }
+
+  .job-note__inner {
+    display: flex;
+    justify-content: center;
+  }
+
+  .job-note__text {
+    max-width: 50ch;
+    margin-left: 45px;
+    font-family: var(--font-sans);
+    font-size: 1.3em;
+    font-weight: 300;
+    line-height: 1.3;
+    letter-spacing: -0.028em;
+    text-align: center;
+    color: var(--color-navy-mute);
+  }
+
+  .job-note__text strong {
+    font-weight: 700;
+  }
+
+  @media screen and (max-width: 991px) {
+    .job-row {
+      min-width: 50em;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .job-list__inner,
+    .job-note__inner {
+      padding-inline: 1rem;
+    }
+
+    .job-list__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .job-row {
+      width: 100%;
+      min-width: 42em;
+    }
+
+    .job-row__title {
+      font-size: 1rem;
+    }
+
+    .job-note__text {
+      margin-left: 0;
+      font-size: 1.6em;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .job-list__inner,
+    .job-note__inner {
+      padding-bottom: 6rem;
+    }
+
+    .job-row {
+      align-items: start;
+      min-width: 90vw;
+    }
+
+    .job-note__text {
+      font-size: 1.15em;
+      line-height: 1.4;
+    }
+  }
+</style>

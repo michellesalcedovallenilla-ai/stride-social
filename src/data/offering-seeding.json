@@ -1,0 +1,106 @@
+{
+  "hero": {
+    "intro": "Put your product in the hands of creators and earn trust, build content and drive conversions",
+    "cta": {
+      "label": "Book an intro call",
+      "href": "https://calendly.com/alexfromstride/consultation-chat"
+    }
+  },
+  "why": {
+    "label": "About influencer seeding",
+    "html": "<strong>Why You Can’t Afford To Ignore Influencer Seeding In 2025<br /></strong>Influencer seeding is no longer a “nice to have” marketing strategy, it has become a non-negotiable growth channel for modern brands",
+    "sectors": [
+      "Tech",
+      "Lifestyle / Travel",
+      "Fashion / Beauty",
+      "FMCG"
+    ]
+  },
+  "image": {
+    "src": "/assets/site/c28b521e-post-this-linkedin.avif",
+    "alt": "Three smartphone screens displaying promotional content—cosmetics sale, donut ideas, and new sound experience—with three badges below for top influencer marketing and TikTok talent management agencies in 2024 and 2025."
+  },
+  "blocks": [
+    {
+      "label": "What we do",
+      "heading": "Our carefully crafted strategy for success",
+      "html": "Fully managed, end-to-end influencer seeding campaigns built to scale, optimised for performance, and backed by creators that convert. <br /><br /><strong>Creator sourcing and verification</strong> - we don’t just find creators, we vet them for quality, alignment, and authenticity so you get the right content from the right people<br /><br /><strong>Content management</strong> - every piece of content delivered, approved, and organised so your UGC is ready for repurposing across ads, email, and socials.<br /><br /><strong>Campaign strategy</strong> - from identifying goals to building seeding waves, we develop strategic campaigns that turn creators content into real business outcomes.<br /><br /><strong>Outreach &amp; relationship management</strong> - we handle every DM, email, and follow-up, managing creator relationships so you don’t have to lift a finger.<br /><br /><strong>Analytical tracking &amp; reporting</strong> - custom dashboards, campaign insights, and data that actually means something. We track what matters and optimise what performs."
+    },
+    {
+      "label": "WHY SEEDING?",
+      "heading": "The Benefits of seeding",
+      "html": "Influencer seeding; sending free products to carefully selected influencers, has many benefits:<br /><br /><strong>Cost-Effective</strong> - save money on paid campaigns and stick with a low-risk strategy.<br /><br /><strong>Build Trust</strong> - gain authentic brand credibility which builds genuine, loyal customers.<br />‍<br /><strong>Relationship Building</strong> - open the door for long-term partnerships with creators who represent your target customer.<br /><br /><strong>UGC</strong> - gain high quality content which can be repurposed for all paid and organic marketing channels.<br /><br /><strong>Scalability </strong>- drive reach into highly engaged audiences within your niche.<br /><br /><strong>Increase Sales</strong> - one gifted influencer can convert into numerous sales.<br /><br />‍<br /><br />‍<br />‍"
+    }
+  ],
+  "process": {
+    "label": "How it works",
+    "heading": "Our process for seeding is unique",
+    "steps": [
+      {
+        "label": "01",
+        "title": "Discovery Call",
+        "html": "We start by understanding your brand,<br />goals, and ideal customer so we can design a campaign that aligns with what actually matters to you."
+      },
+      {
+        "label": "02",
+        "title": "Custom campaign & strategy",
+        "html": "No copy-paste templates here. We build a tailored strategy and seeding flow designed around your budget, brand voice, and marketing objectives."
+      },
+      {
+        "label": "03",
+        "title": "Creator identification & connection",
+        "html": "We source and connect with curated, verified creators who match your audience and handle all communication, from pitch to post.<br />"
+      },
+      {
+        "label": "04",
+        "title": "Campaign execution",
+        "html": "You’ll get clear, actionable insights on reach, engagement, content quality, and more so we can optimise for performance and scale.<br />"
+      },
+      {
+        "label": "05",
+        "title": "Reporting & optimisation",
+        "html": "We take care of all the data and organise it into easy to digest wins, prenseted in a way any person in the business can understand."
+      },
+      {
+        "label": "06",
+        "title": "Ongoing & affiliate marketing setup",
+        "html": "Turn organic buzz into long-term growth, with affiliate frameworks that reward top creators and build high-performing partnerships.<br />"
+      }
+    ]
+  },
+  "proof": {
+    "heading": "Don't just take our word for it",
+    "body": "Platterbox; a premium ready-to-serve platter brand, partnered with Stride Social to generate authentic content and drive new customer acquisition through organic influencer seeding.",
+    "cta": {
+      "label": "Start today",
+      "href": "/contact"
+    },
+    "statsLabel": "In numbers",
+    "stats": [
+      {
+        "value": "30",
+        "label": "Influencers used",
+        "note": "To organically spread the brand message on socials"
+      },
+      {
+        "value": "1m+",
+        "label": "Combined Views",
+        "note": "for the seeded content across the main channels"
+      },
+      {
+        "value": "$38k",
+        "label": "In Sales",
+        "note": "Directly attributed to the user generated content"
+      },
+      {
+        "value": "$65k+",
+        "label": "EMV",
+        "note": "Once the campaign had run its course"
+      }
+    ],
+    "image": {
+      "src": "/assets/site/21d8c635-496628485_17906070378140787_2593655348679630431_n.avif",
+      "alt": "Person carrying a white compartmentalized picnic box with assorted snacks outdoors."
+    }
+  }
+}

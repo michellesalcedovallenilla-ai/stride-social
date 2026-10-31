@@ -1,0 +1,268 @@
+---
+// Fixed top bar: logo, locale switcher and the square "+" button that expands into the
+// site menu. `solid` pages get the grey bar with logo; dark-hero pages use `transparent`.
+// The bar slides away on scroll down and returns on scroll up (src/scripts/navbar.ts).
+import { site, primaryNav, secondaryNav, socials } from '@/config/site';
+import LocaleSwitcher from './LocaleSwitcher.astro';
+import SocialIcon from '../ui/SocialIcon.astro';
+
+export interface Props {
+  variant?: 'solid' | 'transparent';
+  path: string;
+}
+
+const { variant = 'solid', path } = Astro.props;
+const isHome = path === '/';
+const isCurrent = (href: string) => (href === '/' ? isHome : path === href || path.startsWith(href + '/'));
+---
+
+<header class:list={['navbar', `navbar--${variant}`, { 'navbar--home': isHome }]} data-navbar>
+  {variant === 'solid' && (
+    <a class="navbar__brand" href="/" aria-label={`${site.name} home`}>
+      <img src={site.logo.src} alt={site.logo.alt} width="122" height="50" />
+    </a>
+  )}
+
+  <LocaleSwitcher path={path} />
+
+  <div class="navbar__menu" data-menu>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Open menu" data-menu-toggle>
+      <svg class="menu-toggle__icon" viewBox="0 0 34 34" aria-hidden="true">
+        <rect y="14" width="34" height="5" fill="currentColor"></rect>
+        <rect x="14" width="5" height="34" fill="currentColor"></rect>
+      </svg>
+    </button>
+
+    <div class="menu-panel" id="site-menu" data-menu-panel>
+      <nav class="menu-panel__nav" aria-label="Main">
+        {primaryNav.map((link) => (
+          <a class:list={['menu-panel__link', { 'is-current': isCurrent(link.href) }]} href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+            {link.label}
+          </a>
+        ))}
+      </nav>
+      <nav class="menu-panel__sub" aria-label="More">
+        {secondaryNav.map((link) => <a class="menu-panel__sublink" href={link.href}>{link.label}</a>)}
+      </nav>
+      <div class="menu-panel__social">
+        {socials.map((s) => <SocialIcon {...s} tone="light" />)}
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .navbar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 999;
+    height: var(--nav-height);
+    font-size: 14px;
+    transition: transform 0.45s var(--ease-out);
+  }
+
+  .navbar.is-hidden:not(.is-open) {
+    transform: translateY(calc(-1 * var(--nav-height)));
+  }
+
+  .navbar--solid {
+    background-color: var(--color-smoke-2);
+  }
+
+  .navbar__brand {
+    position: absolute;
+    top: 0;
+    left: var(--gutter);
+    display: flex;
+    align-items: center;
+    height: 8em;
+    padding-right: 15px;
+  }
+
+  .navbar--home .navbar__brand {
+    top: 15px;
+    height: 5em;
+    padding-right: 0;
+  }
+
+  .navbar__brand img {
+    height: 50px;
+    width: auto;
+  }
+
+  .navbar__menu {
+    position: absolute;
+    top: 15px;
+    right: var(--gutter);
+  }
+
+  .menu-toggle {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    color: var(--color-white);
+    background-color: var(--color-navy);
+  }
+
+  .menu-toggle__icon {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  .is-open .menu-toggle__icon {
+    transform: rotate(45deg) scale(1.38);
+  }
+
+  /* Panel grows out of the button's square. */
+  .menu-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 34em;
+    height: 50em;
+    padding: 6em 10px 10px;
+    background-color: var(--color-navy);
+    clip-path: inset(0 0 calc(100% - 4rem) calc(100% - 4rem));
+    visibility: hidden;
+    transition:
+      clip-path 0.6s var(--ease-out),
+      visibility 0s linear 0.6s;
+  }
+
+  .is-open .menu-panel {
+    clip-path: inset(0 0 0 0);
+    visibility: visible;
+    transition:
+      clip-path 0.6s var(--ease-out),
+      visibility 0s;
+  }
+
+  .menu-panel__nav,
+  .menu-panel__sub {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+  }
+
+  .menu-panel__link {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-family: var(--font-sans);
+    font-size: 4em;
+    font-weight: 900;
+    line-height: 2.6rem;
+    text-align: right;
+    text-transform: uppercase;
+    color: var(--color-white);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+
+  .menu-panel__link.is-current {
+    color: var(--color-link-current);
+  }
+
+  .menu-panel__link:hover {
+    border-radius: 0;
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .menu-panel__sub {
+    flex: 1;
+    padding-top: 0.6em;
+  }
+
+  .menu-panel__sublink {
+    width: 100%;
+    padding: 4px 20px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    text-align: right;
+    color: #ffffff80;
+  }
+
+  .menu-panel__sublink:hover {
+    color: var(--accent);
+  }
+
+  .menu-panel__social {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    padding-right: 10px;
+  }
+
+  .menu-panel > * {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 0.3s,
+      transform 0.3s;
+  }
+
+  .is-open .menu-panel > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.4s 0.25s,
+      transform 0.5s 0.25s var(--ease-out);
+  }
+
+  @media screen and (max-width: 479px) {
+    .navbar__brand {
+      left: 15px;
+      height: 7.5em;
+      padding-right: 25px;
+    }
+
+    .navbar--home .navbar__brand {
+      height: 3.9em;
+    }
+
+    .navbar__brand img {
+      height: 35px;
+    }
+
+    .navbar__menu {
+      right: 15px;
+      width: 91%;
+    }
+
+    .menu-toggle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 3.5rem;
+      height: 3.5rem;
+    }
+
+    .menu-panel {
+      width: 100%;
+      height: 41em;
+      clip-path: inset(0 0 calc(100% - 3.5rem) calc(100% - 3.5rem));
+    }
+
+    .menu-panel__link {
+      font-size: 2.5em;
+    }
+  }
+</style>
+
+<script>
+  import { initNavbar } from '@/scripts/navbar';
+  initNavbar();
+</script>

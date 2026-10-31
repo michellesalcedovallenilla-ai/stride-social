@@ -1,0 +1,90 @@
+---
+// "Live campaigns" strip: creator videos (muted, looping) on a continuous left-moving marquee
+// that pauses on hover. Shared by Influencer seeding and Influencer strategies.
+import Marquee from '@/components/ui/Marquee.astro';
+
+export interface Props {
+  heading: string;
+}
+
+const { heading } = Astro.props;
+
+// Same clips, in the same order, as the live page.
+const videos = ['f2fc912c-video1', 'c5e52ea3-video-2', '975b7aac-vid-6', 'd70d322e-video4', 'fccbe600-video-5'];
+---
+
+<section class="live">
+  <h2 class="live__title">{heading}</h2>
+  <div class="live__strip">
+    <Marquee duration={8} gap="12px">
+      {videos.map((v) => (
+        <div class="live__video">
+          <video autoplay muted loop playsinline preload="metadata" poster={`/assets/site/${v}-poster-00001.jpg`}>
+            <source src={`/assets/video/${v}-transcode.mp4`} type="video/mp4" />
+            <source src={`/assets/video/${v}-transcode.webm`} type="video/webm" />
+          </video>
+        </div>
+      ))}
+    </Marquee>
+  </div>
+</section>
+
+<style>
+  .live {
+    position: relative;
+    z-index: 1;
+    padding: 3rem 0;
+    background-color: var(--color-smoke);
+  }
+
+  .live__title {
+    margin-bottom: 3rem;
+    font-family: var(--font-alt);
+    font-size: 4rem;
+    font-weight: 400;
+    line-height: 0.89;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--color-text);
+  }
+
+  .live__strip {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .live__strip :global(.marquee__track) {
+    animation-delay: 0.5s;
+  }
+
+  .live__strip:hover :global(.marquee__track) {
+    animation-play-state: paused;
+  }
+
+  .live__video {
+    position: relative;
+    flex: none;
+    width: 27rem;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+  }
+
+  .live__video video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  @media screen and (max-width: 479px) {
+    .live__title {
+      font-size: 2.5rem;
+    }
+
+    .live__video {
+      width: 22rem;
+    }
+  }
+</style>

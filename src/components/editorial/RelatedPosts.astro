@@ -1,0 +1,62 @@
+---
+// "more..." heading and the 4-up list of other posts under an article.
+import BlogCardGrid, { type BlogCard } from './BlogCardGrid.astro';
+
+export interface Props {
+  heading?: string;
+  cards: BlogCard[];
+}
+
+const { heading = 'more...', cards } = Astro.props;
+---
+
+<div class="related">
+  <div class="related__heading-wrap">
+    <h2 class="related__heading">{heading}</h2>
+  </div>
+  <BlogCardGrid cards={cards} layout="related" headingLevel="h3" />
+</div>
+
+<style>
+  .related__heading-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding-top: 2em;
+    overflow: hidden;
+  }
+
+  .related__heading {
+    font-family: var(--font-sans);
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--color-navy);
+  }
+
+  @media screen and (max-width: 991px) {
+    .related__heading {
+      font-size: 4.6rem;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .related__heading {
+      font-size: 10vw;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .related__heading-wrap {
+      justify-content: space-around;
+      padding-top: 10px;
+    }
+
+    .related__heading {
+      width: 100%;
+      font-size: 3.1rem;
+    }
+  }
+</style>

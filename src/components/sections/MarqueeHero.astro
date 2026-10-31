@@ -1,0 +1,150 @@
+---
+// Inner-page hero: the page title as a giant looping ticker with a short intro below.
+// Used by About, Services, Seeding, Strategies, Case studies, Creators, Team, Blog, Careers.
+import Marquee from '../ui/Marquee.astro';
+
+export interface Props {
+  title: string;
+  intro?: string;
+  tone?: 'dark' | 'light';
+  /** Smaller minimum height used by a couple of pages. */
+  compact?: boolean;
+}
+
+const { title, intro, tone = 'light', compact = false } = Astro.props;
+---
+
+<section class:list={['marquee-hero', `marquee-hero--${tone}`, { 'marquee-hero--compact': compact }]}>
+  <div class="marquee-hero__inner">
+    <h1 class="visually-hidden">{title}</h1>
+    <div class="marquee-hero__ticker" aria-hidden="true">
+      <Marquee duration={8} gap="12px">
+        <span class="marquee-hero__title">{title}</span>
+      </Marquee>
+    </div>
+    {intro && (
+      <div class="marquee-hero__intro">
+        <p>{intro}</p>
+      </div>
+    )}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .marquee-hero {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .marquee-hero--light {
+    background-color: var(--color-smoke-2);
+    color: var(--color-navy);
+  }
+
+  .marquee-hero--dark {
+    background-color: var(--color-navy);
+    color: var(--color-smoke);
+  }
+
+  .marquee-hero__inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4em;
+    min-height: 90vh;
+    padding-top: 9em;
+    padding-bottom: 4em;
+  }
+
+  .marquee-hero--compact .marquee-hero__inner {
+    min-height: 70vh;
+  }
+
+  .marquee-hero__ticker {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .marquee-hero__ticker :global(.marquee) {
+    width: 120%;
+  }
+
+  .marquee-hero__title {
+    margin-right: 2rem;
+    font-family: var(--font-sans);
+    font-size: 19.5rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  .marquee-hero__intro {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding-left: 45px;
+  }
+
+  .marquee-hero__intro p {
+    max-width: 30ch;
+    font-family: var(--font-sans);
+    font-size: 1.3em;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: -0.028em;
+    text-align: center;
+    color: var(--color-navy-mute);
+  }
+
+  .marquee-hero--dark .marquee-hero__intro p {
+    color: var(--color-smoke);
+  }
+
+  @media screen and (max-width: 991px) {
+    .marquee-hero__inner {
+      min-height: 70dvh;
+      padding: 9em 30px 60px;
+    }
+
+    .marquee-hero__title {
+      font-size: 120px;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .marquee-hero__inner {
+      padding-left: 22px;
+      padding-right: 0;
+    }
+
+    .marquee-hero__intro {
+      padding-left: 0;
+    }
+
+    .marquee-hero__intro p {
+      font-size: 1.6em;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .marquee-hero__inner {
+      padding-bottom: 45px;
+      padding-left: 0;
+    }
+
+    .marquee-hero__title {
+      font-size: 18vw;
+    }
+
+    .marquee-hero__intro p {
+      font-size: 1.15em;
+      line-height: 1.4;
+    }
+  }
+</style>

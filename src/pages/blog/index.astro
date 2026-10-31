@@ -1,0 +1,42 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MarqueeHero from '@/components/sections/MarqueeHero.astro';
+import BlogCardGrid from '@/components/editorial/BlogCardGrid.astro';
+import { getPosts, toCard } from '@/components/editorial/blog';
+import { footerCtas } from '@/config/site';
+// Kept identical to the live page (a hand-written block listing only the oldest posts).
+import jsonLd from '@/data/editorial-blog-jsonld.json';
+
+const posts = await getPosts();
+const featured = posts.filter((p) => p.data.featured).map((p) => toCard(p, 'long'));
+const rest = posts.filter((p) => !p.data.featured).map((p) => toCard(p, 'short'));
+---
+
+<BaseLayout
+  title="Stride Social | Our Blog"
+  description="Some of our latest user-generated content, social media marketing campaigns and news from the industry. Our agency works with the best creators to produce the very best adverts"
+  nav="solid"
+  footerCta={footerCtas.standard}
+  background="smoke"
+  jsonLd={jsonLd}
+>
+  <MarqueeHero title="Our blog" intro="Industry news and information from the world of user generated content and marketing" tone="light" />
+
+  <section class="blog-list" aria-label="Blog posts">
+    <BlogCardGrid cards={featured} layout="hero" />
+    <BlogCardGrid cards={rest} layout="small" />
+  </section>
+</BaseLayout>
+
+<style>
+  .blog-list {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: var(--color-smoke-2);
+  }
+</style>
