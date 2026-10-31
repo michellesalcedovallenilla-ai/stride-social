@@ -74,7 +74,7 @@ seo:
 <p>Pro Tip: Prioritize authentic storytelling over polished advertisements. Audiences engage 2.5 times more with content showing real product use in everyday contexts than with studio-produced brand commercials, even if the latter features higher production budgets.</p>
 <h2 id="common-influencer-types-and-their-definitions">Common Influencer Types and Their Definitions</h2>
 <p>Influencer tiers segment creators by follower count and audience engagement patterns. Nano-influencers maintain 1,000 to 10,000 followers with highly engaged niche communities. Micro-influencers command 10,000 to 100,000 followers, delivering <a href="/blog/influencer-marketing-trends-2026-en">micro-influencers have an average 3.86% engagement rate, higher than 2.4% for macro-influencers</a>. Macro-influencers reach 100,000 to 1 million followers, providing broad awareness. Celebrity influencers exceed 1 million followers, offering massive reach with lower engagement percentages.</p>
-<p><img src="/assets/cms/efa0883c-1772528650431_infographic-showing-influencer-types-and-metrics_vgf9cxe-_upxclrezfeey.png" alt="Infographic showing influencer types and metrics" loading="lazy"></p>
+<p><img src="/assets/cms/efa0883c-1772528650431-infographic-showing-influence.png" alt="Infographic showing influencer types and metrics" loading="lazy"></p>
 <table>
 <thead>
 <tr>

@@ -9,7 +9,7 @@ socials:
   tiktok: "https://www.tiktok.com/@sarah.colussi"
   instagram: "https://www.instagram.com/sarah.colussi/"
 order: 179
-image: "/assets/cms/75ecabd9-344738671_955964322525187_1915884200315020873_n.webp"
+image: "/assets/cms/75ecabd9-344738671-955964322525187-1915884200315020.webp"
 profile: true
 seo: 
   title: "sarah.colussi is managed by Stride Social"

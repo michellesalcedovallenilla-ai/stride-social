@@ -81,7 +81,7 @@ seo:
 </ul>
 <p><a href="https://www.sciencedirect.com/science/article/pii/S0969698922002429" rel="nofollow">Authentic, humorous, and relatable content from micro and macro-influencers tends to be most effective</a> in engaging Gen Z on TikTok, particularly when it drives genuine purchase decisions.</p>
 <p>For most marketing managers at e-commerce brands, micro-influencers deliver the best ROI. They offer authenticity without the astronomical price tags.</p>
-<p><img src="/assets/cms/13800d59-1771662534827_infographic-of-tiktok-influencer-size-categories_wq4bm8o7jtbic4zwokcs1.png" alt="Infographic of TikTok influencer size categories" loading="lazy"></p>
+<p><img src="/assets/cms/13800d59-1771662534827-infographic-of-tiktok-influen.png" alt="Infographic of TikTok influencer size categories" loading="lazy"></p>
 <p>Here is a comparison of TikTok influencer categories, outlining their typical impact and best brand use cases:</p>
 <table>
 <thead>

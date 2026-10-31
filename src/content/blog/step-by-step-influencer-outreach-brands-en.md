@@ -158,7 +158,7 @@ seo:
 <li>Develop iterative improvement strategies</li>
 </ol>
 <p>Regular performance reviews allow you to refine your influencer marketing approach dynamically, ensuring your campaigns remain agile and effective.</p>
-<p><img src="/assets/cms/6f7141b4-1771470280775_infographic-with-five-influencer-outreach-steps_y38c__6uwbdoeadiz6s9p.png" alt="Infographic with five influencer outreach steps" loading="lazy"></p>
+<p><img src="/assets/cms/6f7141b4-1771470280775-infographic-with-five-influen.png" alt="Infographic with five influencer outreach steps" loading="lazy"></p>
 <p>Below is a comparison of performance metrics to monitor during and after influencer campaigns:</p>
 <table>
 <thead>

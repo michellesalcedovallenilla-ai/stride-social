@@ -115,7 +115,7 @@ seo:
 <p>Nano and micro-influencers achieve higher engagement rates and more authentic content than mega-influencers. Their smaller audiences enable genuine conversations and community building. Followers perceive these creators as relatable peers rather than distant celebrities.</p>
 <p><img src="/assets/cms/c88b98e3-1772620079839_image.png" alt="Nano influencer demos product in kitchen" loading="lazy"></p>
 <p>Smaller influencers deliver superior trust levels because audiences view their recommendations as genuine. When a nano-influencer endorses your product, their 5,000 followers believe the recommendation stems from actual experience. Conversely, mega-influencer endorsements often appear transactional.</p>
-<p><img src="/assets/cms/c88b98e6-1772620100064_infographic-comparing-nano-influencer-engagement_6apgem-1_xgzjk8qvm0kh.png" alt="Infographic comparing nano influencer engagement" loading="lazy"></p>
+<p><img src="/assets/cms/c88b98e6-1772620100064-infographic-comparing-nano-in.png" alt="Infographic comparing nano influencer engagement" loading="lazy"></p>
 <table>
 <thead>
 <tr>

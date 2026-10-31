@@ -7,12 +7,12 @@ dateLabel: "April 16, 2026"
 author: "Alex Hendy"
 order: 3
 featured: false
-cardImage: "/assets/cms/b42d9468-1773415823188_influencer-planning-at-airport-cafe-with-tablet.png"
-asideImage: "/assets/cms/b42d946b-1773415823188_influencer-planning-at-airport-cafe-with-tablet.png"
+cardImage: "/assets/cms/b42d9468-1773415823188-influencer-planning-at-airpor.png"
+asideImage: "/assets/cms/b42d946b-1773415823188-influencer-planning-at-airpor.png"
 seo: 
   title: "How to launch a travel influencer campaign in 2026"
   description: "Learn how to launch successful travel influencer campaigns in 2026 with this step-by-step guide covering strategy, execution, and ROI measurement for brand growth."
-  ogImage: "/assets/cms/b42d9468-1773415823188_influencer-planning-at-airport-cafe-with-tablet.png"
+  ogImage: "/assets/cms/b42d9468-1773415823188-influencer-planning-at-airpor.png"
 ---
 <p></p><p>Travel brands face an unprecedented challenge in 2026: capturing the attention of millennials and Gen Z travellers who turn to social media first for destination inspiration and booking decisions. Traditional advertising falls flat with these audiences, who crave authentic experiences shared by trusted voices. This guide provides a practical, step-by-step framework for launching travel influencer campaigns that drive measurable brand visibility, engagement, and bookings through strategic partnerships with content creators.</p>
 <h2 id="key-takeaways">Key takeaways</h2>
@@ -54,9 +54,9 @@ seo:
 <p><strong>Pro Tip:</strong> Analyse your target audience’s preferred platforms before selecting influencers. Gen Z dominates TikTok for quick inspiration, whilst millennials often use Instagram for deeper destination research and booking links.</p>
 <h2 id="preparing-a-successful-travel-influencer-campaign">Preparing a successful travel influencer campaign</h2>
 <p>Successful campaigns begin long before the first post goes live. Preparation separates effective partnerships from wasted budgets and damaged reputations. Start by defining clear, measurable goals that align with broader marketing objectives. Are you launching a new destination route? Increasing bookings during off-peak seasons? Building brand awareness in a new market? Each goal requires different influencer types, content formats, and success metrics.</p>
-<p><img src="/assets/cms/b42d9495-1773415835891_infographic-illustrating-campaign-steps-and-workflow.png" alt="Infographic illustrating campaign steps and workflow" loading="lazy"></p>
+<p><img src="/assets/cms/b42d9495-1773415835891-infographic-illustrating-camp.png" alt="Infographic illustrating campaign steps and workflow" loading="lazy"></p>
 <p>Selecting the right influencer tier dramatically impacts results. Micro-influencers, typically those with 10,000 to 100,000 followers, consistently outperform larger creators in engagement rates. Their audiences are more tightly knit communities rather than broad, impersonal followings. A micro-influencer specialising in sustainable travel will connect more authentically with eco-conscious travellers than a generic lifestyle macro-influencer.</p>
-<p><img src="/assets/cms/b42d9492-1773415788251_marketers-reviewing-influencer-profiles-at-desk.png" alt="Marketers reviewing influencer profiles at desk" loading="lazy"></p>
+<p><img src="/assets/cms/b42d9492-1773415788251-marketers-reviewing-influence.png" alt="Marketers reviewing influencer profiles at desk" loading="lazy"></p>
 <p>Vetting influencers thoroughly protects your brand from costly mistakes. A <a href="https://link.springer.com/chapter/10.1007/978-981-96-3077-6_48" rel="nofollow noopener noreferrer" target="_blank">four-step framework for effective influencer marketing emphasises company-influencer fit</a>, ensuring values, audience demographics, and content style align before contracts are signed. This due diligence extends beyond follower counts. Review past content for tone, quality, and audience interaction patterns. Check comments for genuine engagement versus bot activity.</p>
 <p><a href="https://www.getphyllo.com/post/case-studies-in-influencer-marketing-gone-wrong" rel="nofollow noopener noreferrer" target="_blank">Due diligence is crucial to avoid PR disasters</a>; vet influencers’ past content and values meticulously. Examine their stance on issues relevant to your brand. A luxury resort partnering with an influencer who previously criticised high-end tourism creates immediate credibility problems. Similarly, ensure their audience demographics match your target market through platform analytics rather than assumptions.</p>
 <p>Follow this structured framework for influencer selection:</p>

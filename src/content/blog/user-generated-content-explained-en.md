@@ -66,7 +66,7 @@ seo:
 <li><strong>Authentic consumer reviews</strong>: Unfiltered customer experiences and testimonials</li>
 </ul>
 <p>Each content type carries unique characteristics and potential value for brands. Non-sponsored UGC represents the most authentic form of consumer communication, emerging naturally from genuine user experiences. In contrast, sponsored content and influencer collaborations involve more structured, negotiated interactions that balance brand messaging with creator creativity.</p>
-<p><img src="/assets/cms/24d2611d-1771069510002_infographic-comparing-ugc-types-and-authenticity_aszqez6bopkbot3nxliuh.png" alt="Infographic comparing ugc types and authenticity" loading="lazy"></p>
+<p><img src="/assets/cms/24d2611d-1771069510002-infographic-comparing-ugc-typ.png" alt="Infographic comparing ugc types and authenticity" loading="lazy"></p>
 <p>The following table compares the different types of user-generated content and their typical impact on brands:</p>
 <table>
 <thead>

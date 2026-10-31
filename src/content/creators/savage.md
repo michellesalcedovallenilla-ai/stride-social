@@ -9,7 +9,7 @@ socials:
   tiktok: "https://www.tiktok.com/@savage?lang=en"
   instagram: "https://www.instagram.com/rube/reels/?hl=en-gb"
 order: 181
-image: "/assets/cms/4fa71051-large-media-1-478454d5-0f05-4b1a-9fc0-dbcdd443de85.jpg"
+image: "/assets/cms/4fa71051-large-media-1-478454d5-0f05-4b1a-9fc0-dbcdd.jpg"
 profile: true
 seo: 
   title: "savage is managed by Stride Social"

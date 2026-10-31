@@ -111,7 +111,7 @@ seo:
 <li><strong>Mega-influencers</strong> (1 million+ followers): Global technology personalities</li>
 </ul>
 <p>Collaboration models have similarly diversified, moving beyond simple sponsored content to more nuanced engagement strategies. These include organic product endorsements, long-term brand partnerships, co-creation of technological content, affiliate marketing programmes, and immersive brand experience collaborations.</p>
-<p><img src="/assets/cms/c3e665dc-1770386798691_infographic-showing-influencer-types-and-collabora_dzmptnoujgzbesj_abq6p.png" alt="Infographic showing influencer types and collaborations" loading="lazy"></p>
+<p><img src="/assets/cms/c3e665dc-1770386798691-infographic-showing-influence.png" alt="Infographic showing influencer types and collaborations" loading="lazy"></p>
 <p>This table summarises key partnership models with tech influencers and their business impact:</p>
 <table>
 <thead>

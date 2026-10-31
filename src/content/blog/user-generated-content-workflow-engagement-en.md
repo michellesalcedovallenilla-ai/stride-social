@@ -62,7 +62,7 @@ seo:
 <p>Clear objectives prevent wasted effort. They act as your north star when choosing between Instagram, TikTok, YouTube, or niche platforms.</p>
 </blockquote>
 <p>Once your objectives are locked in, platform selection becomes straightforward. You are not chasing every platform. You are choosing the ones where your audience already gathers and where your objectives have the best chance of success. This focused approach saves time, budget, and headaches.</p>
-<p><img src="/assets/cms/3bd7f848-1772002154966_infographic-showing-user-content-workflow-steps_o0rmsthgqjgfnozgvh1cq.png" alt="Infographic showing user content workflow steps" loading="lazy"></p>
+<p><img src="/assets/cms/3bd7f848-1772002154966-infographic-showing-user-cont.png" alt="Infographic showing user content workflow steps" loading="lazy"></p>
 <p>Different platforms serve different purposes. Instagram excels at visual storytelling and lifestyle content. TikTok captures trends and younger demographics. YouTube handles longer-form, educational content. LinkedIn works for B2B credibility. Choose two to three platforms maximum for your first campaign to maintain quality and focus.</p>
 <p>Here’s a quick comparison of major social platforms for user-generated content initiatives:</p>
 <table>

@@ -366,7 +366,7 @@ seo:
 <li><strong>Brand lift</strong>: Aided and unaided awareness increase pre- and post-campaign</li>
 </ol>
 <p>Without proper attribution, you’re guessing at ROI. Use unique discount codes, custom landing pages, or affiliate links for each influencer.</p>
-<p><img src="/assets/cms/dc36861a-1771912357464_infographic-summary-of-influencer-roi-tracking-ste_veobjhkvb5-cpjwr103gn.png" alt="Infographic summary of influencer ROI tracking steps" loading="lazy"></p>
+<p><img src="/assets/cms/dc36861a-1771912357464-infographic-summary-of-influe.png" alt="Infographic summary of influencer ROI tracking steps" loading="lazy"></p>
 <h3 id="costly-mistakes-to-avoid">Costly Mistakes to Avoid</h3>
 <p>These blunders waste thousands before you realise what happened.</p>
 <ul>

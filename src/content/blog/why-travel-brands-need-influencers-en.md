@@ -192,7 +192,7 @@ seo:
 </ul>
 <p>Common pitfalls in influencer marketing often stem from misaligned expectations and inadequate performance tracking. Travel brands frequently make critical mistakes such as prioritising follower count over genuine audience connection, neglecting thorough background checks on potential influencers, and failing to establish clear contractual performance expectations.</p>
 <p>Successful ROI measurement requires a holistic approach that integrates both quantitative data and qualitative insights. Brands must develop sophisticated tracking mechanisms that capture the full spectrum of influencer marketing impact, from immediate sales conversions to long-term brand perception shifts.</p>
-<p><img src="/assets/cms/5ba41d5d-1770467647408_infographic-travel-brands-and-influencer-benefits_9kl4ry30slj7-rxpz20tv.png" alt="Infographic travel brands and influencer benefits" loading="lazy"></p>
+<p><img src="/assets/cms/5ba41d5d-1770467647408-infographic-travel-brands-and.png" alt="Infographic travel brands and influencer benefits" loading="lazy"></p>
 <p>The table below outlines key performance metrics, explaining their business significance for travel brands:</p>
 <table>
 <thead>
