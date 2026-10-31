@@ -322,6 +322,42 @@ const insights = defineCollection({
   }),
 });
 
+// Sponsorships (homepage "Beyond business" + Sponsorships page). Empty until Stride supplies them.
+const sponsorships = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/sponsorships' }),
+  schema: z.object({
+    title: z.string(),
+    partner: z.string(),
+    type: z.enum(['creator', 'sports-team', 'event', 'community']),
+    year: z.number(),
+    location: z.string().optional(),
+    images: z.array(media).min(1),
+    summary: z.string(),
+    link: z.string().url().optional(),
+    featured: z.boolean().default(false),
+    approval: z.object({ status: z.enum(['confirmed', 'none']) }),
+  }),
+});
+
+// Editable copy for hand-composed pages (one YAML file per page, sections keyed by name).
+// status: approved (from the client brief or signed off) · draft (written by us, needs sign-off).
+const sectionCopy = z.object({
+  status: z.enum(['approved', 'draft']),
+  eyebrow: z.string().optional(),
+  headline: z.string().optional(),
+  lines: z.array(z.string()).optional(),
+  body: z.string().optional(),
+  cta: z.object({ label: z.string(), href: z.string() }).optional(),
+  items: z
+    .array(z.object({ key: z.string().optional(), label: z.string(), copy: z.string().optional(), cta: z.string().optional(), href: z.string().optional(), audience: z.string().optional() }))
+    .optional(),
+  awaiting: z.array(z.string()).optional(),
+});
+const pages = defineCollection({
+  loader: glob({ pattern: '*.yaml', base: './src/content/pages' }),
+  schema: z.object({ sections: z.record(sectionCopy) }),
+});
+
 export const collections = {
   // Legacy (Phase 1 pages)
   caseStudies,
@@ -345,4 +381,6 @@ export const collections = {
   roster,
   work,
   insights,
+  sponsorships,
+  pages,
 };

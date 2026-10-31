@@ -64,6 +64,8 @@ flag('Brands: display not confirmed (shown in logo strips)', brands.filter((b) =
 flag('Testimonials: consent not confirmed', testimonials.filter((t) => t.consent?.status !== 'confirmed').length);
 flag('Education: availability unconfirmed', [...topics, ...experience].filter((i) => i.status === 'unconfirmed').length);
 flag('Markets: not verified', markets.filter((m) => m.status !== 'verified').length);
+const pageDrafts = yamlDir('pages').flatMap((p) => Object.entries(p.sections ?? {}).filter(([, s]) => s.status !== 'approved').map(([k]) => `${p.id}.${k}`));
+flag(`Page copy: draft sections (${pageDrafts.join(', ')})`, pageDrafts.length);
 
 console.log('Phase 3 content');
 console.log(`  roster ${roster.length} · work ${work.length} · insights ${insights.length} · services ${services.length} · divisions ${divisions.length} · team ${team.length} · testimonials ${testimonials.length} · brands ${brands.length}`);

@@ -1,0 +1,132 @@
+---
+// Homepage A10 "LET'S MAKE SOMETHING HAPPEN.": bold closing section with one route per division,
+// directly above the navy footer.
+export interface Props {
+  copy: { headline?: string; items?: { key?: string; label: string; href?: string }[] };
+}
+
+const { copy } = Astro.props;
+---
+
+<section class="final" aria-labelledby="final-title">
+  <div class="final__inner">
+    <h2 class="final__title" id="final-title" data-reveal-lines>{copy.headline}</h2>
+    <ul class="final__routes" role="list">
+      {(copy.items ?? []).map((r, i) => (
+        <li data-reveal="rise" style={`--reveal-delay: ${i * 0.08}s`}>
+          <a class={`final__route final__route--${r.key}`} href={r.href}>
+            <span class="final__swatch" aria-hidden="true"></span>
+            <span class="final__label">{r.label}</span>
+            <svg class="final__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .final {
+    position: relative;
+    z-index: 1;
+    background: var(--ice);
+    color: var(--navy-900);
+  }
+
+  .final__inner {
+    display: grid;
+    gap: var(--space-8);
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    min-height: min(100vh, 900px);
+    align-content: center;
+    margin-inline: auto;
+    padding: var(--section-pad) var(--margin);
+  }
+
+  .final__inner > * {
+    min-width: 0;
+  }
+
+  .final__title {
+    max-width: 14ch;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 9vw, 9rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .final__routes {
+    border-top: 1px solid var(--navy-900);
+  }
+
+  .final__route {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--navy-900);
+    transition: padding var(--dur-slow) var(--ease-out);
+  }
+
+  .final__swatch {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--navy-900);
+  }
+
+  .final__route--social .final__swatch {
+    background: var(--navy-900);
+  }
+
+  .final__route--talent .final__swatch {
+    background: var(--peach);
+  }
+
+  .final__route--education .final__swatch {
+    background: var(--sun);
+  }
+
+  .final__label {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3.4vw, 3.25rem);
+    font-weight: 800;
+    font-stretch: 112%;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+  }
+
+  .final__arrow {
+    width: clamp(22px, 2.4vw, 36px);
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .final__route:hover {
+    padding-left: var(--space-4);
+  }
+
+  .final__route:hover .final__arrow {
+    transform: translateX(6px);
+  }
+
+  @media (max-width: 599px) {
+    .final__title {
+      font-size: 10.5vw;
+      font-stretch: 112%;
+    }
+
+    .final__route {
+      gap: var(--space-4);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .final__route:hover {
+      padding-left: 0;
+    }
+  }
+</style>

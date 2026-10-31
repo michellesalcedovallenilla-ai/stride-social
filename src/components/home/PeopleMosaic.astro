@@ -1,0 +1,186 @@
+---
+// Homepage A6 "The people behind Stride": editorial mosaic mixing team portraits with natural
+// team photography. Portraits crossfade to the second photo on hover where one exists.
+import { getCollection } from 'astro:content';
+import Eyebrow from '../core/Eyebrow.astro';
+import Button from '../core/Button.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+
+export interface Props {
+  copy: { eyebrow?: string; headline?: string; cta?: { label: string; href: string } };
+  candid: { src: string; alt: string; interim?: boolean };
+  count?: number;
+}
+
+const { copy, candid, count = 6 } = Astro.props;
+const deptOrder = ['leadership', 'campaigns', 'social', 'sales', 'talent', 'operations'];
+const people = (await getCollection('team', (m) => m.data.visible))
+  .sort((a, b) => deptOrder.indexOf(a.data.department) - deptOrder.indexOf(b.data.department) || a.data.order - b.data.order)
+  .slice(0, count);
+---
+
+<section class="people" aria-labelledby="people-title">
+  <header class="people__head">
+    <div>
+      <Eyebrow>{copy.eyebrow}</Eyebrow>
+      <h2 class="people__title" id="people-title" data-reveal-lines>{copy.headline}</h2>
+    </div>
+    {copy.cta && <Button href={copy.cta.href} variant="text">{copy.cta.label}</Button>}
+  </header>
+
+  <ul class="people__grid" role="list">
+    {people.slice(0, 2).map((p, i) => (
+      <li class="person" data-reveal="rise" style={`--reveal-delay: ${i * 0.08}s`}>
+        <figure>
+          <div class:list={['person__photo', { 'person__photo--swap': p.data.photoAlt }]}>
+            <img src={p.data.photo.src} alt={p.data.photo.alt} loading="lazy" decoding="async" />
+            {p.data.photoAlt && <img class="person__alt" src={p.data.photoAlt.src} alt="" loading="lazy" decoding="async" />}
+          </div>
+          <figcaption><span class="person__name">{p.data.name}</span><span class="person__role">{p.data.role}</span></figcaption>
+        </figure>
+      </li>
+    ))}
+    <li class="person person--candid" data-reveal="rise" style="--reveal-delay: 0.16s">
+      <figure>
+        <div class="person__photo">
+          <img src={candid.src} alt={candid.alt} loading="lazy" decoding="async" />
+          {candid.interim && <PlaceholderNotice label="Interim image">— natural team photography needed</PlaceholderNotice>}
+        </div>
+      </figure>
+    </li>
+    {people.slice(2).map((p, i) => (
+      <li class="person" data-reveal="rise" style={`--reveal-delay: ${(i % 4) * 0.08}s`}>
+        <figure>
+          <div class:list={['person__photo', { 'person__photo--swap': p.data.photoAlt }]}>
+            <img src={p.data.photo.src} alt={p.data.photo.alt} loading="lazy" decoding="async" />
+            {p.data.photoAlt && <img class="person__alt" src={p.data.photoAlt.src} alt="" loading="lazy" decoding="async" />}
+          </div>
+          <figcaption><span class="person__name">{p.data.name}</span><span class="person__role">{p.data.role}</span></figcaption>
+        </figure>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .people {
+    position: relative;
+    z-index: 1;
+    padding: var(--section-pad) 0;
+    background: var(--paper);
+  }
+
+  .people__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: 0 var(--margin) var(--space-8);
+  }
+
+  .people__head > div {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .people__title {
+    max-width: 12ch;
+    font-family: var(--font-display);
+    font-size: var(--type-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .people__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gutter);
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+    padding-inline: var(--margin);
+  }
+
+  /* Editorial rhythm: stagger the even columns */
+  .person:nth-child(even):not(.person--candid) {
+    transform: translateY(var(--space-8));
+  }
+
+  .js .person[data-reveal]:nth-child(even):not(.person--candid):not(.is-revealed) {
+    transform: translateY(calc(var(--space-8) + 24px));
+  }
+
+  .person--candid {
+    grid-column: span 2;
+  }
+
+  .person figure {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .person__photo {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--line);
+  }
+
+  .person--candid .person__photo {
+    aspect-ratio: 8 / 5;
+  }
+
+  .person__photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    transition:
+      opacity var(--dur-slow) var(--ease-out),
+      transform var(--dur-reveal) var(--ease-out);
+  }
+
+  .person__alt {
+    opacity: 0;
+  }
+
+  .person:hover .person__photo--swap .person__alt {
+    opacity: 1;
+  }
+
+  .person:hover .person__photo img {
+    transform: scale(1.03);
+  }
+
+  figcaption {
+    display: grid;
+    gap: 2px;
+  }
+
+  .person__name {
+    font-weight: 600;
+  }
+
+  .person__role {
+    font-size: var(--type-small);
+    color: var(--slate);
+  }
+
+  @media (max-width: 1023px) {
+    .people__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .person:nth-child(even):not(.person--candid),
+    .js .person[data-reveal]:nth-child(even):not(.person--candid):not(.is-revealed) {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,201 @@
+---
+// Homepage A4 "Our divisions": a typographic index of Stride Talent's specialist divisions,
+// driven by the talentDivisions collection (adding a file adds a row). Active divisions link to
+// their page and reveal their image on hover; coming-soon divisions show a label and no link.
+import { getCollection } from 'astro:content';
+import Eyebrow from '../core/Eyebrow.astro';
+import Badge from '../core/Badge.astro';
+import DraftTag from '../core/DraftTag.astro';
+
+export interface Props {
+  copy: { status: 'approved' | 'draft'; eyebrow?: string; headline?: string; body?: string };
+}
+
+const { copy } = Astro.props;
+const divisions = (await getCollection('talentDivisions')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<section class="divisions" aria-labelledby="divisions-title">
+  <header class="divisions__head">
+    <div class="divisions__intro">
+      <Eyebrow>{copy.eyebrow}</Eyebrow>
+      <h2 class="divisions__title" id="divisions-title" data-reveal-lines>{copy.headline}</h2>
+    </div>
+    <div class="divisions__aside">
+      {copy.body && <p>{copy.body}</p>}
+      <DraftTag status={copy.status} />
+    </div>
+  </header>
+
+  <ol class="divisions__list" role="list">
+    {divisions.map((d, i) => {
+      const active = d.data.status === 'active';
+      const Row = active ? 'a' : 'div';
+      return (
+        <li class:list={['division', { 'division--active': active }]} data-media-hover>
+          <Row class="division__row" href={active ? `/talent/${d.id}` : undefined}>
+            <span class="division__num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="division__name">{d.data.name.replace(/^Stride /, '')}</span>
+            {active ? (
+              <svg class="division__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+            ) : (
+              <Badge status="planned" class="division__badge" />
+            )}
+            {active && d.data.hero && <img class="division__image" src={d.data.hero.src} alt="" loading="lazy" />}
+          </Row>
+        </li>
+      );
+    })}
+  </ol>
+</section>
+
+<style>
+  .divisions {
+    position: relative;
+    z-index: 1;
+    background: var(--white);
+    padding: var(--section-pad) 0;
+  }
+
+  .divisions__head {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    align-items: end;
+    gap: var(--space-5) var(--gutter);
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: 0 var(--margin) var(--space-8);
+  }
+
+  .divisions__intro {
+    grid-column: 1 / 8;
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .divisions__title {
+    font-family: var(--font-display);
+    font-size: var(--type-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .divisions__aside {
+    grid-column: 9 / -1;
+    display: grid;
+    gap: var(--space-3);
+    max-width: 36ch;
+    color: var(--slate);
+  }
+
+  .divisions__list {
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+    padding-inline: var(--margin);
+    border-top: 1px solid var(--navy-900);
+  }
+
+  .division {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .division__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    align-items: center;
+    gap: var(--gutter);
+    padding: clamp(var(--space-4), 1.6vw, var(--space-6)) 0;
+  }
+
+  .division__num {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.06em;
+    color: var(--slate);
+  }
+
+  .division__name {
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 8.4vw, 8.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    color: var(--navy-900);
+    transition:
+      color var(--dur-base) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+  }
+
+  /* Coming-soon rows read quieter */
+  .division:not(.division--active) .division__name {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--navy-900);
+  }
+
+  .division__arrow {
+    width: 32px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .division--active .division__row:hover .division__name {
+    transform: translateX(12px);
+  }
+
+  .division--active .division__row:hover .division__arrow {
+    transform: translateX(6px);
+  }
+
+  .division__image {
+    position: absolute;
+    right: 12%;
+    top: 50%;
+    width: clamp(160px, 18vw, 280px);
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    opacity: 0;
+    transform: translateY(-50%) scale(0.94);
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .division__row:hover .division__image {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+
+  @media (max-width: 1023px) {
+    .divisions__intro,
+    .divisions__aside {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .division__row {
+      grid-template-columns: 2.25rem 1fr;
+    }
+
+    .division__name {
+      font-size: 10.5vw;
+      font-stretch: 100%;
+    }
+
+    .division__row :global(.division__badge),
+    .division__arrow {
+      grid-column: 2;
+      justify-self: start;
+    }
+
+    .division:not(.division--active) .division__name {
+      -webkit-text-stroke-width: 1px;
+    }
+  }
+</style>
