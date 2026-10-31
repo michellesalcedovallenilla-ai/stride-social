@@ -1,0 +1,74 @@
+---
+// Opening block for Social sub-pages (services index, Our Work): breadcrumbs, eyebrow, display
+// h1 and a short line of copy on navy. A slot below takes page-specific extras (filters, links).
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import Eyebrow from '../core/Eyebrow.astro';
+import DraftTag from '../core/DraftTag.astro';
+
+export interface Props {
+  crumbs: { label: string; href?: string }[];
+  copy: { status: 'approved' | 'draft'; eyebrow?: string; headline?: string; body?: string };
+}
+
+const { crumbs, copy } = Astro.props;
+---
+
+<header class="p-intro">
+  <div class="p-intro__inner container-wide">
+    <Breadcrumbs items={crumbs} tone="dark" />
+    <div class="p-intro__main">
+      <Eyebrow tone="dark">{copy.eyebrow}</Eyebrow>
+      <h1 class="p-intro__title" data-reveal-lines="load">
+        <span class="reveal-line"><span class="reveal-line__inner">{copy.headline}</span></span>
+      </h1>
+      {copy.body && <p class="p-intro__body" data-reveal="load" style="--reveal-delay: 0.3s">{copy.body}</p>}
+      <DraftTag status={copy.status} />
+    </div>
+    <slot />
+  </div>
+</header>
+
+<style>
+  .p-intro {
+    position: relative;
+    z-index: 1;
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .p-intro__inner {
+    display: grid;
+    gap: var(--space-8);
+    padding-block: var(--space-7) var(--space-8);
+  }
+
+  .p-intro__main {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .p-intro__title {
+    font-family: var(--font-display);
+    font-size: var(--type-hero);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .p-intro__body {
+    max-width: 46ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  @media (max-width: 479px) {
+    .p-intro__title {
+      font-size: 13vw;
+      font-stretch: 112%;
+    }
+  }
+</style>

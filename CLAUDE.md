@@ -40,7 +40,7 @@ npm run ci                   # everything CI runs
 
 ## Code conventions
 
-- **New (Phase 3) pages** use `src/layouts/SiteLayout.astro`, tokens from `src/styles/system/tokens.css`, and components from `src/components/core/` (primitives), `src/components/global/` (header, footer, breadcrumbs) and per-area folders (`home/`, later `social/`, `talent/`, `education/`). Navigation lives in `src/config/navigation.ts`.
+- **New (Phase 3) pages** use `src/layouts/SiteLayout.astro`, tokens from `src/styles/system/tokens.css`, and components from `src/components/core/` (primitives), `src/components/global/` (header, footer, breadcrumbs) and per-area folders (`home/`, `social/`, later `talent/`, `education/`). Navigation lives in `src/config/navigation.ts`; form fields in `src/config/forms.ts`; collection routes in `src/lib/routes.ts`.
 - **Phase 1 pages** still use `BaseLayout` and the legacy folders (`layout/`, `ui/`, `sections/`, `cards/`, `company/`, `offering/`, `portfolio/`, `editorial/`). Don't extend legacy components; replace pages stage by stage, then delete what is unused.
 - Pages not built yet are listed in `plannedPages` (navigation config) and render a labelled placeholder. Remove the entry when the real page ships.
 - Mark interim or missing content with `core/PlaceholderNotice` (it sets `data-placeholder`, which the placeholder check detects).

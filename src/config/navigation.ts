@@ -199,11 +199,6 @@ export const legalLinks: NavLink[] = [
  * Remove an entry when its real page ships.
  */
 export const plannedPages: { path: string; title: string; stage: string; summary: string; current?: string }[] = [
-  { path: 'social', title: 'Stride Social', stage: 'Stage 4', summary: 'Landing page for the influencer marketing agency.' },
-  { path: 'social/services', title: 'Services', stage: 'Stage 4', summary: 'The seven Stride Social services.', current: '/our-services' },
-  ...services.map((s) => ({ path: s.href.slice(1), title: s.label, stage: 'Stage 4', summary: 'Dedicated service page.' })),
-  { path: 'social/enquire', title: 'Start a campaign', stage: 'Stage 4', summary: 'Brand enquiry form.' },
-  { path: 'work', title: 'Our Work', stage: 'Stage 4', summary: 'Case study archive, filterable by industry and service.', current: '/case-studies' },
   { path: 'talent', title: 'Stride Talent', stage: 'Stage 5', summary: 'Landing page for creator representation.' },
   { path: 'talent/roster', title: 'Creator roster', stage: 'Stage 5', summary: 'Searchable creator directory.', current: '/creators' },
   ...talentDivisions.map((d) => ({ path: d.href.slice(1), title: d.label, stage: 'Stage 5', summary: 'Specialist talent division.' })),

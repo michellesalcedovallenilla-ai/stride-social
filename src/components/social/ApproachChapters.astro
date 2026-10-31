@@ -1,0 +1,230 @@
+---
+// Stride Social B7 "Our approach": Strategy → Creator Selection → Campaign Execution → Reporting
+// as four large chapters, not an icon diagram. On wide screens the section pins and the chapters
+// travel sideways as you scroll (src/scripts/system/pinned-track.ts); on phones, tablets and
+// under reduced motion they stack. Stage photography is awaited (Q18): preview shows a labelled
+// frame, production leaves the frame out.
+import Eyebrow from '../core/Eyebrow.astro';
+import DraftTag from '../core/DraftTag.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { isPreview } from '@/lib/env';
+
+export interface Props {
+  copy: { status: 'approved' | 'draft'; eyebrow?: string; headline?: string; items?: { label: string; copy?: string }[] };
+}
+
+const { copy } = Astro.props;
+const chapters = copy.items ?? [];
+---
+
+<section class="approach" id="approach" aria-labelledby="approach-title" data-pinned style={`--chapters: ${chapters.length}`}>
+  <div class="approach__sticky">
+    <header class="approach__head container-wide">
+      <Eyebrow tone="dark">{copy.eyebrow}</Eyebrow>
+      <h2 class="approach__title" id="approach-title">{copy.headline}</h2>
+      <DraftTag status={copy.status} />
+      <ol class="approach__steps" role="list" aria-hidden="true">
+        {chapters.map((c, i) => <li data-step={i}>{c.label}</li>)}
+      </ol>
+    </header>
+
+    <ol class="approach__track" role="list" data-pinned-track>
+      {chapters.map((c, i) => (
+        <li class="chapter">
+          <p class="chapter__number">{String(i + 1).padStart(2, '0')}</p>
+          <div class="chapter__text">
+            <h3 class="chapter__title">{c.label}</h3>
+            <p class="chapter__copy">{c.copy}</p>
+          </div>
+          {isPreview && (
+            <div class="chapter__frame">
+              <PlaceholderNotice variant="block" label="Awaiting photography">
+                <p>An image from this stage of a real campaign (Q18).</p>
+              </PlaceholderNotice>
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .approach {
+    position: relative;
+    z-index: 1;
+    background: var(--navy-700);
+    color: var(--white);
+  }
+
+  .approach__sticky {
+    padding: var(--section-pad) 0;
+  }
+
+  .approach__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4) var(--space-6);
+    padding-bottom: var(--space-8);
+  }
+
+  .approach__head > :global(.eyebrow) {
+    flex-basis: 100%;
+  }
+
+  .approach__title {
+    font-family: var(--font-display);
+    font-size: var(--type-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Progress line of step names (only meaningful while pinned). */
+  .approach__steps {
+    display: none;
+  }
+
+  .approach__track {
+    display: grid;
+    gap: var(--space-8);
+    padding-inline: var(--margin);
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+  }
+
+  .chapter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-5) var(--gutter);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--line-dark);
+  }
+
+  .chapter__number {
+    grid-column: 1 / -1;
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 12vw, 12rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+  }
+
+  .chapter__text {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+
+  .chapter__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.4vw, 3.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .chapter__copy {
+    max-width: 44ch;
+    font-size: var(--type-lead);
+    line-height: 1.45;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  .chapter__frame {
+    display: grid;
+    aspect-ratio: 4 / 3;
+    border: 1px dashed rgb(255 255 255 / 0.3);
+    padding: var(--space-4);
+    align-content: end;
+  }
+
+  .chapter__frame :global(.ph-block) {
+    border-color: rgb(255 255 255 / 0.35);
+    color: var(--white);
+    background: none;
+  }
+
+  /* Pinned horizontal sequence (enabled by the script with .is-pinned). */
+  .approach.is-pinned {
+    height: calc(var(--chapters) * 85vh + 100vh);
+  }
+
+  .approach.is-pinned .approach__sticky {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+    padding: calc(var(--header-h) + var(--division-bar-h) + var(--space-6)) 0 var(--space-7);
+    overflow: hidden;
+  }
+
+  .approach.is-pinned .approach__head {
+    padding-bottom: var(--space-7);
+  }
+
+  .approach.is-pinned .approach__title {
+    font-size: clamp(2.5rem, 5vw, 5rem);
+  }
+
+  .approach.is-pinned .approach__steps {
+    display: flex;
+    gap: var(--space-5);
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .approach__steps li {
+    opacity: 0.45;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .approach__steps li.is-current {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  .approach.is-pinned .approach__track {
+    display: flex;
+    gap: var(--gutter);
+    width: max-content;
+    max-width: none;
+    margin: 0;
+    padding-inline: max(var(--margin), calc((100vw - var(--container-wide)) / 2));
+    transform: translate3d(var(--track-x, 0), 0, 0);
+    will-change: transform;
+  }
+
+  .approach.is-pinned .chapter {
+    width: min(72vw, 1080px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .approach.is-pinned .chapter__number {
+    font-size: clamp(5rem, 10vw, 10rem);
+  }
+
+  @media (max-width: 767px) {
+    .chapter {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
+
+<script>
+  import { initPinnedTracks } from '@/scripts/system/pinned-track';
+  initPinnedTracks();
+</script>

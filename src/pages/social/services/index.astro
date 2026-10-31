@@ -1,0 +1,19 @@
+---
+// Stride Social services index (docs/phase-2/03-sitemap.md): the seven services as the same
+// typographic index used on /social, each leading to its own page.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import PageIntro from '@/components/social/PageIntro.astro';
+import ServiceIndex from '@/components/social/ServiceIndex.astro';
+import EnquiryCta from '@/components/social/EnquiryCta.astro';
+
+const page = await getEntry('pages', 'social');
+if (!page) throw new Error('Missing src/content/pages/social.yaml');
+const s = page.data.sections;
+---
+
+<SiteLayout title="Services | Stride Social" description={s.servicesPage.body} division="social">
+  <PageIntro crumbs={[{ label: 'Stride Social', href: '/social' }, { label: 'Services' }]} copy={s.servicesPage} />
+  <ServiceIndex nameLevel="h2" />
+  <EnquiryCta headline={s.final.headline ?? ''} label={s.final.cta?.label ?? ''} />
+</SiteLayout>

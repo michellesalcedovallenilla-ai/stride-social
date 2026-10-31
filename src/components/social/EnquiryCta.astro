@@ -1,0 +1,59 @@
+---
+// Closing call to action for Social sub-pages (services, work, case studies): the brief's
+// "YOUR NEXT CAMPAIGN STARTS HERE." with a button to the enquiry form, prefilled with a service
+// when the visitor comes from one.
+import Button from '../core/Button.astro';
+
+export interface Props {
+  headline: string;
+  label: string;
+  /** Service id to preselect on the form. */
+  service?: string;
+}
+
+const { headline, label, service } = Astro.props;
+const href = service ? `/social/enquire?service=${service}` : '/social/enquire';
+---
+
+<section class="enq-cta" aria-labelledby="enq-cta-title">
+  <div class="enq-cta__inner container-wide">
+    <h2 class="enq-cta__title" id="enq-cta-title" data-reveal-lines>{headline}</h2>
+    <Button href={href} tone="light" arrow>{label}</Button>
+  </div>
+</section>
+
+<style>
+  .enq-cta {
+    position: relative;
+    z-index: 1;
+    background: var(--ice);
+    color: var(--navy-900);
+  }
+
+  .enq-cta__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-7);
+    padding-block: clamp(64px, 8vw, 128px);
+  }
+
+  .enq-cta__title {
+    max-width: 13ch;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 6.25rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.88;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 479px) {
+    .enq-cta__title {
+      font-size: 10.4vw;
+      font-stretch: 112%;
+    }
+  }
+</style>

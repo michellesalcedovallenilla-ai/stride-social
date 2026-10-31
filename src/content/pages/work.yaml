@@ -1,0 +1,7 @@
+# Our Work archive copy (docs/phase-2/05-wireframes.md §E). See home.yaml for status rules.
+sections:
+  hero:
+    status: draft
+    eyebrow: Stride Social
+    headline: Our work.
+    body: Campaigns we have planned and run for brands in technology, lifestyle, beauty, fashion, travel and home.

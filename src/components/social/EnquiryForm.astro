@@ -1,0 +1,203 @@
+---
+// Stride Social brand enquiry form (docs/phase-2/05-wireframes.md B8, 07-technical-architecture §6).
+// Native form, enhanced by src/scripts/system/enquiry-form.ts: inline validation, submitting
+// state, success panel, error with retry and an email fallback. Spam: honeypot + time-to-submit
+// (checked again on the server, src/lib/forms/brand-enquiry.ts). Prefills ?service= and ?creator=.
+// Until a destination is configured (PUBLIC_BRAND_ENQUIRY_ACTION, Q13) the form says so instead of
+// failing silently: with JS it shows an "email us" panel, without JS it opens the mail app.
+import Field from '../core/Field.astro';
+import Button from '../core/Button.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { brandEnquiryAction, brandEnquiryLimits as max, enquiryEmail, marketOptions, serviceOptions } from '@/config/forms';
+
+export interface Props {
+  messages: { success: string; error: string; unavailable: string; consent: string };
+  /** Surface the form sits on. */
+  tone?: 'light' | 'dark';
+}
+
+const { messages, tone = 'light' } = Astro.props;
+const configured = brandEnquiryAction !== '';
+const mailto = `mailto:${enquiryEmail}?subject=${encodeURIComponent('Brand enquiry')}`;
+const [consentBefore, consentAfter] = messages.consent.split('privacy policy');
+---
+
+<div class:list={['enq', `enq--on-${tone}`]} data-enquiry>
+  <form
+    class="enq__form"
+    action={configured ? brandEnquiryAction : `mailto:${enquiryEmail}`}
+    method="post"
+    enctype={configured ? undefined : 'text/plain'}
+    novalidate
+    data-configured={configured ? 'true' : 'false'}
+    data-success={messages.success}
+  >
+    {!configured && (
+      <PlaceholderNotice variant="inline" label="Form destination not set">— submissions can't be received until Stride confirms where they go (Q13)</PlaceholderNotice>
+    )}
+
+    <div class="enq__grid">
+      <Field name="name" label="Name" required autocomplete="name" maxlength={max.name} tone={tone} />
+      <Field name="company" label="Company" required autocomplete="organization" maxlength={max.company} tone={tone} />
+      <Field name="email" label="Work email" type="email" required autocomplete="email" maxlength={max.email} tone={tone} />
+      <Field name="market" label="Market" type="select" required options={marketOptions} tone={tone} />
+      <Field name="service" label="Service" type="select" required options={serviceOptions} tone={tone} />
+      <Field name="budget" label="Estimated budget" maxlength={max.budget} tone={tone} />
+      <div class="enq__wide">
+        <Field name="brief" label="Your brief" type="textarea" required rows={6} maxlength={max.brief} hint="What are you launching, who is it for, and when?" tone={tone} />
+      </div>
+    </div>
+
+    {/* Spam protection: a field people never see, and the time the page loaded. */}
+    <div class="enq__hp" aria-hidden="true">
+      <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+    </div>
+    <input type="hidden" name="started" value="" />
+    <input type="hidden" name="creator" value="" />
+
+    <p class="enq__consent">
+      {consentBefore}{consentAfter !== undefined && <><a href="/privacy">privacy policy</a>{consentAfter}</>}
+    </p>
+
+    <div class="enq__actions">
+      <Button type="submit" tone={tone} class="enq__submit">Send enquiry</Button>
+      <p class="enq__status" role="status" aria-live="polite" data-status></p>
+    </div>
+
+    <div class="enq__alert" role="alert" hidden data-error>
+      <p>{messages.error}</p>
+      <p><a href={mailto}>{enquiryEmail}</a></p>
+    </div>
+  </form>
+
+  <div class="enq__panel" hidden data-unavailable tabindex="-1">
+    <p class="enq__panel-title">{messages.unavailable}</p>
+    <Button href={mailto} tone={tone}>{enquiryEmail}</Button>
+  </div>
+
+  <div class="enq__panel" hidden data-done tabindex="-1">
+    <svg class="enq__tick" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="m14 25 7 7 13-15" fill="none" stroke="currentColor" stroke-width="2.5"></path></svg>
+    <p class="enq__panel-title" data-done-message></p>
+  </div>
+</div>
+
+<style>
+  .enq {
+    display: grid;
+  }
+
+  .enq__form {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .enq__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--gutter);
+  }
+
+  .enq__wide {
+    grid-column: 1 / -1;
+  }
+
+  .enq__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .enq__consent {
+    max-width: 60ch;
+    font-size: var(--type-small);
+  }
+
+  .enq__consent a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .enq__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .enq__status {
+    font-size: var(--type-small);
+    font-weight: 500;
+  }
+
+  .enq__alert {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border-left: 3px solid #b42318;
+    background: rgb(180 35 24 / 0.08);
+    font-weight: 500;
+  }
+
+  .enq__form[hidden],
+  .enq__alert[hidden],
+  .enq__panel[hidden] {
+    display: none;
+  }
+
+  .enq__alert a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .enq__panel {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    padding: var(--space-7) 0;
+    outline: none;
+  }
+
+  .enq__panel-title {
+    max-width: 22ch;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 1;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+  }
+
+  .enq__tick {
+    width: 48px;
+  }
+
+  .enq--on-dark .enq__alert {
+    border-color: #ffb4a9;
+    background: rgb(255 180 169 / 0.1);
+  }
+
+  /* Submitting state */
+  .enq.is-sending :global(.enq__submit) {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  @media (max-width: 767px) {
+    .enq__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .enq__actions :global(.enq__submit) {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  import { initEnquiryForms } from '@/scripts/system/enquiry-form';
+  initEnquiryForms();
+</script>

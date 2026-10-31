@@ -1,0 +1,48 @@
+---
+// Stride Social landing: the eight sections from the client brief (PDF §4;
+// docs/phase-2/05-wireframes.md §B). Copy lives in src/content/pages/social.yaml; services,
+// brands, industries and work come from the Phase 3 collections. Interim media is labelled.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import SocialHero from '@/components/social/SocialHero.astro';
+import LogoStrip from '@/components/social/LogoStrip.astro';
+import IntroSplit from '@/components/social/IntroSplit.astro';
+import ServiceIndex from '@/components/social/ServiceIndex.astro';
+import IndustryRail from '@/components/social/IndustryRail.astro';
+import WorkSpreads from '@/components/social/WorkSpreads.astro';
+import ApproachChapters from '@/components/social/ApproachChapters.astro';
+import FinalEnquiry from '@/components/social/FinalEnquiry.astro';
+
+const page = await getEntry('pages', 'social');
+if (!page) throw new Error('Missing src/content/pages/social.yaml');
+const s = page.data.sections;
+
+// Interim hero footage: the live-campaign clips from the previous site, until the reel is approved.
+const clip = (id: string, label: string) => ({
+  mp4: `/assets/video/${id}-transcode.mp4`,
+  webm: `/assets/video/${id}-transcode.webm`,
+  poster: `/assets/site/${id}-poster-00001.jpg`,
+  label,
+});
+const clips = [
+  clip('f2fc912c-video1', 'A creator filming a product campaign in her kitchen'),
+  clip('c5e52ea3-video-2', 'Creator campaign clip'),
+  clip('fccbe600-video-5', 'Creator campaign clip'),
+];
+---
+
+<SiteLayout
+  title="Stride Social | Influencer Marketing Agency"
+  description={s.hero.body}
+  division="social"
+  headerOverlay
+>
+  <SocialHero eyebrow={s.hero.eyebrow} lines={s.hero.lines ?? []} body={s.hero.body ?? ''} actions={(s.hero.items ?? []).map((i) => ({ label: i.label, href: i.href ?? '/' }))} clips={clips} interim />
+  <LogoStrip copy={s.logos} />
+  <IntroSplit copy={s.intro} />
+  <ServiceIndex copy={s.services} />
+  <IndustryRail copy={s.industries} />
+  <WorkSpreads copy={s.featured} />
+  <ApproachChapters copy={s.approach} />
+  <FinalEnquiry copy={s.final} form={s.enquiry} />
+</SiteLayout>
