@@ -7,7 +7,7 @@ Read `docs/phase-2/README.md` first. The approved plan lives in `docs/phase-2/`;
 
 - **Phase 1** (done, tag `phase-1-recreation`): pixel-close rebuild of the old Webflow site.
 - **Phase 2** (done, approved 2026-10-31): architecture, design system, wireframes, content model, roadmap.
-- **Phase 3** (in progress): development by roadmap stage (`docs/phase-2/08-roadmap.md`). Each stage ends with a review gate. Do not start the next stage without the owner's go-ahead. Stages 0–7 are approved; Stage 8 (launch readiness) awaits Gate 8. What's left before launch: `docs/LAUNCH.md`.
+- **Phase 3** (in progress): development by roadmap stage (`docs/phase-2/08-roadmap.md`). Each stage ends with a review gate. Do not start the next stage without the owner's go-ahead. Stages 0–8 are approved (Gate 8, launch-ready, 2026-10-31). Going live needs Stride's inputs and explicit go-ahead: `docs/LAUNCH.md`. Post-launch backlog: roadmap Stage 9.
 
 ## Commands
 

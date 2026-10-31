@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-8-launch-readiness`. Review gate: **Gate 8**, launch approval (docs/phase-2/08-roadmap.md). The DNS switch happens only on Stride's explicit go-ahead. Everything that still blocks launch is in **[docs/LAUNCH.md](../LAUNCH.md)**.
 
+**Gate 8 approved by the owner on 2026-10-31:** the build is approved as launch-ready. Going live still needs the Stride inputs in LAUNCH.md §2 (forms, host, legal text, analytics, URL approvals, consent and verification, copy sign-off, final media) and Stride's explicit go-ahead for the DNS switch. Nothing has been deployed.
+
 ## What was done
 
 ### Phase 1 retired, redirect map shipped
