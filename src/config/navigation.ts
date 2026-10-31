@@ -194,25 +194,26 @@ export const legalLinks: NavLink[] = [
 
 /**
  * Pages that are in the approved sitemap but not built yet. Each renders a clearly labelled,
- * noindex placeholder (src/pages/[...planned].astro) so no link is a dead end.
+ * noindex placeholder (src/pages/[...planned].astro) so no link is a dead end. `current` links to
+ * the Phase 1 page with the same content until the new one replaces it.
  * Remove an entry when its real page ships.
  */
-export const plannedPages: { path: string; title: string; stage: string; summary: string }[] = [
+export const plannedPages: { path: string; title: string; stage: string; summary: string; current?: string }[] = [
   { path: 'social', title: 'Stride Social', stage: 'Stage 4', summary: 'Landing page for the influencer marketing agency.' },
-  { path: 'social/services', title: 'Services', stage: 'Stage 4', summary: 'The seven Stride Social services.' },
+  { path: 'social/services', title: 'Services', stage: 'Stage 4', summary: 'The seven Stride Social services.', current: '/our-services' },
   ...services.map((s) => ({ path: s.href.slice(1), title: s.label, stage: 'Stage 4', summary: 'Dedicated service page.' })),
   { path: 'social/enquire', title: 'Start a campaign', stage: 'Stage 4', summary: 'Brand enquiry form.' },
-  { path: 'work', title: 'Our Work', stage: 'Stage 4', summary: 'Case study archive, filterable by industry and service.' },
+  { path: 'work', title: 'Our Work', stage: 'Stage 4', summary: 'Case study archive, filterable by industry and service.', current: '/case-studies' },
   { path: 'talent', title: 'Stride Talent', stage: 'Stage 5', summary: 'Landing page for creator representation.' },
-  { path: 'talent/roster', title: 'Creator roster', stage: 'Stage 5', summary: 'Searchable creator directory.' },
+  { path: 'talent/roster', title: 'Creator roster', stage: 'Stage 5', summary: 'Searchable creator directory.', current: '/creators' },
   ...talentDivisions.map((d) => ({ path: d.href.slice(1), title: d.label, stage: 'Stage 5', summary: 'Specialist talent division.' })),
-  { path: 'talent/apply', title: 'Apply for management', stage: 'Stage 5', summary: 'Representation application form.' },
+  { path: 'talent/apply', title: 'Apply for management', stage: 'Stage 5', summary: 'Representation application form.', current: '/creator-sign-up' },
   { path: 'education', title: 'Stride Education', stage: 'Stage 6', summary: 'Creator education and career development.' },
   { path: 'education/enquire', title: 'Enquire', stage: 'Stage 6', summary: 'Education enquiry route (format to be confirmed by Stride).' },
   { path: 'history', title: 'Our History', stage: 'Stage 7', summary: 'Editorial timeline of verified milestones.' },
-  { path: 'team', title: 'Our Team', stage: 'Stage 7', summary: 'The people behind Stride.' },
+  { path: 'team', title: 'Our Team', stage: 'Stage 7', summary: 'The people behind Stride.', current: '/meet-the-team' },
   { path: 'sponsorships', title: 'Our Sponsorships', stage: 'Stage 7', summary: 'Creators, teams, events and community initiatives Stride supports.' },
-  { path: 'insights', title: 'Insights', stage: 'Stage 7', summary: 'Company news, creator economy and marketing insights.' },
+  { path: 'insights', title: 'Insights', stage: 'Stage 7', summary: 'Company news, creator economy and marketing insights.', current: '/blog' },
   { path: 'privacy', title: 'Privacy policy', stage: 'Stage 8', summary: 'Legal text to be supplied by Stride.' },
   { path: 'cookies', title: 'Cookie policy', stage: 'Stage 8', summary: 'Legal text to be supplied by Stride.' },
   { path: 'terms', title: 'Terms', stage: 'Stage 8', summary: 'Legal text to be supplied by Stride.' },

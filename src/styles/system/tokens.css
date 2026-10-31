@@ -87,6 +87,15 @@
   }
 }
 
+/* Small phones: display type scales with the viewport and narrows slightly so the longest
+   single words ("DIVISIONS.", "BUSINESS.") fit down to 320px. */
+@media (max-width: 479px) {
+  :root {
+    --type-display: 11vw;
+    --stretch-wide: 112%;
+  }
+}
+
 /* Division themes */
 [data-division='social'] {
   --accent: var(--ice);

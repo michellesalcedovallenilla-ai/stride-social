@@ -1,0 +1,96 @@
+# Homepage copy (docs/phase-2/05-wireframes.md §A). status: approved = from the client brief or
+# signed off; draft = written by us, shows a "Draft copy" tag in preview and blocks production.
+sections:
+  hero:
+    status: approved
+    lines: [Built, around, creators.]
+    body: One global group. Three businesses shaping how creators build careers, how brands reach audiences, and how the next generation gets started.
+
+  sides:
+    status: approved
+    eyebrow: Explore Stride
+    headline: Three sides of Stride.
+    items:
+      - key: social
+        audience: For brands
+        label: Social
+        copy: Influencer marketing, content, campaigns, and commerce.
+        cta: Explore Stride Social
+        href: /social
+      - key: talent
+        audience: For creators
+        label: Talent
+        copy: Representation, opportunities, and long-term career management.
+        cta: Explore Stride Talent
+        href: /talent
+      - key: education
+        audience: For the next generation
+        label: Education
+        copy: Learn the industry, develop your content, and build your creator career.
+        cta: Explore Stride Education
+        href: /education
+
+  group:
+    status: draft
+    eyebrow: The group
+    headline: One group. Built for what's next.
+    # Founding year per the client brief (2022); conflicts with the old site (2020/2021). Q1.
+    body: |-
+      Stride was established in 2022 and works internationally where creators, brands and media meet.
+
+      We started on the creator side of the camera, and it still shapes how we work. One group, three businesses that feed each other: brands get creators who are genuinely right for them, creators get representation built for the long term, and the next generation gets a way in.
+    cta: { label: Our Story, href: /about }
+
+  divisions:
+    status: draft
+    eyebrow: Stride Talent
+    headline: Our divisions.
+    body: Specialist talent divisions, each with its own roster, partners and know-how.
+
+  work:
+    status: approved
+    eyebrow: Selected campaigns
+    headline: Our work.
+    cta: { label: Explore Our Work, href: /work }
+    # Featured in the brief (PDF §3.5) but no approved case study yet (Q6).
+    awaiting: [Samsung, Barsys]
+
+  people:
+    status: approved
+    eyebrow: The team
+    headline: The people behind Stride.
+    cta: { label: Meet The Team, href: /team }
+
+  beyond:
+    status: draft
+    eyebrow: Beyond business
+    headline: Beyond business.
+    body: Creator sponsorships, community projects and the local teams we back.
+    cta: { label: Our Sponsorships, href: /sponsorships }
+
+  insights:
+    status: approved
+    eyebrow: Insights and news
+    headline: Insights.
+    cta: { label: Explore Insights, href: /insights }
+
+  presence:
+    status: approved
+    eyebrow: Where we work
+    headline: Global presence.
+    items:
+      - label: Talent markets
+
+  final:
+    status: approved
+    headline: Let's make something happen.
+    items:
+      - key: social
+        label: Work with Stride Social
+        href: /social/enquire
+      - key: talent
+        label: Join Stride Talent
+        href: /talent/apply
+      - key: education
+        label: Explore Stride Education
+        href: /education

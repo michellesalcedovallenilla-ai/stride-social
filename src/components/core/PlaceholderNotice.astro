@@ -2,10 +2,11 @@
 // Marks unfinished content so it is never mistaken for the real thing (brief §8: identify placeholders).
 // Every instance carries data-placeholder; `npm run check:placeholders -- --strict` fails if any
 // remain in a production build.
-//   tag:   small corner label over media ("Interim footage — awaiting approved assets")
-//   block: full panel standing in for a missing section or page
+//   tag:    small corner label over media ("Interim footage — awaiting approved assets")
+//   inline: the same label in the text flow (e.g. "Draft copy" next to a heading)
+//   block:  full panel standing in for a missing section or page
 export interface Props {
-  variant?: 'tag' | 'block';
+  variant?: 'tag' | 'inline' | 'block';
   label?: string;
   class?: string;
 }
@@ -13,8 +14,8 @@ export interface Props {
 const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props;
 ---
 
-{variant === 'tag' ? (
-  <span class:list={['ph-tag', className]} data-placeholder>
+{variant !== 'block' ? (
+  <span class:list={['ph-tag', { 'ph-tag--inline': variant === 'inline' }, className]} data-placeholder>
     <span class="ph-tag__label">{label}</span>
     <slot />
   </span>
@@ -47,6 +48,13 @@ const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props
 
   .ph-tag__label {
     font-weight: 600;
+  }
+
+  .ph-tag--inline {
+    position: static;
+    align-self: start;
+    justify-self: start;
+    width: max-content;
   }
 
   .ph-block {

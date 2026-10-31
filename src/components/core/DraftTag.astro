@@ -1,0 +1,14 @@
+---
+// "Draft copy" label for page sections whose copy is not signed off (status: draft in
+// src/content/pages/*.yaml). Shown in preview builds; production builds fail the placeholder
+// check while any draft copy remains, so it can't ship unnoticed.
+import PlaceholderNotice from './PlaceholderNotice.astro';
+
+export interface Props {
+  status: 'approved' | 'draft';
+}
+
+const { status } = Astro.props;
+---
+
+{status === 'draft' && <PlaceholderNotice variant="inline" label="Draft copy">— needs sign-off</PlaceholderNotice>}

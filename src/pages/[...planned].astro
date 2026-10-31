@@ -12,7 +12,7 @@ export function getStaticPaths() {
   return plannedPages.map((p) => ({ params: { planned: p.path }, props: p }));
 }
 
-const { path, title, stage, summary } = Astro.props;
+const { path, title, stage, summary, current } = Astro.props;
 const first = path.split('/')[0];
 const division: DivisionKey = first === 'social' || first === 'talent' || first === 'education' ? first : first === 'work' ? 'social' : 'group';
 const dark = division === 'social';
@@ -31,7 +31,8 @@ const dark = division === 'social';
         </p>
       </PlaceholderNotice>
       <div class="planned__actions">
-        <Button href="/" tone={dark ? 'dark' : 'light'}>Back to the homepage</Button>
+        {current && <Button href={current} tone={dark ? 'dark' : 'light'}>See the current version</Button>}
+        <Button href="/" variant={current ? 'secondary' : 'primary'} tone={dark ? 'dark' : 'light'}>Back to the homepage</Button>
       </div>
     </div>
   </section>

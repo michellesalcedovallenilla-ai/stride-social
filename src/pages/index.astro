@@ -1,10 +1,39 @@
 ---
-// Group homepage. Stage 1 creative proof: sections A1 (hero) and A2 (Three Sides) at full
-// fidelity with interim media; sections A3–A10 arrive in Stage 3 (docs/phase-2/05-wireframes.md).
+// Group homepage: the ten sections from the client brief (PDF §3; docs/phase-2/05-wireframes.md §A).
+// Copy lives in src/content/pages/home.yaml; collections supply work, team, insights, divisions,
+// sponsorships and markets. Media marked interim is labelled on screen until approved assets arrive.
+import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import HeroMontage from '@/components/home/HeroMontage.astro';
 import ThreeSides from '@/components/home/ThreeSides.astro';
-import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import GroupIntro from '@/components/home/GroupIntro.astro';
+import DivisionIndex from '@/components/home/DivisionIndex.astro';
+import WorkMosaic from '@/components/home/WorkMosaic.astro';
+import PeopleMosaic from '@/components/home/PeopleMosaic.astro';
+import BeyondBusiness from '@/components/home/BeyondBusiness.astro';
+import InsightsTrio from '@/components/home/InsightsTrio.astro';
+import MarketsDisplay from '@/components/home/MarketsDisplay.astro';
+import FinalRoutes from '@/components/home/FinalRoutes.astro';
+
+const page = await getEntry('pages', 'home');
+if (!page) throw new Error('Missing src/content/pages/home.yaml');
+const s = page.data.sections;
+
+// Interim panel media for Three Sides (labelled on screen). Keyed by division.
+const sideMedia = {
+  social: {
+    image: { src: '/assets/site/f2fc912c-video1-poster-00001.jpg', alt: 'A creator filming a product campaign in her kitchen', position: '50% 30%' },
+    video: {
+      label: 'A creator filming a product campaign in her kitchen',
+      mp4: '/assets/video/f2fc912c-video1-transcode.mp4',
+      webm: '/assets/video/f2fc912c-video1-transcode.webm',
+      poster: '/assets/site/f2fc912c-video1-poster-00001.jpg',
+    },
+  },
+  talent: { image: { src: '/assets/cms/7a2c07a0-aq.jpg', alt: 'Black and white portrait of a Stride Talent creator', position: '50% 25%' } },
+  education: { image: { src: '/assets/site/b9208d92-stride-social.webp', alt: 'Creators and the Stride team at an industry event', position: '50% 50%' } },
+} as const;
+type DivisionKey = keyof typeof sideMedia;
 ---
 
 <SiteLayout
@@ -13,8 +42,8 @@ import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
   headerOverlay
 >
   <HeroMontage
-    headline={['Built', 'around', 'creators.']}
-    description="One global group. Three businesses shaping how creators build careers, how brands reach audiences, and how the next generation gets started."
+    headline={s.hero.lines ?? []}
+    description={s.hero.body ?? ''}
     routes={[
       { label: 'Stride Social', href: '/social', division: 'social' },
       { label: 'Stride Talent', href: '/talent', division: 'talent' },
@@ -35,63 +64,30 @@ import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
   />
 
   <ThreeSides
-    eyebrow="Explore Stride"
-    headline="Three sides of Stride."
-    panels={[
-      {
-        division: 'social',
-        audience: 'For brands',
-        name: 'Social',
-        copy: 'Influencer marketing, content, campaigns, and commerce.',
-        cta: 'Explore Stride Social',
-        href: '/social',
-        image: { src: '/assets/site/f2fc912c-video1-poster-00001.jpg', alt: 'A creator filming a product campaign in her kitchen', position: '50% 30%' },
-        video: {
-          label: 'A creator filming a product campaign in her kitchen',
-          mp4: '/assets/video/f2fc912c-video1-transcode.mp4',
-          webm: '/assets/video/f2fc912c-video1-transcode.webm',
-          poster: '/assets/site/f2fc912c-video1-poster-00001.jpg',
-        },
-        interim: true,
-      },
-      {
-        division: 'talent',
-        audience: 'For creators',
-        name: 'Talent',
-        copy: 'Representation, opportunities, and long-term career management.',
-        cta: 'Explore Stride Talent',
-        href: '/talent',
-        image: { src: '/assets/cms/7a2c07a0-aq.jpg', alt: 'Black and white portrait of a Stride Talent creator', position: '50% 25%' },
-        interim: true,
-      },
-      {
-        division: 'education',
-        audience: 'For the next generation',
-        name: 'Education',
-        copy: 'Learn the industry, develop your content, and build your creator career.',
-        cta: 'Explore Stride Education',
-        href: '/education',
-        image: { src: '/assets/site/b9208d92-stride-social.webp', alt: 'Creators and the Stride team at an industry event', position: '50% 50%' },
-        interim: true,
-      },
-    ]}
+    eyebrow={s.sides.eyebrow ?? ''}
+    headline={s.sides.headline ?? ''}
+    panels={(s.sides.items ?? []).map((item) => ({
+      division: item.key as DivisionKey,
+      audience: item.audience ?? '',
+      name: item.label,
+      copy: item.copy ?? '',
+      cta: item.cta ?? '',
+      href: item.href ?? '/',
+      ...sideMedia[item.key as DivisionKey],
+      interim: true,
+    }))}
   />
 
-  <section class="next" aria-label="Upcoming homepage sections">
-    <PlaceholderNotice variant="block" label="Stage 3 — remaining homepage sections">
-      <p>
-        One group. Built for what's next · Our divisions · Our work · The people behind Stride · Beyond business ·
-        Insights · Global presence · Let's make something happen. These follow the approved wireframes and need the
-        client inputs listed in docs/phase-2/09-client-approval-checklist.md.
-      </p>
-    </PlaceholderNotice>
-  </section>
+  <GroupIntro
+    copy={s.group}
+    image={{ src: '/assets/site/d0919a45-stride-social.webp', alt: 'Stride team members at an industry technology event', position: '45% 50%' }}
+    interim
+  />
+  <DivisionIndex copy={s.divisions} />
+  <WorkMosaic copy={s.work} />
+  <PeopleMosaic copy={s.people} candid={{ src: '/assets/site/81d2e389-screenshot-2025-10-13-at-10.59.51.jpg', alt: 'A Stride team member at an industry event with a Stride Social floor sign', interim: true }} />
+  <BeyondBusiness copy={s.beyond} />
+  <InsightsTrio copy={s.insights} />
+  <MarketsDisplay copy={s.presence} />
+  <FinalRoutes copy={s.final} />
 </SiteLayout>
-
-<style>
-  .next {
-    max-width: calc(var(--container-wide) + 2 * var(--margin));
-    margin-inline: auto;
-    padding: var(--space-9) var(--margin);
-  }
-</style>
