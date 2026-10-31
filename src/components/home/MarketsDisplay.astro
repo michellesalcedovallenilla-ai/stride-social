@@ -15,13 +15,16 @@ const { copy } = Astro.props;
 const markets = (await getCollection('markets', (m) => m.data.status === 'verified'));
 const talent = markets.filter((m) => m.data.roles.includes('talent-market'));
 const operating = markets.filter((m) => m.data.roles.some((r) => r !== 'talent-market'));
+// Cap the title so its longest word fits the column (the About page uses "International presence.").
+const longest = Math.max(1, ...(copy.headline ?? '').split(/\s+/).map((w) => w.length));
+const fit = `${(100 / (longest * 0.86)).toFixed(2)}cqi`;
 ---
 
 <section class="markets" aria-labelledby="markets-title">
   <div class="markets__inner">
     <header class="markets__head">
       <Eyebrow tone="dark">{copy.eyebrow}</Eyebrow>
-      <h2 class="markets__title" id="markets-title" data-reveal-lines>{copy.headline}</h2>
+      <h2 class="markets__title" id="markets-title" data-reveal-lines style={`--fit: ${fit}`}>{copy.headline}</h2>
     </header>
 
     <div class="markets__cols">
@@ -83,11 +86,12 @@ const operating = markets.filter((m) => m.data.roles.some((r) => r !== 'talent-m
     align-content: start;
     gap: var(--space-4);
     min-width: 0;
+    container-type: inline-size;
   }
 
   .markets__title {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 4vw, 4.75rem);
+    font-size: min(clamp(2.5rem, 4vw, 4.75rem), var(--fit));
     font-weight: 850;
     font-stretch: var(--stretch-wide);
     line-height: 0.9;

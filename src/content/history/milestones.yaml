@@ -1,0 +1,62 @@
+# Our History milestones, from the previous site's About page timeline (text kept verbatim).
+# status: legacy until Stride confirms each milestone; only verified ones render in production.
+# Note: the brief says the company was founded in 2022 (Q1); this timeline starts earlier.
+- id: m2018
+  year: 2018
+  title: "Alex blows up his TikTok followers (pun intended!)"
+  body: |-
+    Alex started creating content on YouTube and quickly realised he enjoyed the process, so he kept at it for a few years. He filmed Minecraft videos on his mum's iPad and then TikTok launched. He started uploading content to TikTok every day and his content started gaining immense popularity. To this day Alex has over 5.6 million followers on his TikTok page alone!
+
+    Meanwhile, Ollie was building an e-commerce empire. During this time he learned the importance of having a strong brand presence and marketing strategy. Very soon it became apparent the importance of having a diverse marketing strategy and how important content had become in this emerging market.
+  status: legacy
+  source: Previous stride-social.com About page (migrated October 2026)
+  order: 1
+- id: m2020
+  year: 2020
+  title: "Stride GROUP is born"
+  body: |-
+    When Alex and Ollie left sixth form, the world around them felt like it had a set path—university, gap years, or traditional careers. But neither of them fit into those moulds. While friends packed their bags for university or travelled the world, Alex and Ollie had a different vision. To create something meaningful, something uniquely theirs.
+    Alex had already been a trailblazer on social media and Ollie had spent years building his own e-commerce ventures. They realized their combined strengths were a perfect match, and the idea for Stride Social began to take shape.
+
+    The early days weren’t easy. They poured every ounce of energy into laying the foundation of a talent agency that understood influencers because it was built by the very people they wanted to help.
+  status: legacy
+  source: Previous stride-social.com About page (migrated October 2026)
+  order: 2
+- id: m2021
+  year: 2021
+  title: "STRIDE Talent management"
+  body: |-
+    After a year of working with influencers, using Alex’s personal experience and a good old bit of trial and error, they learned what influencers actually wanted. They focused on creating their company values to improve the influencer's experiences when being signed. They helped creators build brands around their social media channels to work with some of the biggest brands in the world and clients they had always dreamed of working alongside
+  status: legacy
+  source: Previous stride-social.com About page (migrated October 2026)
+  order: 3
+- id: m2022
+  year: 2022
+  title: "Stride creates an influencer ADVERTISING AGENCY"
+  body: |-
+    The founders soon discovered the next step was helping brands themselves get the most out of influencer marketing. This branch was to focus on helping product-based companies work with product review creators. And quickly this side of the business started to expand without signs of slowing.
+
+    There’s a huge gap in the market when it comes to companies overseas working with influencers in the US, UK, Canada, and Australia. So they focused on matching up the best influencers for specific businesses and putting their influencer marketing campaigns into action from start to finish.
+  status: legacy
+  source: Previous stride-social.com About page (migrated October 2026)
+  order: 4
+- id: m2023
+  year: 2023
+  title: "Everything comes together"
+  body: |-
+    With a clear vision to connect influencers with the rapidly growing e-commerce and Amazon markets, Alex and Ollie established one of the UK’s first influencer marketing agencies. Their innovative approach positioned Stride Social at the forefront of an emerging industry with immense potential.
+
+    The opportunity to sponsor the prestigious Influencer Marketing Show in London marked a pivotal milestone. Giving them a chance to align their brand with such a high-profile event, they seized the moment, solidifying Stride Social’s reputation as a leader in the influencer marketing space. This was more than a sponsorship—it was a statement of intent, showcasing their commitment to driving the industry forward.
+
+    Stride also won an award from Hello Partners, being listed as one of the world's top 30 influencer marketing companies to work with. Truly an honour. The founders went from kids playing football together, to running a world-renowned business!
+  status: legacy
+  source: Previous stride-social.com About page (migrated October 2026)
+  order: 5
+- id: m2026
+  year: 2026
+  title: "builds stride-os"
+  body: |-
+    At the heart of Stride Talent is a bespoke operating system that integrates campaign management with financial oversight. This internal technology has enabled us to scale efficiently, surpassing a headcount of 35 team members and establishing a robust presence in both the UK and US markets.
+  status: legacy
+  source: Previous stride-social.com About page (migrated October 2026)
+  order: 6

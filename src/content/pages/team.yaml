@@ -1,0 +1,11 @@
+# Our Team copy.
+sections:
+  hero:
+    status: draft
+    eyebrow: Our group
+    headline: The people behind Stride.
+    body: Talent managers, campaign leads and the people who keep it all moving.
+  join:
+    status: draft
+    headline: Want to work with us?
+    cta: { label: See Open Roles, href: /careers }

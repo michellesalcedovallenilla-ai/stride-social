@@ -1,59 +1,299 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
-import MarqueeHero from '@/components/sections/MarqueeHero.astro';
-import AboutWho from '@/components/company/AboutWho.astro';
-import AboutStory from '@/components/company/AboutStory.astro';
-import { footerCtas } from '@/config/site';
-import about from '@/data/company-about.json';
-// AboutPage structured data kept as on the live page (images point at the migrated copies).
-import jsonLd from '@/data/company-about-jsonld.json';
+// About Stride (docs/phase-2/05-wireframes.md §E; brief §7: company, business model, mission,
+// values, international presence). Replaces the Phase 1 page at the same URL.
+// Hero statement · the three sides, one paragraph each, linking out · mission and values (awaiting
+// Stride) · markets · founders' story · links to History, Team and Careers.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import PageIntro from '@/components/global/PageIntro.astro';
+import Eyebrow from '@/components/core/Eyebrow.astro';
+import DraftTag from '@/components/core/DraftTag.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import MarketsDisplay from '@/components/home/MarketsDisplay.astro';
+import { isPreview } from '@/lib/env';
+
+const page = await getEntry('pages', 'about');
+const home = await getEntry('pages', 'home');
+if (!page || !home) throw new Error('Missing src/content/pages/about.yaml or home.yaml');
+const s = page.data.sections;
+const sides = home.data.sections.sides.items ?? [];
+const story = (s.founders.body ?? '').split(/\n\s*\n/).filter(Boolean);
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About Stride',
+    description: s.hero.body,
+  },
+];
 ---
 
-<BaseLayout
-  title="Stride Social | About Our Influencer Marketing Agency"
-  description="Stride social provide user generated content and marketing services, find out more about us and how to work with creators"
-  nav="transparent"
-  footerCta={footerCtas.about}
-  jsonLd={[jsonLd]}
->
-  <MarqueeHero
-    tone="dark"
-    title="About us"
-    intro="Stride Social is a superior creator management & influencer marketing agency, started by two best friends"
-  />
+<SiteLayout title="About Stride | Creators, Brands and Education" description={s.hero.body} jsonLd={jsonLd}>
+  <PageIntro crumbs={[{ label: 'About' }]} copy={s.hero} tone="light" />
 
-  <AboutWho
-    label="WHO are stride social?"
-    leadStrong={'Stride Group is a dual-force agency home to Stride Social and Stride Talent. Founded by lifelong friends, we bridge the gap between brand strategy and creator growth.\nA Creator-First Legacy.'}
-    lead="Stride was born from the creator community. Being one of the first creator-founded agencies in the space"
-    rows={[
-      { label: 'Industry experience combined', value: '21 years' },
-      { label: 'Paid to influencers since 2021', value: '$5M+' },
-    ]}
-    founders={[
-      {
-        name: 'Ollie Kitson',
-        role: 'Co-founder | Background in building ecom brands',
-        image: '/assets/site/d091383f-ollie-kitson-stride-social.webp',
-        alt: 'Young man with short brown hair wearing a black shirt, standing in an office with a white brick wall and computer monitors in the background.',
-      },
-      {
-        name: 'Alex Hendy',
-        role: 'Co-founder | EX-CREATOR WITH OVER 6M FOLLOWERS',
-        image: '/assets/site/5288f252-alex-hendy-stride-social.webp',
-        alt: 'Young man with short curly hair and beard wearing a light blue shirt, standing in a bright office with computer screens and large windows behind him.',
-      },
-    ]}
-  />
+  <section class="model" aria-labelledby="model-title">
+    <div class="container-wide">
+      <header class="model__head">
+        <Eyebrow tone="light">{s.model.eyebrow}</Eyebrow>
+        <h2 class="model__title" id="model-title">{s.model.headline}</h2>
+      </header>
+      <ul class="model__list" role="list">
+        {sides.map((side, i) => (
+          <li class={`model__side model__side--${side.key}`}>
+            <a href={side.href}>
+              <span class="model__n">{String(i + 1).padStart(2, '0')} · {side.audience}</span>
+              <span class="model__name">Stride {side.label}</span>
+              <span class="model__copy">{side.copy}</span>
+              <span class="model__cta">{side.cta}<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
 
-  <AboutStory
-    image={{
-      src: '/assets/site/d0919a45-stride-social.webp',
-      alt: 'Three men smiling and posing with thumbs up in front of a large Insta360 screen showing a racing car on a track.',
-    }}
-    story={{ tag: 'WHO WE ARE', heading: 'Meet the 2 co-founders of Stride Social Alex & Ollie.', body: about.storyBody }}
-    timelineTag="OUR timeline"
-    timelineHeading="Creators first. We know the industry best, because we live it first hand."
-    timeline={about.timeline}
-  />
-</BaseLayout>
+  {isPreview && (
+    <section class="values" aria-labelledby="values-title">
+      <div class="container-wide values__inner">
+        <div>
+          <Eyebrow tone="light">{s.mission.eyebrow}</Eyebrow>
+          <h2 class="values__title" id="values-title">{s.mission.headline}</h2>
+        </div>
+        <PlaceholderNotice variant="block" label="Needed from Stride">
+          <p>{(s.mission.awaiting ?? []).join(' · ')}. In Stride's own words: nothing is drafted here (brief §7, §9).</p>
+        </PlaceholderNotice>
+      </div>
+    </section>
+  )}
+
+  <MarketsDisplay copy={s.presence} />
+
+  <section class="story" aria-labelledby="story-title">
+    <div class="container-wide story__inner">
+      <div class="story__head">
+        <Eyebrow tone="light">{s.founders.eyebrow}</Eyebrow>
+        <h2 class="story__title" id="story-title">{s.founders.headline}</h2>
+        <DraftTag status={s.founders.status} />
+      </div>
+      <div class="story__body">
+        {story.map((p, i) => <p class:list={{ 'story__lead': i === 0 }}>{p}</p>)}
+        {isPreview && (
+          <PlaceholderNotice variant="inline" label="To verify">— the follower figure, plus founder portraits and titles to approve</PlaceholderNotice>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <nav class="more" aria-labelledby="more-title">
+    <div class="container-wide">
+      <h2 class="more__label" id="more-title">{s.more.eyebrow}</h2>
+      <ul class="more__list" role="list">
+        {(s.more.items ?? []).map((item) => (
+          <li>
+            <a href={item.href}>
+              <span class="more__name">{item.label}</span>
+              <span class="more__copy">{item.copy}</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+</SiteLayout>
+
+<style>
+  .model,
+  .values,
+  .story,
+  .more {
+    position: relative;
+    z-index: 1;
+    padding-block: var(--section-pad);
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .model {
+    padding-top: var(--space-6);
+  }
+
+  .model__head {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+
+  .model__title,
+  .values__title,
+  .story__title {
+    font-family: var(--font-display);
+    font-size: var(--type-h1);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .model__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gutter);
+  }
+
+  .model__side a {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    height: 100%;
+    padding: var(--space-6) 0 var(--space-5);
+    border-top: 6px solid var(--side-accent);
+    transition: padding var(--dur-slow) var(--ease-out);
+  }
+
+  .model__side--social { --side-accent: var(--navy-900); }
+  .model__side--talent { --side-accent: var(--peach); }
+  .model__side--education { --side-accent: var(--sun); }
+
+  .model__n,
+  .more__label {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .model__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 2.8vw, 2.75rem);
+    font-weight: 850;
+    font-stretch: 112%;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .model__copy {
+    max-width: 34ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+  }
+
+  .model__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+  }
+
+  .model__cta svg,
+  .more svg {
+    width: 16px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .model__side a:hover .model__cta svg,
+  .more a:hover svg {
+    transform: translateX(4px);
+  }
+
+  .values {
+    background: var(--white);
+  }
+
+  .values__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: var(--space-7) var(--gutter);
+    align-items: start;
+  }
+
+  .story__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-7) var(--gutter);
+  }
+
+  .story__head {
+    grid-column: 1 / 5;
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    justify-items: start;
+  }
+
+  .story__body {
+    grid-column: 6 / -1;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    max-width: 64ch;
+    font-size: var(--type-lead);
+    line-height: 1.55;
+  }
+
+  .story__lead {
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+    font-style: italic;
+    line-height: 1.15;
+  }
+
+  .more {
+    padding-block: var(--space-9);
+    border-top: 1px solid var(--line);
+  }
+
+  .more__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gutter);
+    margin-top: var(--space-5);
+  }
+
+  .more a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--navy-900);
+  }
+
+  .more__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+    font-weight: 850;
+    font-stretch: 112%;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .more__copy {
+    grid-column: 1;
+    color: var(--slate);
+  }
+
+  .more svg {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    width: 22px;
+  }
+
+  @media (max-width: 1023px) {
+    .model__list,
+    .more__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .values__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .story__head,
+    .story__body {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

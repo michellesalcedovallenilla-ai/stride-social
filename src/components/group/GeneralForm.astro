@@ -1,0 +1,44 @@
+---
+// General contact form for /contact: name, email, topic, message. Fields only; the frame is
+// core/FormShell. Posts to PUBLIC_CONTACT_FORM_ACTION once Stride confirms the inbox (Q13).
+import Field from '../core/Field.astro';
+import FormShell from '../core/FormShell.astro';
+import { contactAction, contactLimits as max, contactTopics, enquiryEmail } from '@/config/forms';
+
+export interface Props {
+  messages: { success: string; error: string; unavailable: string; consent: string };
+}
+
+const { messages } = Astro.props;
+---
+
+<FormShell action={contactAction} email={enquiryEmail} subject="Website enquiry" submitLabel="Send message" messages={messages}>
+  <div class="gen__grid">
+    <Field name="name" label="Name" required autocomplete="name" maxlength={max.name} messages={{ required: 'Enter your name' }} />
+    <Field name="email" label="Email" type="email" required autocomplete="email" maxlength={max.email} messages={{ required: 'Enter your email', invalid: 'Enter an email address in the format name@example.com' }} />
+    <div class="gen__wide">
+      <Field name="topic" label="Topic" type="select" required options={contactTopics} messages={{ required: 'Choose what your message is about' }} />
+    </div>
+    <div class="gen__wide">
+      <Field name="message" label="Message" type="textarea" required rows={6} maxlength={max.message} counter messages={{ required: 'Write your message' }} />
+    </div>
+  </div>
+</FormShell>
+
+<style>
+  .gen__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--gutter);
+  }
+
+  .gen__wide {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 767px) {
+    .gen__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

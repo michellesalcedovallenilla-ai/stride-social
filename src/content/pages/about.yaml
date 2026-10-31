@@ -1,0 +1,53 @@
+# About Stride copy (docs/phase-2/05-wireframes.md §E). The three sides and the markets come from
+# home.yaml and the markets collection, so they are written once.
+sections:
+  hero:
+    status: approved
+    eyebrow: About Stride
+    headline: About Stride.
+    # The homepage hero line (client brief, PDF §3).
+    body: One global group. Three businesses shaping how creators build careers, how brands reach audiences, and how the next generation gets started.
+
+  model:
+    status: approved
+    eyebrow: How the group works
+    headline: Three sides of Stride.
+
+  # Mission and values must be Stride's own (brief §7); nothing is shown until they are supplied.
+  mission:
+    status: draft
+    eyebrow: Mission and values
+    headline: What we stand for.
+    awaiting: [Group mission statement, 3 to 5 company values]
+
+  presence:
+    status: approved
+    eyebrow: Where we work
+    headline: International presence.
+
+  # Founders' story, verbatim from the previous site's About page. Contains a follower figure
+  # ("over 6 million") that needs verifying; founder portraits need approval.
+  founders:
+    status: draft
+    eyebrow: Our story
+    headline: How it started.
+    body: |-
+      Alex and Ollie became best friends at age 12. Between playing sports and starting side hustles, they discovered a shared entrepreneurial streak. School wasn’t easy for either of them. Both have learning difficulties and Alex’s experiences with dyspraxia and speech therapy – things were tough.
+
+      Alex finally found his voice through social media, starting at just 10 years old, and went on to grow an incredible following of over 6 million. Meanwhile, Ollie channelled his entrepreneurial spirit into e-commerce, building a thriving dropshipping business that laid the foundation for his expertise.
+
+      With Alex's talent for social media and influencer connections and Ollie’s knack for strategy and systems, they decided to bring everything together. That’s how Stride Social was born.
+
+  more:
+    status: approved
+    eyebrow: More about the group
+    items:
+      - label: Our History
+        copy: The milestones, from the first videos to three businesses.
+        href: /history
+      - label: Our Team
+        copy: The people behind Stride.
+        href: /team
+      - label: Careers
+        copy: Open roles and the placement scheme.
+        href: /careers

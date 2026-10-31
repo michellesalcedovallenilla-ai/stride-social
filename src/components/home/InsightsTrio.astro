@@ -4,13 +4,14 @@ import { getCollection } from 'astro:content';
 import Eyebrow from '../core/Eyebrow.astro';
 import Button from '../core/Button.astro';
 import { routes } from '@/lib/routes';
+import { categoryLabels } from '@/lib/insights';
 
 export interface Props {
   copy: { eyebrow?: string; headline?: string; cta?: { label: string; href: string } };
 }
 
 const { copy } = Astro.props;
-const categoryLabel = { 'company-news': 'Company news', 'creator-economy': 'Creator economy', 'marketing-insights': 'Marketing insights', education: 'Education' } as const;
+const categoryLabel = categoryLabels;
 const posts = (await getCollection('insights', (p) => p.data.visible && p.data.date !== null))
   .sort((a, b) => b.data.date!.getTime() - a.data.date!.getTime())
   .slice(0, 3);

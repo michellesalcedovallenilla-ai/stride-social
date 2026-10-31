@@ -1,0 +1,33 @@
+---
+// Our History (docs/phase-2/05-wireframes.md §E; brief §7: an editorial timeline beginning with
+// the founding, with verified milestones and photography). Milestones: src/content/history.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import PageIntro from '@/components/global/PageIntro.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import Timeline from '@/components/group/Timeline.astro';
+import { isPreview } from '@/lib/env';
+
+const copy = (await getEntry('pages', 'history'))?.data.sections.hero;
+if (!copy) throw new Error('Missing src/content/pages/history.yaml');
+---
+
+<SiteLayout title="Our History | Stride" description={copy.body}>
+  <PageIntro crumbs={[{ label: 'About', href: '/about' }, { label: 'Our History' }]} copy={copy} tone="light">
+    {isPreview && (
+      <PlaceholderNotice variant="inline" label="Founding year to reconcile">— the brief says 2022; the previous site's timeline starts in 2018 and names 2020 (Q1)</PlaceholderNotice>
+    )}
+  </PageIntro>
+  <section class="history" aria-label="Timeline">
+    <Timeline />
+  </section>
+</SiteLayout>
+
+<style>
+  .history {
+    position: relative;
+    z-index: 1;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+</style>

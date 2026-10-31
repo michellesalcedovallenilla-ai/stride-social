@@ -50,9 +50,10 @@ npm run ci                   # everything CI runs
 - **Phase 3 collections:**
   - taxonomies: `categories`, `industries`, `markets`;
   - `services`, `talentDivisions`, `educationTopics`, `educationExperience`;
-  - `brands`, `team`, `testimonials`, `roster`, `work`, `insights`.
+  - `brands`, `team`, `testimonials`, `roster`, `work`, `insights`;
+  - `milestones` (Our History), `roles` (Careers), `legal`, `sponsorships`, `pages` (page copy).
 
-  New pages read these. Legacy collections (`caseStudies`, `blog`, `creators`, `legacyTestimonials`, `clientLogos`, `legacyServices`) only feed Phase 1 pages, and are deleted with them.
+  New pages read these. Legacy collections (`caseStudies`, `blog`, `creators`, `jobs`, `legacyTestimonials`, `clientLogos`) only feed the remaining Phase 1 pages, and are deleted with them. `src/content/data/*.json` also feeds the migration scripts.
 - Respect the status fields when rendering: show results only when `verified`, roster profiles only with confirmed (or, before launch, `legacy`) consent, logos only when approved, and education items only with a confirmed availability. Never upgrade a status without Stride's confirmation.
 - Keep JavaScript minimal (vanilla TS modules in `src/scripts/`), and respect `prefers-reduced-motion`.
 - Keep components readable: match the surrounding naming and comment density.

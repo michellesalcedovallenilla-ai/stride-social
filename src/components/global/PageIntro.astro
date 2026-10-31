@@ -13,6 +13,10 @@ export interface Props {
 }
 
 const { crumbs, copy, tone = 'dark' } = Astro.props;
+// The title never breaks mid-word, so it is capped to fit its longest word in the column
+// ("SPONSORSHIPS." needs a smaller size than "OUR WORK.").
+const longest = Math.max(1, ...(copy.headline ?? '').split(/\s+/).map((w) => w.length));
+const fit = `${(100 / (longest * 0.86)).toFixed(2)}cqi`;
 ---
 
 <header class:list={['p-intro', `p-intro--on-${tone}`]}>
@@ -20,7 +24,7 @@ const { crumbs, copy, tone = 'dark' } = Astro.props;
     <Breadcrumbs items={crumbs} tone={tone} />
     <div class="p-intro__main">
       <Eyebrow tone={tone}>{copy.eyebrow}</Eyebrow>
-      <h1 class="p-intro__title" data-reveal-lines="load">
+      <h1 class="p-intro__title" data-reveal-lines="load" style={`--fit: ${fit}`}>
         <span class="reveal-line"><span class="reveal-line__inner">{copy.headline}</span></span>
       </h1>
       {copy.body && <p class="p-intro__body" data-reveal="load" style="--reveal-delay: 0.3s">{copy.body}</p>}
@@ -48,11 +52,12 @@ const { crumbs, copy, tone = 'dark' } = Astro.props;
     display: grid;
     gap: var(--space-5);
     justify-items: start;
+    container-type: inline-size;
   }
 
   .p-intro__title {
     font-family: var(--font-display);
-    font-size: var(--type-hero);
+    font-size: min(var(--type-hero), var(--fit));
     font-weight: 850;
     font-stretch: var(--stretch-wide);
     line-height: 0.86;
@@ -69,7 +74,6 @@ const { crumbs, copy, tone = 'dark' } = Astro.props;
 
   @media (max-width: 479px) {
     .p-intro__title {
-      font-size: 13vw;
       font-stretch: 112%;
     }
   }
