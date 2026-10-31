@@ -4,13 +4,14 @@
 // creators involved · quote (verified only) · next case. Missing parts show a labelled placeholder
 // in preview and are left out in production; unverified figures and the previous site's original
 // copy appear only in preview, labelled, because they may contain figures nobody has confirmed.
-import { getCollection, getEntries, getEntry, render } from 'astro:content';
+import { getCollection, getEntries, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
 import Eyebrow from '@/components/core/Eyebrow.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
 import EnquiryCta from '@/components/social/EnquiryCta.astro';
 import { routes } from '@/lib/routes';
+import { rewriteLegacyLinks } from '@/lib/legacy-links';
 import { isPreview } from '@/lib/env';
 import { site } from '@/config/site';
 
@@ -27,7 +28,8 @@ const services = await getEntries(d.services);
 const industries = await getEntries(d.industries);
 const creators = await getEntries(d.creators);
 const nextClient = (await getEntry(next.data.client))?.data.name ?? next.data.title;
-const { Content } = await render(entry);
+// The previous site's copy (preview only), with its links pointed at the new pages.
+const legacyHtml = rewriteLegacyLinks((entry.body ?? '').replace(/<!--[\s\S]*?-->/g, ''));
 
 const verified = d.results.filter((r) => r.status === 'verified');
 const unverified = d.results.filter((r) => r.status !== 'verified');
@@ -103,7 +105,7 @@ const jsonLd = [
         <h2 class="cs-block__label" id="cs-story">The story</h2>
         <div class="cs-block__text">
           <PlaceholderNotice variant="inline" label="Original copy">— from the previous site, awaiting the brief / strategy / execution rewrite (Q6)</PlaceholderNotice>
-          <div class="cs-legacy"><Content /></div>
+          <div class="cs-legacy" set:html={legacyHtml} />
         </div>
       </section>
     )}

@@ -33,7 +33,7 @@ const interim = quotes.some((q) => q.data.consent.status !== 'confirmed');
           <figure class="quote" data-quote hidden={i > 0} aria-label={`Quote ${i + 1} of ${quotes.length}`}>
             {q.data.image && (
               <div class="quote__media">
-                <img src={q.data.image.src} alt="" loading="lazy" decoding="async" />
+                <img src={q.data.image.src} alt="" sizes="(max-width: 767px) 60vw, 30vw" loading="lazy" decoding="async" />
               </div>
             )}
             <div class="quote__body">
@@ -62,6 +62,8 @@ const interim = quotes.some((q) => q.data.consent.status !== 'confirmed');
 
 <style>
   .quotes {
+    /* Muted text (slate) is too light on peach; use navy for 4.5:1 contrast. */
+    --slate: var(--navy-700);
     position: relative;
     z-index: 1;
     padding: var(--section-pad) 0;

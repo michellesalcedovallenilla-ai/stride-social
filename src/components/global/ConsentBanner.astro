@@ -1,0 +1,93 @@
+---
+// Cookie consent for analytics (docs/phase-2/07-technical-architecture.md §7). Rendered only when a
+// consent-requiring tool is configured (src/config/analytics.ts), so today it outputs nothing.
+// Accept and reject carry equal weight; nothing that sets cookies loads before "Accept", and the
+// footer's "Cookie settings" reopens the choice. Behaviour: src/scripts/system/consent.ts.
+// The wording is draft until the cookie policy exists (Q15).
+import { consentKey, consentRequired, ga4Id } from '@/config/analytics';
+---
+
+{consentRequired && (
+  <div class="consent" role="dialog" aria-modal="false" aria-labelledby="consent-title" aria-describedby="consent-text" hidden data-consent data-key={consentKey} data-ga4={ga4Id}>
+    <div class="consent__inner">
+      <p class="consent__title" id="consent-title">Cookies</p>
+      <p class="consent__text" id="consent-text">
+        We'd like to use analytics cookies to understand how the site is used. They're off unless you accept, and you can change your mind any time in Cookie settings. <a href="/cookies">Cookie policy</a>
+      </p>
+      <div class="consent__actions">
+        <button class="consent__btn" type="button" data-consent-choice="reject">Reject</button>
+        <button class="consent__btn" type="button" data-consent-choice="accept">Accept analytics</button>
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  .consent {
+    position: fixed;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    left: var(--space-4);
+    z-index: 200;
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  .consent[hidden] {
+    display: none;
+  }
+
+  .consent__inner {
+    display: grid;
+    gap: var(--space-3);
+    width: min(100%, 460px);
+    padding: var(--space-5);
+    background: var(--navy-900);
+    color: var(--white);
+    box-shadow: 0 16px 48px rgb(6 20 43 / 0.3);
+    pointer-events: auto;
+  }
+
+  .consent__title {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ice);
+  }
+
+  .consent__text {
+    font-size: var(--type-small);
+    line-height: 1.5;
+  }
+
+  .consent__text a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .consent__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  /* Equal weight on purpose: rejecting is as easy as accepting. */
+  .consent__btn {
+    min-height: 44px;
+    border: 1px solid var(--white);
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .consent__btn:hover {
+    background: var(--white);
+    color: var(--navy-900);
+  }
+</style>
+
+<script>
+  import { initConsent } from '@/scripts/system/consent';
+  initConsent();
+</script>

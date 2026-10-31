@@ -28,14 +28,35 @@ const jsonLd = {
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
 <style>
+  /* One line only: the current page shortens with an ellipsis instead of wrapping (wrapping when
+     the web font loads used to push the whole page down). min-width: 0 lets the trail shrink
+     inside grid and flex layouts instead of widening them. */
+  .crumbs {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .crumbs ol {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: var(--space-2);
+    min-width: 0;
+    white-space: nowrap;
     font-family: var(--font-mono);
     font-size: var(--type-label);
     letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  .crumbs li {
+    flex: none;
+  }
+
+  .crumbs li:last-child {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .crumbs li + li::before {

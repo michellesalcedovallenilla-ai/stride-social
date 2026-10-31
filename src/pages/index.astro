@@ -14,6 +14,7 @@ import BeyondBusiness from '@/components/home/BeyondBusiness.astro';
 import InsightsTrio from '@/components/home/InsightsTrio.astro';
 import MarketsDisplay from '@/components/home/MarketsDisplay.astro';
 import FinalRoutes from '@/components/home/FinalRoutes.astro';
+import { site, socials } from '@/config/site';
 
 const page = await getEntry('pages', 'home');
 if (!page) throw new Error('Missing src/content/pages/home.yaml');
@@ -34,12 +35,27 @@ const sideMedia = {
   education: { image: { src: '/assets/site/b9208d92-stride-social.webp', alt: 'Creators and the Stride team at an industry event', position: '50% 50%' } },
 } as const;
 type DivisionKey = keyof typeof sideMedia;
+
+// Organization + WebSite structured data: real company facts only (no address until Q3).
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Stride',
+    legalName: site.legalName,
+    url: site.url,
+    logo: new URL(site.favicon, site.url).href,
+    sameAs: socials.map((s) => s.href),
+  },
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Stride', url: site.url },
+];
 ---
 
 <SiteLayout
   title="Stride Social | Influencer Advertising & Talent Agency"
   description="Stride is a global media group built around creators: Stride Social for brands, Stride Talent for creators and Stride Education for the next generation."
   headerOverlay
+  jsonLd={jsonLd}
 >
   <HeroMontage
     headline={s.hero.lines ?? []}

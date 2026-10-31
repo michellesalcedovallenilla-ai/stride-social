@@ -33,8 +33,8 @@ const people = (await getCollection('team', (m) => m.data.visible))
       <li class="person" data-reveal="rise" style={`--reveal-delay: ${i * 0.08}s`}>
         <figure>
           <div class:list={['person__photo', { 'person__photo--swap': p.data.photoAlt }]}>
-            <img src={p.data.photo.src} alt={p.data.photo.alt} loading="lazy" decoding="async" />
-            {p.data.photoAlt && <img class="person__alt" src={p.data.photoAlt.src} alt="" loading="lazy" decoding="async" />}
+            <img src={p.data.photo.src} alt={p.data.photo.alt} sizes="(max-width: 767px) 50vw, 25vw" loading="lazy" decoding="async" />
+            {p.data.photoAlt && <img class="person__alt" src={p.data.photoAlt.src} alt="" sizes="(max-width: 767px) 50vw, 25vw" loading="lazy" decoding="async" />}
           </div>
           <figcaption><span class="person__name">{p.data.name}</span><span class="person__role">{p.data.role}</span></figcaption>
         </figure>
@@ -52,8 +52,8 @@ const people = (await getCollection('team', (m) => m.data.visible))
       <li class="person" data-reveal="rise" style={`--reveal-delay: ${(i % 4) * 0.08}s`}>
         <figure>
           <div class:list={['person__photo', { 'person__photo--swap': p.data.photoAlt }]}>
-            <img src={p.data.photo.src} alt={p.data.photo.alt} loading="lazy" decoding="async" />
-            {p.data.photoAlt && <img class="person__alt" src={p.data.photoAlt.src} alt="" loading="lazy" decoding="async" />}
+            <img src={p.data.photo.src} alt={p.data.photo.alt} sizes="(max-width: 767px) 50vw, 25vw" loading="lazy" decoding="async" />
+            {p.data.photoAlt && <img class="person__alt" src={p.data.photoAlt.src} alt="" sizes="(max-width: 767px) 50vw, 25vw" loading="lazy" decoding="async" />}
           </div>
           <figcaption><span class="person__name">{p.data.name}</span><span class="person__role">{p.data.role}</span></figcaption>
         </figure>

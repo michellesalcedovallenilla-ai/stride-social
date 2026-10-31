@@ -41,7 +41,7 @@ const tiles = industries.map((ind) => {
       <li class="ind__item">
         {t.count > 0 ? (
           <a class="ind__tile" href={routes.workFiltered({ industry: t.id })}>
-            {t.image && <img class="ind__img" src={t.image.src} alt="" loading="lazy" decoding="async" />}
+            {t.image && <img class="ind__img" src={t.image.src} alt="" sizes="(max-width: 767px) 72vw, 380px" loading="lazy" decoding="async" />}
             <span class="ind__index">{String(i + 1).padStart(2, '0')}</span>
             <span class="ind__info">
               <span class="ind__name">{t.label}</span>

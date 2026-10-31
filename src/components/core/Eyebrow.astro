@@ -35,8 +35,8 @@ const { number, tone = 'light', as: Tag = 'p', class: className } = Astro.props;
     color: rgb(255 255 255 / 0.78);
   }
 
+  /* Same colour as the label: fading it would drop small text below 4.5:1 on light panels. */
   .eyebrow__number {
     color: inherit;
-    opacity: 0.8;
   }
 </style>

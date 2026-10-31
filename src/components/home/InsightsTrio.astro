@@ -32,7 +32,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', y
       <li class:list={['article', { 'article--lead': i === 0 }]} data-reveal="rise" style={`--reveal-delay: ${i * 0.08}s`}>
         <a class="article__link" href={routes.article(p.id)}>
           <span class="article__media">
-            <img src={p.data.cover.src} alt="" loading="lazy" decoding="async" />
+            <img src={p.data.cover.src} alt="" sizes="(max-width: 767px) 100vw, 50vw" loading="lazy" decoding="async" />
           </span>
           <span class="article__body">
             <span class="article__meta">

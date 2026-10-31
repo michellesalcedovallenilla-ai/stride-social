@@ -2,6 +2,7 @@
 // Comprehensive dark navy footer (brief §3.10; columns per docs/phase-2/03-sitemap.md §2).
 import StrideLogo from '../core/StrideLogo.astro';
 import { footerColumns, legalLinks } from '@/config/navigation';
+import { consentRequired } from '@/config/analytics';
 import { site, socials } from '@/config/site';
 
 const contactRoutes = [
@@ -43,6 +44,7 @@ const contactRoutes = [
       <p>© {new Date().getFullYear()} {site.legalName} · {site.companyNumber}</p>
       <ul class="footer__legal" role="list">
         {legalLinks.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        {consentRequired && <li><button class="footer__consent" type="button" data-consent-open>Cookie settings</button></li>}
       </ul>
     </div>
   </div>
@@ -104,6 +106,15 @@ const contactRoutes = [
   }
 
   .footer__col a,
+  .footer__consent {
+    font: inherit;
+    color: inherit;
+  }
+
+  .footer__consent:hover {
+    text-decoration: underline;
+  }
+
   .footer__legal a {
     font-size: var(--type-small);
     color: rgb(255 255 255 / 0.78);

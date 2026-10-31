@@ -27,7 +27,7 @@ const used = (Object.keys(categoryLabels) as Category[]).filter((c) => rest.some
   {lead && (
     <section class="lead" aria-label="Latest article">
       <a class="lead__link container-wide" href={routes.article(lead.id)}>
-        <span class="lead__media"><img src={lead.data.cover.src} alt="" fetchpriority="high" decoding="async" /></span>
+        <span class="lead__media"><img src={lead.data.cover.src} alt="" sizes="(max-width: 1023px) 100vw, 56vw" fetchpriority="high" decoding="async" /></span>
         <span class="lead__text">
           <span class="lead__meta">{categoryLabels[lead.data.category]} · {formatDate(lead.data.date)}</span>
           <span class="lead__title">{lead.data.title}</span>
@@ -52,7 +52,7 @@ const used = (Object.keys(categoryLabels) as Category[]).filter((c) => rest.some
         {rest.map((a) => (
           <li class="card" data-filter-category={a.data.category}>
             <a class="card__link" href={routes.article(a.id)}>
-              <span class="card__media"><img src={a.data.cover.src} alt="" loading="lazy" decoding="async" /></span>
+              <span class="card__media"><img src={a.data.cover.src} alt="" sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 30vw" loading="lazy" decoding="async" /></span>
               <span class="card__meta">{categoryLabels[a.data.category]} · {formatDate(a.data.date)}</span>
               <h2 class="card__title">{a.data.title}</h2>
             </a>
@@ -174,7 +174,7 @@ const used = (Object.keys(categoryLabels) as Category[]).filter((c) => rest.some
   }
 
   /* Filters need the script; without it every article is listed. */
-  .arch:global(.is-enhanced) .arch__chips {
+  :global(.js) .arch .arch__chips {
     display: flex;
   }
 

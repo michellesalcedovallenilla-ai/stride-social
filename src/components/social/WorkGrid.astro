@@ -42,7 +42,7 @@ const sizes = ['l', 's', 's', 'm', 'm', 'w'];
     <li class={`wtile wtile--${sizes[i % sizes.length]}`} data-filter-industry={t.industryIds} data-filter-service={t.serviceIds}>
       <a class="wtile__link" href={routes.caseStudy(t.id)}>
         <span class="wtile__media">
-          <img src={t.image.src} alt="" loading="lazy" decoding="async" />
+          <img src={t.image.src} alt="" sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 45vw" loading="lazy" decoding="async" />
         </span>
         <span class="wtile__info">
           <span class="wtile__meta">{t.services}</span>

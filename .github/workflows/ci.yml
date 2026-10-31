@@ -27,11 +27,24 @@ jobs:
       - name: Type check
         run: npm run check
 
+      # Resized WebP images are generated at build time; keep them between runs.
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/stride-img
+          key: stride-img-${{ hashFiles('public/assets/cms/**', 'public/assets/site/**') }}
+          restore-keys: stride-img-
+
       - name: Build (validates content schemas)
         run: npm run build
 
       - name: Internal links and assets
         run: npm run check:links
+
+      - name: Old URLs resolve (redirect map against the previous sitemap)
+        run: npm run check:redirects
+
+      - name: SEO (titles, descriptions, canonicals, OG, h1, JSON-LD, sitemap)
+        run: npm run check:seo
 
       - name: Placeholders (strict on main)
         run: npm run check:placeholders -- ${{ github.ref == 'refs/heads/main' && '--strict' || '' }}

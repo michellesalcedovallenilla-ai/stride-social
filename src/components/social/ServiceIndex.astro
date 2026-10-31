@@ -39,7 +39,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
           <span class="svc__number">{pad(s.data.number)}</span>
           <Name class="svc__name">{s.data.name}</Name>
           <span class="svc__descriptor">{s.data.descriptor}</span>
-          {s.data.hero && <img class="svc__thumb" src={s.data.hero.src} alt="" loading="lazy" decoding="async" />}
+          {s.data.hero && <img class="svc__thumb" src={s.data.hero.src} alt="" sizes="64px" loading="lazy" decoding="async" />}
           <svg class="svc__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
         </a>
       </li>
@@ -48,7 +48,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   <div class="svc__preview" aria-hidden="true" data-preview>
     {services.filter((s) => s.data.hero).map((s) => (
-      <img class="svc__preview-img" src={s.data.hero!.src} alt="" loading="lazy" decoding="async" data-preview-for={s.id} />
+      <img class="svc__preview-img" src={s.data.hero!.src} alt="" sizes="320px" loading="lazy" decoding="async" data-preview-for={s.id} />
     ))}
   </div>
 </section>

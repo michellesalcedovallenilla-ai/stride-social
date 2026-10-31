@@ -3,9 +3,11 @@
 // new header/division bar/footer and loads the motion scripts. Phase 1 pages keep BaseLayout
 // until each one is replaced.
 import '@/styles/system/index.css';
-import Seo from '@/components/ui/Seo.astro';
+import Seo from '@/components/global/Seo.astro';
 import SiteHeader from '@/components/global/SiteHeader.astro';
 import SiteFooter from '@/components/global/SiteFooter.astro';
+import ConsentBanner from '@/components/global/ConsentBanner.astro';
+import { plausibleDomain } from '@/config/analytics';
 import { site } from '@/config/site';
 import type { DivisionKey } from '@/config/navigation';
 
@@ -13,6 +15,7 @@ export interface Props {
   title: string;
   description?: string | null;
   ogImage?: string | null;
+  ogType?: 'website' | 'article' | 'profile';
   division?: DivisionKey;
   /** The page opens with a full-bleed dark hero: header starts transparent with light text. */
   headerOverlay?: boolean;
@@ -20,7 +23,7 @@ export interface Props {
   noindex?: boolean;
 }
 
-const { title, description, ogImage, division = 'group', headerOverlay = false, jsonLd, noindex } = Astro.props;
+const { title, description, ogImage, ogType, division = 'group', headerOverlay = false, jsonLd, noindex } = Astro.props;
 const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') || '/';
 ---
 
@@ -37,10 +40,12 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') |
         if (!root.classList.contains('motion-ready')) root.classList.remove('js');
       }, 3000);
     </script>
-    <Seo title={title} description={description} ogImage={ogImage} path={path} jsonLd={jsonLd} noindex={noindex} />
+    <Seo title={title} description={description} ogImage={ogImage} ogType={ogType} path={path} jsonLd={jsonLd} noindex={noindex} />
     <link rel="icon" href={site.favicon} type="image/png" />
     <link rel="apple-touch-icon" href={site.appleTouchIcon} />
     <slot name="head" />
+    {/* Cookieless analytics needs no consent banner (Q14 decides which tool, if any). */}
+    {plausibleDomain && <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.js"></script>}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -49,9 +54,10 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') |
       <slot />
     </main>
     <SiteFooter />
+    <ConsentBanner />
     <script>
-      import { initSmoothScroll } from '@/scripts/smooth-scroll';
-      import { initReveal } from '@/scripts/reveal';
+      import { initSmoothScroll } from '@/scripts/system/smooth-scroll';
+      import { initReveal } from '@/scripts/system/reveal';
       import { initRevealLines } from '@/scripts/system/reveal-lines';
       document.documentElement.classList.add('motion-ready');
       initSmoothScroll();
