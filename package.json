@@ -9,6 +9,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:links": "node scripts/checks/links.mjs",
+    "check:placeholders": "node scripts/checks/placeholders.mjs",
+    "ci": "npm run check && npm run build && npm run check:links && npm run check:placeholders",
     "migrate:content": "node scripts/migrate/extract-content.mjs",
     "migrate:assets": "node scripts/migrate/download-assets.mjs"
   },
