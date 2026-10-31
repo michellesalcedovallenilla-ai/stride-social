@@ -3,6 +3,7 @@ title: Comfelie
 client: comfelie
 summary: Comfelie wanted to grow sales through TikTok Shop, using influencers to both promote their products and drive direct purchases through the in-video “Buy Now” feature. The goal was to partner with influencers who not only had strong engagement but also fit seamlessly with the brand’s mission and audience.
 services:
+  - tiktok-shop
   - influencer-activations
 industries:
   - fashion
@@ -28,8 +29,10 @@ creators: []
 quote:
   text: Stride Social have been amazing to work with! Not only do they give creators freedom and flexibility, but they are also fun to work with. Looking forward to many years collaborating with them
   status: unverified
-featuredOn: []
-featuredOrder: null
+# Proposed for the Stride Social page (Stage 4). Confirm or swap.
+featuredOn:
+  - social
+featuredOrder: 3
 contentStatus: needs-input
 order: 7
 seo:

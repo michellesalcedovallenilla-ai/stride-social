@@ -54,16 +54,18 @@ const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props
     position: static;
     align-self: start;
     justify-self: start;
-    width: max-content;
+    width: fit-content;
+    max-width: 100%;
   }
 
+  /* Takes the text colour of the surface it sits on, so it reads on paper and on navy alike. */
   .ph-block {
     display: grid;
     gap: var(--space-3);
     padding: var(--space-6);
-    border: 1px dashed var(--navy-500);
-    background: repeating-linear-gradient(-45deg, transparent 0 14px, rgb(6 20 43 / 0.03) 14px 28px);
-    color: var(--navy-900);
+    border: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+    background: repeating-linear-gradient(-45deg, transparent 0 14px, color-mix(in srgb, currentColor 4%, transparent) 14px 28px);
+    color: inherit;
   }
 
   .ph-block__label {

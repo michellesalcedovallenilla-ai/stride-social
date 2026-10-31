@@ -1,22 +1,24 @@
 ---
 // Filter pill. Renders a toggle button (aria-pressed) or, with `href`, a link (aria-current when active).
+// `tone` follows the surface: light (paper/white) or dark (navy).
 export interface Props {
   href?: string;
   active?: boolean;
   value?: string;
+  tone?: 'light' | 'dark';
   class?: string;
   [key: string]: unknown;
 }
 
-const { href, active = false, value, class: className, ...rest } = Astro.props;
+const { href, active = false, value, tone = 'light', class: className, ...rest } = Astro.props;
 ---
 
 {href ? (
-  <a class:list={['chip', { 'is-active': active }, className]} href={href} aria-current={active ? 'true' : undefined} {...rest}>
+  <a class:list={['chip', `chip--on-${tone}`, { 'is-active': active }, className]} href={href} aria-current={active ? 'true' : undefined} {...rest}>
     <slot />
   </a>
 ) : (
-  <button class:list={['chip', { 'is-active': active }, className]} type="button" aria-pressed={active ? 'true' : 'false'} data-value={value} {...rest}>
+  <button class:list={['chip', `chip--on-${tone}`, { 'is-active': active }, className]} type="button" aria-pressed={active ? 'true' : 'false'} data-value={value} {...rest}>
     <slot />
   </button>
 )}
@@ -49,5 +51,16 @@ const { href, active = false, value, class: className, ...rest } = Astro.props;
     background: var(--navy-900);
     border-color: var(--navy-900);
     color: var(--white);
+  }
+
+  .chip--on-dark:hover {
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .chip--on-dark.is-active,
+  .chip--on-dark[aria-pressed='true'] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--navy-900);
   }
 </style>

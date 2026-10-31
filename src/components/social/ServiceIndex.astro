@@ -1,0 +1,281 @@
+---
+// Stride Social B4: the seven services as a large typographic index (number, name, the brief's
+// one-line descriptor, arrow). On desktop each row reveals its image beside the cursor
+// (src/scripts/system/hover-preview.ts); phones show a small thumbnail instead. No cards.
+// Used on /social (with a section head) and /social/services (head supplied by the page).
+import { getCollection } from 'astro:content';
+import Eyebrow from '../core/Eyebrow.astro';
+import Button from '../core/Button.astro';
+import { routes } from '@/lib/routes';
+
+export interface Props {
+  copy?: { eyebrow?: string; headline?: string; cta?: { label: string; href: string } };
+  /** Heading level for service names: h3 under a section title, h2 when the page h1 is above. */
+  nameLevel?: 'h2' | 'h3';
+}
+
+const { copy, nameLevel = 'h3' } = Astro.props;
+const Name = nameLevel;
+const services = (await getCollection('services')).sort((a, b) => a.data.number - b.data.number);
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="svc" aria-labelledby={copy?.headline ? 'svc-title' : undefined} aria-label={copy?.headline ? undefined : 'Services'} data-hover-preview>
+  {copy?.headline && (
+    <header class="svc__head container-wide">
+      <div>
+        <Eyebrow tone="dark">{copy.eyebrow}</Eyebrow>
+        <h2 class="svc__title" id="svc-title" data-reveal-lines>{copy.headline}</h2>
+      </div>
+      {copy.cta && <Button href={copy.cta.href} variant="text" tone="dark">{copy.cta.label}</Button>}
+    </header>
+  )}
+
+  <ol class="svc__list container-wide" role="list">
+    {services.map((s, i) => (
+      <li class:list={['svc__row', { 'svc__row--offset': i % 2 === 1 }]} data-reveal="rise" style={`--reveal-delay: ${(i % 4) * 0.05}s`}>
+        <a class="svc__link" href={routes.service(s.id)} data-preview-key={s.data.hero ? s.id : undefined}>
+          <span class="svc__fill" aria-hidden="true"></span>
+          <span class="svc__number">{pad(s.data.number)}</span>
+          <Name class="svc__name">{s.data.name}</Name>
+          <span class="svc__descriptor">{s.data.descriptor}</span>
+          {s.data.hero && <img class="svc__thumb" src={s.data.hero.src} alt="" loading="lazy" decoding="async" />}
+          <svg class="svc__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+        </a>
+      </li>
+    ))}
+  </ol>
+
+  <div class="svc__preview" aria-hidden="true" data-preview>
+    {services.filter((s) => s.data.hero).map((s) => (
+      <img class="svc__preview-img" src={s.data.hero!.src} alt="" loading="lazy" decoding="async" data-preview-for={s.id} />
+    ))}
+  </div>
+</section>
+
+<style>
+  .svc {
+    position: relative;
+    z-index: 1;
+    padding: var(--section-pad) 0;
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .svc__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    padding-bottom: var(--space-8);
+  }
+
+  .svc__head > div {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .svc__title {
+    font-family: var(--font-display);
+    font-size: var(--type-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .svc__list {
+    border-top: 1px solid var(--line-dark);
+  }
+
+  .svc__row {
+    border-bottom: 1px solid var(--line-dark);
+  }
+
+  .svc__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1.6fr) minmax(0, 1fr) 2.5rem;
+    align-items: center;
+    gap: var(--space-5);
+    padding: clamp(20px, 2.6vw, 40px) var(--space-4);
+    overflow: hidden;
+    isolation: isolate;
+    transition: color var(--dur-base) var(--ease-out);
+  }
+
+  /* Accent sweep from the left on hover/focus. */
+  .svc__fill {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .svc__link:hover,
+  .svc__link:focus-visible {
+    color: var(--navy-900);
+  }
+
+  .svc__link:hover .svc__fill,
+  .svc__link:focus-visible .svc__fill {
+    transform: scaleX(1);
+  }
+
+  .svc__number {
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+  }
+
+  .svc__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4.2vw, 4.25rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Alternate rows step in, so the index reads as a list of names rather than a table. */
+  .svc__row--offset .svc__name {
+    padding-left: clamp(0px, 4vw, 72px);
+  }
+
+  .svc__descriptor {
+    max-width: 34ch;
+    font-size: var(--type-body);
+    line-height: 1.4;
+    opacity: 0.85;
+  }
+
+  .svc__thumb {
+    display: none;
+  }
+
+  .svc__arrow {
+    justify-self: end;
+    width: 26px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .svc__link:hover .svc__arrow {
+    transform: translateX(6px);
+  }
+
+  /* Floating preview beside the cursor (desktop, fine pointers; positioned by the script). */
+  .svc__preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    width: clamp(220px, 20vw, 320px);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(var(--px, 0), var(--py, 0), 0) scale(0.92);
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      scale var(--dur-base) var(--ease-out);
+  }
+
+  .svc__preview.is-visible {
+    opacity: 1;
+    scale: calc(1 / 0.92);
+  }
+
+  .svc__preview-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    opacity: 0;
+  }
+
+  .svc__preview-img.is-active {
+    opacity: 1;
+  }
+
+  @media (max-width: 1023px) {
+    .svc__link {
+      grid-template-columns: 2.5rem minmax(0, 1fr) 2rem;
+      gap: var(--space-2) var(--space-4);
+    }
+
+    .svc__number {
+      grid-row: 1 / 3;
+      align-self: start;
+      padding-top: 0.4em;
+    }
+
+    .svc__descriptor {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .svc__arrow {
+      grid-column: 3;
+      grid-row: 1 / 3;
+    }
+
+    .svc__row--offset .svc__name {
+      padding-left: 0;
+    }
+
+    .svc__preview {
+      display: none;
+    }
+  }
+
+  /* Phones: a small thumbnail, tap to open the service. */
+  @media (max-width: 767px) {
+    .svc__link {
+      grid-template-columns: minmax(0, 1fr) 64px;
+      padding-inline: 0;
+    }
+
+    .svc__number {
+      grid-row: auto;
+      padding: 0;
+    }
+
+    .svc__name,
+    .svc__descriptor {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .svc__name {
+      font-size: clamp(1.5rem, 7.4vw, 2.25rem);
+    }
+
+    .svc__thumb {
+      display: block;
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      align-self: center;
+      width: 64px;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+    }
+
+    .svc__arrow {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { initHoverPreviews } from '@/scripts/system/hover-preview';
+  initHoverPreviews();
+</script>

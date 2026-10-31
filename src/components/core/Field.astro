@@ -1,6 +1,7 @@
 ---
 // Labelled form control with hint and error text (labels always visible; errors tied with
-// aria-describedby; never colour-only). Full forms are assembled in later stages.
+// aria-describedby; never colour-only). The error line is always rendered (hidden when empty) so
+// client-side validation can fill it in (src/scripts/system/enquiry-form.ts).
 import type { HTMLAttributes } from 'astro/types';
 
 export interface Props {
@@ -40,12 +41,10 @@ const invalid = error ? ('true' as const) : undefined;
   ) : (
     <input class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} type={type} placeholder={placeholder} maxlength={maxlength} />
   )}
-  {error && (
-    <p class="field__error" id={`${id}-error`}>
-      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 4v5M8 11v1" stroke="currentColor" stroke-width="1.5"></path></svg>
-      {error}
-    </p>
-  )}
+  <p class="field__error" id={`${id}-error`} hidden={!error}>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 4v5M8 11v1" stroke="currentColor" stroke-width="1.5"></path></svg>
+    <span class="field__error-text">{error}</span>
+  </p>
 </div>
 
 <style>
@@ -115,6 +114,10 @@ const invalid = error ? ('true' as const) : undefined;
     color: #b42318;
   }
 
+  .field__error[hidden] {
+    display: none;
+  }
+
   .field__error svg {
     width: 16px;
     flex: none;
@@ -127,5 +130,13 @@ const invalid = error ? ('true' as const) : undefined;
   .field--on-dark .field__hint,
   .field--on-dark .field__optional {
     color: rgb(255 255 255 / 0.72);
+  }
+
+  .field--on-dark .field__error {
+    color: #ffb4a9;
+  }
+
+  .field--on-dark.field--error .field__control {
+    border-color: #ffb4a9;
   }
 </style>

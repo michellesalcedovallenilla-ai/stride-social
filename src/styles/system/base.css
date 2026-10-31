@@ -38,8 +38,8 @@ dd {
   margin: 0;
 }
 
-ul[role='list'],
-ol[role='list'] {
+/* Zero specificity so helpers such as .container-wide can still add padding to a list. */
+:where(ul[role='list'], ol[role='list']) {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -91,6 +91,13 @@ button {
 .container {
   width: 100%;
   max-width: calc(var(--container) + 2 * var(--margin));
+  margin-inline: auto;
+  padding-inline: var(--margin);
+}
+
+.container-wide {
+  width: 100%;
+  max-width: calc(var(--container-wide) + 2 * var(--margin));
   margin-inline: auto;
   padding-inline: var(--margin);
 }

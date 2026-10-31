@@ -1,0 +1,90 @@
+# Stride Social landing copy (docs/phase-2/05-wireframes.md §B). status: approved = from the
+# client brief or signed off; draft = written by us, shows a "Draft copy" tag in preview and
+# blocks production.
+sections:
+  hero:
+    status: approved
+    eyebrow: Stride Social
+    lines: [The right, creators., Real impact.]
+    body: We build influencer campaigns that put brands in front of the audiences that matter — through talent, content, and social-first strategy.
+    items:
+      - label: Speak To Our Team
+        href: /social/enquire
+      - label: Explore Our Work
+        href: /work
+
+  logos:
+    status: approved
+    eyebrow: Trusted by brands
+    # Named in the brief; no approved vector logo yet (Q5).
+    awaiting: [Samsung, Adobe, P&G, Govee, XGIMI, Temu]
+
+  intro:
+    status: draft
+    headline: Influence is more than a post.
+    body: |-
+      We plan and run creator-led campaigns across TikTok, Instagram, YouTube, Twitch and podcasts, in formats from seeded unboxings to paid UGC and live shopping streams, for brands selling in several markets at once.
+
+      Each campaign starts with a business outcome you can measure, whether that is awareness, app downloads or sales. We pick creators for audience fit before reach, brief them clearly and give them room to make content their followers want to watch.
+
+      Strong creator relationships make that possible. We handle outreach, content approvals and reporting, so you deal with one team from brief to results.
+
+  services:
+    status: approved
+    eyebrow: What we do
+    headline: Our services.
+    cta: { label: All services, href: /social/services }
+
+  # Intro for the services index page (/social/services).
+  servicesPage:
+    status: draft
+    eyebrow: Stride Social
+    headline: Our services.
+    body: Seven ways we put brands in front of the audiences that matter.
+
+  industries:
+    status: approved
+    eyebrow: Who we work with
+    headline: Industries we work in.
+
+  featured:
+    status: approved
+    eyebrow: Selected work
+    headline: Featured campaigns.
+    cta: { label: Explore Our Work, href: /work }
+
+  # Steps from the brief; chapter copy adapted from the previous site's process copy.
+  approach:
+    status: draft
+    eyebrow: How we work
+    headline: Our approach.
+    items:
+      - label: Strategy
+        copy: We start with your brand, your goals and the customer you want to reach. Then we build the campaign around your budget, your brand voice and the results that matter to you. No copy-paste templates.
+      - label: Creator Selection
+        copy: We source and vet creators who match your audience, checking quality, brand fit and authenticity, and we handle every conversation from pitch to post.
+      - label: Campaign Execution
+        copy: We manage briefs, content approvals, posting schedules and creator relationships, so content lands on time and is ready to reuse across ads, email and social.
+      - label: Reporting
+        copy: You get clear reports on reach, engagement and content performance, written so anyone in your business can read them, and we use them to sharpen the next wave.
+
+  final:
+    status: approved
+    headline: Your next campaign starts here.
+    cta: { label: Talk To Stride Social, href: /social/enquire }
+
+  # Brand enquiry form (inline on /social and at /social/enquire). Response times need Q13.
+  enquiry:
+    status: draft
+    eyebrow: Brand enquiries
+    headline: Start a campaign.
+    body: Tell us about your brand, your market and what you want to achieve.
+    items:
+      - key: success
+        label: "Thanks, {name}. Our team will be in touch."
+      - key: error
+        label: Your enquiry was not sent. Try again, or email us directly.
+      - key: unavailable
+        label: The form is temporarily unavailable. Email us and we'll pick it up from there.
+      - key: consent
+        label: We use these details to reply to your enquiry. See our privacy policy.

@@ -30,8 +30,10 @@ creators: []
 quote:
   text: Stride Social have been amazing to work with! Not only do they give creators freedom and flexibility, but they are also fun to work with. Looking forward to many years collaborating with them
   status: unverified
-featuredOn: []
-featuredOrder: null
+# Proposed for the Stride Social page (Stage 4). Confirm or swap.
+featuredOn:
+  - social
+featuredOrder: 1
 contentStatus: needs-rewrite
 order: 4
 seo:
