@@ -1,0 +1,140 @@
+---
+// Primary action (one per view), secondary action, or text link with an arrow.
+// `tone` follows the surface the button sits on: light (paper/white) or dark (navy/imagery).
+export interface Props {
+  href?: string;
+  type?: 'button' | 'submit';
+  variant?: 'primary' | 'secondary' | 'text';
+  tone?: 'light' | 'dark';
+  arrow?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { href, type = 'button', variant = 'primary', tone = 'light', arrow = variant === 'text', class: className, ...rest } = Astro.props;
+const external = typeof href === 'string' && /^https?:/.test(href);
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  class:list={['btn', `btn--${variant}`, `btn--on-${tone}`, className]}
+  href={href}
+  type={href ? undefined : type}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+  {...rest}
+>
+  <span class="btn__label"><slot /></span>
+  {arrow && (
+    <svg class="btn__arrow" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+    </svg>
+  )}
+</Tag>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: 48px;
+    padding: 0 var(--space-5);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    font-family: var(--font-text);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out);
+  }
+
+  .btn__arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .btn:hover .btn__arrow {
+    transform: translateX(4px);
+  }
+
+  /* Primary */
+  .btn--primary.btn--on-light {
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .btn--primary.btn--on-light:hover {
+    background: var(--navy-700);
+  }
+
+  .btn--primary.btn--on-dark {
+    background: var(--accent);
+    color: var(--navy-900);
+  }
+
+  .btn--primary.btn--on-dark:hover {
+    background: var(--white);
+  }
+
+  /* Secondary */
+  .btn--secondary.btn--on-light {
+    border-color: var(--navy-900);
+    color: var(--navy-900);
+  }
+
+  .btn--secondary.btn--on-light:hover {
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .btn--secondary.btn--on-dark {
+    border-color: rgb(255 255 255 / 0.7);
+    color: var(--white);
+  }
+
+  .btn--secondary.btn--on-dark:hover {
+    border-color: var(--white);
+    background: var(--white);
+    color: var(--navy-900);
+  }
+
+  /* Text link */
+  .btn--text {
+    min-height: 44px;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .btn--text .btn__label {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    padding-bottom: 2px;
+    transition: background-size var(--dur-slow) var(--ease-out);
+  }
+
+  .btn--text:hover .btn__label {
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+  }
+
+  .btn--text.btn--on-light {
+    color: var(--navy-900);
+  }
+
+  .btn--text.btn--on-dark {
+    color: var(--white);
+  }
+
+  .btn[aria-disabled='true'] {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+</style>

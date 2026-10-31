@@ -1,0 +1,131 @@
+---
+// Labelled form control with hint and error text (labels always visible; errors tied with
+// aria-describedby; never colour-only). Full forms are assembled in later stages.
+import type { HTMLAttributes } from 'astro/types';
+
+export interface Props {
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'url' | 'tel' | 'textarea' | 'select';
+  required?: boolean;
+  hint?: string;
+  error?: string;
+  autocomplete?: HTMLAttributes<'input'>['autocomplete'];
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+  rows?: number;
+  maxlength?: number;
+  tone?: 'light' | 'dark';
+}
+
+const { name, label, type = 'text', required = false, hint, error, autocomplete, options = [], placeholder, rows = 5, maxlength, tone = 'light' } = Astro.props;
+const id = `field-${name}`;
+const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
+const invalid = error ? ('true' as const) : undefined;
+---
+
+<div class:list={['field', `field--on-${tone}`, { 'field--error': error }]}>
+  <label class="field__label" for={id}>
+    {label}
+    {required ? <span class="field__req" aria-hidden="true">*</span> : <span class="field__optional">(optional)</span>}
+  </label>
+  {hint && <p class="field__hint" id={`${id}-hint`}>{hint}</p>}
+  {type === 'textarea' ? (
+    <textarea class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} rows={rows} maxlength={maxlength} placeholder={placeholder}></textarea>
+  ) : type === 'select' ? (
+    <select class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete}>
+      <option value="">Select…</option>
+      {options.map((o) => <option value={o.value}>{o.label}</option>)}
+    </select>
+  ) : (
+    <input class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} type={type} placeholder={placeholder} maxlength={maxlength} />
+  )}
+  {error && (
+    <p class="field__error" id={`${id}-error`}>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 4v5M8 11v1" stroke="currentColor" stroke-width="1.5"></path></svg>
+      {error}
+    </p>
+  )}
+</div>
+
+<style>
+  .field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .field__label {
+    font-size: var(--type-small);
+    font-weight: 600;
+  }
+
+  .field__req {
+    margin-left: 2px;
+    color: var(--accent-ink);
+  }
+
+  .field__optional {
+    margin-left: 6px;
+    font-weight: 400;
+    color: var(--slate);
+  }
+
+  .field__hint {
+    font-size: var(--type-small);
+    color: var(--slate);
+  }
+
+  .field__control {
+    width: 100%;
+    min-height: 52px;
+    padding: 14px var(--space-4);
+    border: 1px solid var(--navy-500);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--navy-900);
+    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  }
+
+  textarea.field__control {
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .field__control:hover {
+    border-color: var(--navy-900);
+  }
+
+  .field__control:focus-visible {
+    outline: none;
+    border-color: var(--navy-900);
+    box-shadow: 0 0 0 3px rgb(47 107 255 / 0.35);
+  }
+
+  .field--error .field__control {
+    border-color: #b42318;
+    border-width: 2px;
+  }
+
+  .field__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--type-small);
+    font-weight: 500;
+    color: #b42318;
+  }
+
+  .field__error svg {
+    width: 16px;
+    flex: none;
+  }
+
+  .field--on-dark .field__label {
+    color: var(--white);
+  }
+
+  .field--on-dark .field__hint,
+  .field--on-dark .field__optional {
+    color: rgb(255 255 255 / 0.72);
+  }
+</style>

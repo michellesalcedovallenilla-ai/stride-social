@@ -1,0 +1,191 @@
+---
+// Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
+// bottom-left, description and division routes bottom-right.
+import Media from '../core/Media.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+
+export interface Props {
+  headline: string[];
+  description: string;
+  routes: { label: string; href: string; division: 'social' | 'talent' | 'education' }[];
+  video: { mp4: string; webm?: string; poster: string; label: string; mobile?: { mp4: string; webm?: string; poster: string } };
+  interim?: boolean;
+}
+
+const { headline, description, routes, video, interim = false } = Astro.props;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <Media video={video} priority controlsPosition="bottom-right" class="hero__media" />
+  {interim && <PlaceholderNotice label="Interim footage" class="hero__interim">— awaiting approved montage</PlaceholderNotice>}
+  <div class="hero__scrim" aria-hidden="true"></div>
+
+  <div class="hero__content">
+    <h1 class="hero__title" id="hero-title" data-reveal-lines="load">
+      {headline.map((line, i) => (
+        <span class="reveal-line" style={`--line: ${i}`}><span class="reveal-line__inner">{line}</span></span>
+      ))}
+    </h1>
+    <div class="hero__aside" data-reveal="load" style="--reveal-delay: 0.45s">
+      <p class="hero__description">{description}</p>
+      <ul class="hero__routes" role="list">
+        {routes.map((r) => (
+          <li>
+            <a class={`hero__route hero__route--${r.division}`} href={r.href}>
+              <span class="hero__route-swatch" aria-hidden="true"></span>
+              <span class="hero__route-label">{r.label}</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 640px;
+    height: 100svh;
+    max-height: 1040px;
+    overflow: hidden;
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .hero :global(.hero__interim) {
+    top: calc(var(--header-h) + var(--space-3));
+  }
+
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(to top, rgb(6 20 43 / 0.82) 0%, rgb(6 20 43 / 0.35) 45%, rgb(6 20 43 / 0.15) 100%),
+      linear-gradient(to right, rgb(6 20 43 / 0.35), transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    align-items: end;
+    gap: var(--gutter);
+    width: 100%;
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: 0 var(--margin) calc(var(--space-8) + 20px);
+  }
+
+  .hero__title {
+    grid-column: 1 / 9;
+    font-family: var(--font-display);
+    font-size: clamp(3.25rem, 8.6vw, 9.5rem);
+    font-weight: 850;
+    font-stretch: 118%;
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .hero__aside {
+    grid-column: 9 / -1;
+    display: grid;
+    gap: var(--space-6);
+    padding-bottom: 0.4rem;
+  }
+
+  .hero__description {
+    max-width: 36ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+    color: rgb(255 255 255 / 0.9);
+  }
+
+  .hero__routes {
+    display: grid;
+    border-top: 1px solid rgb(255 255 255 / 0.25);
+  }
+
+  .hero__route {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 52px;
+    border-bottom: 1px solid rgb(255 255 255 / 0.25);
+    font-weight: 500;
+  }
+
+  .hero__route-swatch {
+    width: 10px;
+    height: 10px;
+    flex: none;
+  }
+
+  .hero__route--social .hero__route-swatch {
+    background: var(--ice);
+  }
+
+  .hero__route--talent .hero__route-swatch {
+    background: var(--peach);
+  }
+
+  .hero__route--education .hero__route-swatch {
+    background: var(--sun);
+  }
+
+  .hero__route-label {
+    flex: 1;
+  }
+
+  .hero__route svg {
+    width: 16px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .hero__route:hover svg {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 1023px) {
+    .hero__title,
+    .hero__aside {
+      grid-column: 1 / -1;
+    }
+
+    .hero__title {
+      font-size: clamp(3rem, 13.5vw, 7rem);
+    }
+
+    .hero__aside {
+      max-width: 520px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      min-height: 600px;
+      max-height: none;
+    }
+
+    .hero__content {
+      gap: var(--space-6);
+      padding-bottom: calc(var(--space-8) + 12px);
+    }
+
+    .hero__title {
+      font-stretch: 112%;
+      font-size: clamp(2.75rem, 14.5vw, 5rem);
+    }
+
+    .hero__aside {
+      gap: var(--space-5);
+    }
+  }
+</style>

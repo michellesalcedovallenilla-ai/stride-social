@@ -1,0 +1,77 @@
+---
+// Marks unfinished content so it is never mistaken for the real thing (brief §8: identify placeholders).
+// Every instance carries data-placeholder; `npm run check:placeholders -- --strict` fails if any
+// remain in a production build.
+//   tag:   small corner label over media ("Interim footage — awaiting approved assets")
+//   block: full panel standing in for a missing section or page
+export interface Props {
+  variant?: 'tag' | 'block';
+  label?: string;
+  class?: string;
+}
+
+const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props;
+---
+
+{variant === 'tag' ? (
+  <span class:list={['ph-tag', className]} data-placeholder>
+    <span class="ph-tag__label">{label}</span>
+    <slot />
+  </span>
+) : (
+  <div class:list={['ph-block', className]} data-placeholder role="note">
+    <p class="ph-block__label">{label}</p>
+    <div class="ph-block__body"><slot /></div>
+  </div>
+)}
+
+<style>
+  .ph-tag {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 5;
+    display: inline-flex;
+    gap: 0.4em;
+    max-width: calc(100% - 2 * var(--space-3));
+    padding: 4px 10px;
+    background: var(--sun);
+    color: var(--navy-900);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .ph-tag__label {
+    font-weight: 600;
+  }
+
+  .ph-block {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px dashed var(--navy-500);
+    background: repeating-linear-gradient(-45deg, transparent 0 14px, rgb(6 20 43 / 0.03) 14px 28px);
+    color: var(--navy-900);
+  }
+
+  .ph-block__label {
+    justify-self: start;
+    padding: 4px 10px;
+    background: var(--sun);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .ph-block__body {
+    max-width: 68ch;
+    font-size: var(--type-small);
+    line-height: 1.6;
+  }
+</style>

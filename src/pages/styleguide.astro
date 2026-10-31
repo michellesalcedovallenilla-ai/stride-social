@@ -1,0 +1,380 @@
+---
+// Design system reference for review (Gate 1). Not linked from navigation; noindex.
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import Button from '@/components/core/Button.astro';
+import Eyebrow from '@/components/core/Eyebrow.astro';
+import Chip from '@/components/core/Chip.astro';
+import Badge from '@/components/core/Badge.astro';
+import Field from '@/components/core/Field.astro';
+import Media from '@/components/core/Media.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import StrideLogo from '@/components/core/StrideLogo.astro';
+
+const colours = [
+  { name: 'Navy 900', token: '--navy-900', hex: '#06142b', note: 'Brand ink · dark surfaces', dark: true },
+  { name: 'Navy 700', token: '--navy-700', hex: '#1b2a44', note: 'Raised dark surfaces', dark: true },
+  { name: 'Paper', token: '--paper', hex: '#f5f4f0', note: 'Default light surface · navy text 16.7:1' },
+  { name: 'White', token: '--white', hex: '#ffffff', note: 'Cards, fields · navy text 18.4:1' },
+  { name: 'Line', token: '--line', hex: '#dbdbdb', note: 'Hairlines on light' },
+  { name: 'Slate', token: '--slate', hex: '#5b6577', note: 'Secondary text · 5.3:1 on paper', dark: true },
+  { name: 'Ice', token: '--ice', hex: '#c3f2fb', note: 'Group + Social accent · 15.2:1 with navy' },
+  { name: 'Peach', token: '--peach', hex: '#f4c7ae', note: 'Talent accent (proposed) · 11.9:1' },
+  { name: 'Sun', token: '--sun', hex: '#ffd45c', note: 'Education accent (proposed) · 13.0:1' },
+];
+const themes = [
+  { key: 'group', label: 'Stride (group)', note: 'Paper surface · ice accent' },
+  { key: 'social', label: 'Stride Social', note: 'Navy surface · ice accent' },
+  { key: 'talent', label: 'Stride Talent', note: 'Paper surface · peach accent' },
+  { key: 'education', label: 'Stride Education', note: 'White surface · sun accent' },
+];
+const types = [
+  { cls: 'type-hero', label: 'Hero · Archivo 850, width 125%', sample: 'Built around' },
+  { cls: 'type-display', label: 'Display · section headlines', sample: 'Three sides of Stride.' },
+  { cls: 'type-h1', label: 'H1 · inner page titles', sample: 'Our history' },
+  { cls: 'type-h2', label: 'H2 · sub-sections', sample: 'Influence is more than a post.' },
+  { cls: 'type-h3', label: 'H3 · Inter 600', sample: 'Commercial partnership sourcing' },
+  { cls: 'type-lead', label: 'Lead · Inter 400', sample: 'We represent creators and help them turn influence into long-term careers.' },
+];
+const spaces = [4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192];
+---
+
+<SiteLayout title="Design system — Stride (internal)" description="Stride design system reference." noindex>
+  <div class="sg">
+    <header class="sg__intro">
+      <Eyebrow>Phase 3 · Stage 1</Eyebrow>
+      <h1 class="type-display">Design system</h1>
+      <p class="type-lead">Tokens and components from docs/phase-2/04-design-system.md. Internal review page — not linked from the site.</p>
+      <div class="sg__logos">
+        <StrideLogo />
+        <span class="sg__dark"><StrideLogo tone="dark" division="Talent" /></span>
+        <Badge status="interim">Interim lockup — awaiting official logo</Badge>
+      </div>
+    </header>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Colour</h2>
+      <ul class="sg__swatches" role="list">
+        {colours.map((c) => (
+          <li class="sg__swatch">
+            <span class="sg__chip" style={`background: ${c.hex}`}></span>
+            <strong>{c.name}</strong>
+            <code>{c.token} · {c.hex}</code>
+            <span class="sg__note">{c.note}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Division themes</h2>
+      <div class="sg__themes">
+        {themes.map((t) => (
+          <div class="sg__theme" data-division={t.key}>
+            <div class="sg__theme-bar">{t.label}</div>
+            <div class="sg__theme-body">
+              <p class="type-h2">{t.label}</p>
+              <p class="sg__note">{t.note}</p>
+              <Button tone={t.key === 'social' ? 'dark' : 'light'}>Primary action</Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Typography</h2>
+      <div class="sg__types">
+        {types.map((t) => (
+          <div class="sg__type">
+            <Eyebrow>{t.label}</Eyebrow>
+            <p class={t.cls}>{t.sample}</p>
+          </div>
+        ))}
+        <div class="sg__type">
+          <Eyebrow>Body · Inter 17/1.6</Eyebrow>
+          <p class="sg__body">Stride plans and executes creator-led campaigns across platforms, formats and markets. Body copy stays under 68 characters per line for comfortable reading.</p>
+        </div>
+        <div class="sg__type">
+          <Eyebrow>Editorial accent · Instrument Serif italic (one use per screen)</Eyebrow>
+          <p class="type-h1">More than <span class="type-serif">management.</span></p>
+        </div>
+        <div class="sg__type">
+          <Eyebrow>Label · IBM Plex Mono 500</Eyebrow>
+          <Eyebrow number="01">For brands</Eyebrow>
+        </div>
+      </div>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Buttons and links</h2>
+      <div class="sg__row">
+        <Button href="#">Primary</Button>
+        <Button href="#" variant="secondary">Secondary</Button>
+        <Button href="#" variant="text">Explore our work</Button>
+        <Button aria-disabled="true">Disabled</Button>
+      </div>
+      <div class="sg__row sg__row--dark">
+        <Button href="#" tone="dark">Primary</Button>
+        <Button href="#" variant="secondary" tone="dark">Secondary</Button>
+        <Button href="#" variant="text" tone="dark">Explore Stride Talent</Button>
+      </div>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Chips, badges, labels</h2>
+      <div class="sg__row" data-chip-demo>
+        <Chip active>All</Chip><Chip>Sport</Chip><Chip>Beauty</Chip><Chip>Fashion</Chip><Chip>Travel</Chip>
+      </div>
+      <div class="sg__row">
+        <Badge status="available" /><Badge status="planned" /><Badge status="draft" /><Badge status="interim" />
+      </div>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Form fields</h2>
+      <form class="sg__form" novalidate onsubmit="return false">
+        <Field name="sg-name" label="Name" required autocomplete="name" />
+        <Field name="sg-email" label="Email" type="email" required autocomplete="email" error="Enter an email address in the format name@example.com" />
+        <Field name="sg-market" label="Market" type="select" required options={[{ value: 'uk', label: 'United Kingdom' }, { value: 'us', label: 'United States' }, { value: 'other', label: 'Other' }]} />
+        <Field name="sg-budget" label="Estimated budget" hint="Ranges to be confirmed by Stride." />
+        <Field name="sg-brief" label="Brief" type="textarea" required maxlength={2000} />
+      </form>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Media</h2>
+      <div class="sg__media">
+        <div class="sg__media-item" data-media-hover>
+          <Media image={{ src: '/assets/cms/7a2c07a0-aq.jpg', alt: 'Creator portrait' }} ratio="4 / 5" position="50% 25%" class="sg__hover" />
+          <Eyebrow>Image · 4:5 · hover scale</Eyebrow>
+        </div>
+        <div class="sg__media-item">
+          <Media
+            video={{ label: 'Campaign clip', mp4: '/assets/video/f2fc912c-video1-transcode.mp4', poster: '/assets/site/f2fc912c-video1-poster-00001.jpg' }}
+            ratio="9 / 16"
+          />
+          <Eyebrow>Autoplay video · pause control · plays only on screen</Eyebrow>
+        </div>
+        <div class="sg__media-item">
+          <Media image={{ src: '/assets/site/b9208d92-stride-social.webp', alt: 'Event' }} ratio="4 / 5">
+            <PlaceholderNotice label="Interim image" />
+          </Media>
+          <Eyebrow>Placeholder tag on media</Eyebrow>
+        </div>
+      </div>
+      <PlaceholderNotice variant="block" label="Placeholder block">
+        <p>Stands in for a missing section. Preview builds show it; production builds fail while any remain.</p>
+      </PlaceholderNotice>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Motion</h2>
+      <p class="type-display" data-reveal-lines>Headlines rise line by line, staggered.</p>
+      <p class="type-lead" data-reveal="rise">Sections settle into place once as they enter the viewport. Reduced-motion settings show everything immediately.</p>
+    </section>
+
+    <section class="sg__section">
+      <h2 class="sg__h">Spacing</h2>
+      <ul class="sg__spaces" role="list">
+        {spaces.map((s) => (
+          <li><span style={`width: ${s}px`}></span><code>{s}</code></li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</SiteLayout>
+
+<style>
+  .sg {
+    max-width: calc(var(--container) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: var(--space-9) var(--margin);
+  }
+
+  .sg__intro {
+    display: grid;
+    gap: var(--space-4);
+    padding-bottom: var(--space-8);
+  }
+
+  .sg__logos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-5);
+    margin-top: var(--space-4);
+  }
+
+  .sg__dark {
+    padding: var(--space-3) var(--space-4);
+    background: var(--navy-900);
+  }
+
+  .sg__section {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-8) 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .sg__h {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .sg__swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .sg__swatch {
+    display: grid;
+    gap: 4px;
+    font-size: var(--type-small);
+  }
+
+  .sg__chip {
+    height: 96px;
+    margin-bottom: var(--space-2);
+    border: 1px solid var(--line);
+  }
+
+  .sg__note,
+  code {
+    font-size: var(--type-small);
+    color: var(--slate);
+  }
+
+  .sg__themes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .sg__theme {
+    background: var(--surface);
+    color: var(--surface-ink);
+    border: 1px solid var(--line);
+  }
+
+  .sg__theme-bar {
+    padding: 10px var(--space-4);
+    background: var(--accent);
+    color: var(--navy-900);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .sg__theme-body {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .sg__theme[data-division='social'] .sg__note {
+    color: rgb(255 255 255 / 0.75);
+  }
+
+  .sg__types {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .sg__type {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .sg__body {
+    max-width: 68ch;
+  }
+
+  .sg__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .sg__row--dark {
+    padding: var(--space-6);
+    background: var(--navy-900);
+  }
+
+  .sg__form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    max-width: 880px;
+  }
+
+  .sg__form > :global(.field:last-child) {
+    grid-column: 1 / -1;
+  }
+
+  .sg__media {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .sg__media-item {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .sg__media-item :global(.media) {
+    max-height: 520px;
+  }
+
+  .sg__media-item[data-media-hover] :global(.media__el) {
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .sg__media-item[data-media-hover]:hover :global(.media__el) {
+    transform: scale(1.04);
+  }
+
+  .sg__spaces {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .sg__spaces li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .sg__spaces span {
+    height: 12px;
+    background: var(--navy-900);
+  }
+
+  @media (max-width: 767px) {
+    .sg__form,
+    .sg__media {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-chip-demo]').forEach((group) => {
+    group.addEventListener('click', (e) => {
+      const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+      if (!chip) return;
+      group.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+    });
+  });
+</script>
