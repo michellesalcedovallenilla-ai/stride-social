@@ -18,6 +18,7 @@ npm run build                # static build + content schema validation
 npm run check                # astro check (types)
 npm run check:links          # internal links and assets in dist/
 npm run check:placeholders   # unfinished placeholders in dist/ (add -- --strict for production)
+npm run check:content        # Phase 3 content status + reference integrity (add -- --strict for launch)
 npm run ci                   # everything CI runs
 ```
 
@@ -46,6 +47,13 @@ npm run ci                   # everything CI runs
 - Astro components with scoped `<style>`; breakpoints follow the design system.
 - Division context comes from `BaseLayout`'s `division` prop (`data-division` on `<html>`).
 - Content lives in `src/content/` (typed collections, schemas in `src/content.config.ts`). Pages never hard-code collection data.
+- **Phase 3 collections:**
+  - taxonomies: `categories`, `industries`, `markets`;
+  - `services`, `talentDivisions`, `educationTopics`, `educationExperience`;
+  - `brands`, `team`, `testimonials`, `roster`, `work`, `insights`.
+
+  New pages read these. Legacy collections (`caseStudies`, `blog`, `creators`, `legacyTestimonials`, `clientLogos`, `legacyServices`) only feed Phase 1 pages, and are deleted with them.
+- Respect the status fields when rendering: show results only when `verified`, roster profiles only with confirmed (or, before launch, `legacy`) consent, logos only when approved, and education items only with a confirmed availability. Never upgrade a status without Stride's confirmation.
 - Keep JavaScript minimal (vanilla TS modules in `src/scripts/`), and respect `prefers-reduced-motion`.
 - Keep components readable: match the surrounding naming and comment density.
 

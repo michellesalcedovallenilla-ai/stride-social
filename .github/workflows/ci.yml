@@ -35,3 +35,6 @@ jobs:
 
       - name: Placeholders (strict on main)
         run: npm run check:placeholders -- ${{ github.ref == 'refs/heads/main' && '--strict' || '' }}
+
+      - name: Content status (references must resolve; open items reported, strict at launch)
+        run: npm run check:content

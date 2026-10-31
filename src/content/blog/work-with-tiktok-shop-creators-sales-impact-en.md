@@ -223,7 +223,7 @@ seo:
 <p>Effective workflow management transforms individual creator efforts into a cohesive, synchronized marketing strategy.</p>
 </blockquote>
 <p><strong>Leverage technology platforms</strong> that enable transparent, efficient creator interactions. Utilise project management software, communication tools, and performance tracking dashboards to streamline collaboration and maintain consistent campaign momentum.</p>
-<p><img src="/assets/cms/f59992c8-1771400942648_infographic-showing-tiktok-shop-creator-campaign-s_kuaynrlz8l-9gq25lbq7d.png" alt="Infographic showing TikTok Shop creator campaign steps" loading="lazy"></p>
+<p><img src="/assets/cms/f59992c8-1771400942648-infographic-showing-tiktok-sh.png" alt="Infographic showing TikTok Shop creator campaign steps" loading="lazy"></p>
 <p><em><strong>Pro tip:</strong></em> <em>Create modular content brief templates that can be quickly customised for different creators, reducing administrative overhead while maintaining campaign consistency.</em></p>
 <h2 id="step-5-monitor-performance-and-optimise-future-partnerships">Step 5: Monitor Performance and Optimise Future Partnerships</h2>
 <p>Tracking and analysing your TikTok Shop creator campaign’s performance is crucial for understanding its true impact and refining your future marketing strategies. Your goal is to transform raw data into actionable insights that drive continuous improvement.</p>

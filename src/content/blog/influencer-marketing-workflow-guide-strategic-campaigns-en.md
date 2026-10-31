@@ -67,7 +67,7 @@ seo:
 <p>Selecting the right target audience is more important than selecting the right influencers.</p>
 </blockquote>
 <p>Research your potential audience thoroughly, analysing their digital interactions, content consumption patterns, and social media engagement. This comprehensive understanding will help you craft a campaign that resonates authentically with your intended consumers.</p>
-<p><img src="/assets/cms/0bcdef2d-1770873349551_infographic-summarizing-influencer-workflow-steps_myg1xjwxjmx_7fswu52ud.png" alt="Infographic summarizing influencer workflow steps" loading="lazy"></p>
+<p><img src="/assets/cms/0bcdef2d-1770873349551-infographic-summarizing-influ.png" alt="Infographic summarizing influencer workflow steps" loading="lazy"></p>
 <p><em><strong>Expert tip:</strong></em> <em>Create audience personas with granular details to visualise and understand your target demographic more effectively.</em></p>
 <h2 id="step-2-identify-and-vet-suitable-influencers-for-collaboration">Step 2: Identify and Vet Suitable Influencers for Collaboration</h2>
 <p>Selecting the right influencers is a critical step in developing an effective influencer marketing strategy. <a href="https://pubsonline.informs.org/doi/10.1287/mnsc.2020.3899" rel="nofollow">Research demonstrates systematic influencer selection models</a> can significantly enhance campaign performance and engagement.</p>

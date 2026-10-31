@@ -116,7 +116,7 @@ seo:
 <p>Successful global brands recognise that influencer selection is not about quantity, but strategic alignment with brand values and audience expectations.</p>
 </blockquote>
 <p><em><strong>Pro tip:</strong></em> <em>Prioritise engagement rates and audience alignment over raw follower numbers when selecting influencer network partnerships.</em></p>
-<p><img src="/assets/cms/d67e8996-1771237712336_infographic-showing-types-of-influencer-networks_ixpwikw7qkidfesm6euzq.png" alt="Infographic showing types of influencer networks" loading="lazy"></p>
+<p><img src="/assets/cms/d67e8996-1771237712336-infographic-showing-types-of.png" alt="Infographic showing types of influencer networks" loading="lazy"></p>
 <h2 id="how-global-networks-facilitate-campaign-success">How Global Networks Facilitate Campaign Success</h2>
 <p><strong>Global influencer networks</strong> play a transformative role in modern marketing strategies, enabling brands to achieve unprecedented campaign effectiveness. <a href="https://www.sciencedirect.com/science/article/pii/S0148296324006271" rel="nofollow">Strategic network mobilisation</a> provides sophisticated mechanisms for penetrating diverse markets and enhancing brand perception.</p>
 <p>The core mechanisms driving campaign success include:</p>

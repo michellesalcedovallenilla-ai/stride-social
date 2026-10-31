@@ -6,7 +6,7 @@ order: 12
 featured: false
 cardImage: "/assets/cms/e3f43620-stride-social-marketing-bloom.webp"
 cardMetric: "15 Million+"
-heroImage: "/assets/cms/14636a3c-65970ef6070314ffa7664c0b_28966ff82b8fb464a976b39ccc3d489b.webp"
+heroImage: "/assets/cms/14636a3c-65970ef6070314ffa7664c0b-28966ff82b8fb464a.webp"
 stats: 
   - label: "Campaign Views"
     value: "15 Million+"
@@ -19,7 +19,7 @@ videos: []
 home: 
   order: 0
   front: "/assets/cms/e3f43620-stride-social-marketing-bloom.webp"
-  back: "/assets/cms/14636a3c-65970ef6070314ffa7664c0b_28966ff82b8fb464a976b39ccc3d489b.webp"
+  back: "/assets/cms/14636a3c-65970ef6070314ffa7664c0b-28966ff82b8fb464a.webp"
   blurb: "Bloom's subtle influencer integration captivated millions driving curiosity for their gut health supplement."
 seo: 
   title: "Bloom marketing campaign by Stride Social"

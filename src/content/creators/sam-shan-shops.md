@@ -9,7 +9,7 @@ socials:
   tiktok: "https://www.tiktok.com/@sam.shan.shops"
   instagram: "https://www.instagram.com/sam.shan.shops/"
 order: 178
-image: "/assets/cms/e2dc4f54-441022370_1617717845661688_4350207087934595362_n.webp"
+image: "/assets/cms/e2dc4f54-441022370-1617717845661688-435020708793459.webp"
 profile: true
 seo: 
   title: "Sam.shan.shops is managed by Stride Social"

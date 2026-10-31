@@ -10,7 +10,7 @@ socials:
   instagram: "https://www.instagram.com/sidneydiongzon/"
   youtube: "https://www.youtube.com/@SidneyDiongzon"
 order: 184
-image: "/assets/cms/db3a58a8-342734270_760842118847602_1527845036011093306_n.webp"
+image: "/assets/cms/db3a58a8-342734270-760842118847602-1527845036011093.webp"
 profile: true
 seo: 
   title: "Sidney diongzon is managed by Stride Social"

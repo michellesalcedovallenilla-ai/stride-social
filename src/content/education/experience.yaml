@@ -1,0 +1,26 @@
+# "The experience" (client brief, PDF §6). The brief requires available and planned items to be
+# clearly distinguished, so every item stays unconfirmed until Stride confirms it (Q11).
+- id: practical-lessons
+  title: Practical lessons
+  status: unconfirmed
+  order: 1
+- id: industry-mentoring
+  title: Industry mentoring
+  status: unconfirmed
+  order: 2
+- id: creator-community
+  title: Creator community
+  status: unconfirmed
+  order: 3
+- id: training-resources
+  title: Training resources
+  status: unconfirmed
+  order: 4
+- id: workshops-calls
+  title: Workshops and educational calls
+  status: unconfirmed
+  order: 5
+- id: industry-opportunities
+  title: Relevant industry opportunities
+  status: unconfirmed
+  order: 6

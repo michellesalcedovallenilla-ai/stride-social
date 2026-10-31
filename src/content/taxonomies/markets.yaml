@@ -1,0 +1,27 @@
+# Markets. Only add team locations, operating markets or offices once Stride confirms them
+# (open question Q3). Never imply an office that is not confirmed (brief §3.9).
+- id: gb
+  label: United Kingdom
+  roles: [talent-market]
+  status: verified
+  source: Client brief (Stride Social Site PDF, §3.9 and §5)
+- id: us
+  label: United States
+  roles: [talent-market]
+  status: verified
+  source: Client brief (Stride Social Site PDF, §3.9 and §5)
+- id: ca
+  label: Canada
+  roles: [talent-market]
+  status: verified
+  source: Client brief (Stride Social Site PDF, §3.9 and §5)
+- id: de
+  label: Germany
+  roles: [talent-market]
+  status: verified
+  source: Client brief (Stride Social Site PDF, §3.9 and §5)
+- id: fr
+  label: France
+  roles: [talent-market]
+  status: verified
+  source: Client brief (Stride Social Site PDF, §3.9 and §5)

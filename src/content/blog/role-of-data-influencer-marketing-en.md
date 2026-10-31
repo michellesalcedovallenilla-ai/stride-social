@@ -77,7 +77,7 @@ seo:
 <li><strong>Brand safety metrics</strong>: Whether influencer content aligns with your values and messaging</li>
 </ul>
 <p>Global data shows <a href="https://www.statista.com/statistics/1462342/marketers-metrics-influencers-marketing-campaign-success-worldwide/" rel="nofollow">engagement remains the primary success metric</a>, followed by product sales and impressions. This ranking reflects what actually drives business results for most e-commerce brands.</p>
-<p><img src="/assets/cms/2b8cb1ab-1771826546963_infographic-showing-influencer-data-types-for-roi_hr5mpcsg4rk0vt4gsvapw.png" alt="Infographic showing influencer data types for ROI" loading="lazy"></p>
+<p><img src="/assets/cms/2b8cb1ab-1771826546963-infographic-showing-influence.png" alt="Infographic showing influencer data types for ROI" loading="lazy"></p>
 <p>To clarify the impact of different influencer marketing data types, here is a summary of how each core metric influences campaign outcomes:</p>
 <table>
 <thead>

@@ -88,7 +88,7 @@ seo:
 <p>Transparency about brand partnerships strengthens rather than weakens storytelling effectiveness. When influencers clearly disclose collaborations whilst maintaining genuine enthusiasm, audiences appreciate honesty. This approach builds long-term credibility that benefits both influencer and brand across multiple campaigns.</p>
 <h2 id="quantitative-evidence-on-storytellings-impact-in-influencer-marketing">Quantitative evidence on storytelling’s impact in influencer marketing</h2>
 <p>Data validates storytelling’s transformative effect on influencer marketing performance. 64% of consumers purchase from brands partnering with trusted influencers, demonstrating how authentic narratives convert interest into action. This statistic represents a significant shift from traditional advertising conversion rates.</p>
-<p><img src="/assets/cms/571dfb10-1773042282605_infographic-showing-storytelling-impact-on-influencer-campaigns.png" alt="Infographic showing storytelling impact on influencer campaigns" loading="lazy"></p>
+<p><img src="/assets/cms/571dfb10-1773042282605-infographic-showing-storytell.png" alt="Infographic showing storytelling impact on influencer campaigns" loading="lazy"></p>
 <p>Additional research reveals 62% of B2B marketers rate storytelling as their top content strategy, recognising its effectiveness across both consumer and business audiences. These marketers report measurable improvements in engagement metrics including time spent with content, social sharing, and qualified lead generation.</p>
 <table>
 <thead>

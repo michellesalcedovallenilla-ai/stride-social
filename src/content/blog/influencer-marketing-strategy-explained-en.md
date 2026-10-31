@@ -167,7 +167,7 @@ seo:
 </ul>
 <p>Successful ROI assessment demands sophisticated tracking mechanisms that connect influencer activities directly to tangible business outcomes. Brands must develop integrated analytics platforms capable of attributing revenue and brand value improvements to specific influencer collaborations.</p>
 <p>Qualitative and quantitative evaluation techniques enable marketers to understand the true impact of influencer partnerships. Advanced attribution models help bridge the gap between digital interactions and genuine business value, providing a comprehensive view of campaign effectiveness beyond surface-level engagement metrics.</p>
-<p><img src="/assets/cms/58b06220-1770527888025_infographic-illustrating-influencer-roi-measuremen_pu7xg6nm7ymuvvcqvphdf.png" alt="Infographic illustrating influencer ROI measurement" loading="lazy"></p>
+<p><img src="/assets/cms/58b06220-1770527888025-infographic-illustrating-infl.png" alt="Infographic illustrating influencer ROI measurement" loading="lazy"></p>
 <p><em><strong>Pro tip:</strong></em> <em>Implement multi-touch attribution models that capture the entire customer journey, not just final conversion points.</em></p>
 <h2 id="legal-ethical-and-brand-safety-considerations">Legal, ethical, and brand safety considerations</h2>
 <p><a href="https://www.ijibe.org/articles/-social-media-influencers-and-influencer-marketing%3A-a-systematic-literature-review." rel="nofollow">Systematic influencer marketing research</a> illuminates the complex landscape of legal and ethical challenges inherent in digital marketing collaborations. Brands must navigate a sophisticated ecosystem of regulatory requirements, transparency obligations, and brand protection strategies.</p>

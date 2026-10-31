@@ -220,7 +220,7 @@ seo:
 <p>Successful collaborations thrive on transparent communication and mutual understanding of shared objectives.</p>
 </blockquote>
 <p>Ensure <strong>robust tracking mechanisms</strong> are in place to monitor content performance, engagement metrics, and campaign progress. Maintain an open dialogue that allows for quick pivots and creative problem-solving.</p>
-<p><img src="/assets/cms/5ba48139-1770634738992_infographic-summarizing-influencer-campaign-steps_e9itmlael8xkbrmehu-g-.png" alt="Infographic summarizing influencer campaign steps" loading="lazy"></p>
+<p><img src="/assets/cms/5ba48139-1770634738992-infographic-summarizing-influ.png" alt="Infographic summarizing influencer campaign steps" loading="lazy"></p>
 <p><em><strong>Pro tip:</strong></em> <em>Create a shared digital workspace where influencers can easily submit content drafts, receive feedback, and track campaign progress in real-time.</em></p>
 <h2 id="step-5-monitor-results-and-optimise-for-roi">Step 5: Monitor results and optimise for ROI</h2>
 <p>The final stage of your influencer marketing campaign involves comprehensive performance analysis and strategic optimisation. Your objective is to transform raw campaign data into actionable insights that drive future marketing investments and improve overall brand performance.</p>

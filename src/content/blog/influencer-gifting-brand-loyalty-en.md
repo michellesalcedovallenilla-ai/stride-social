@@ -143,7 +143,7 @@ seo:
 <li><strong>Regulatory Compliance</strong>: Adhering to marketing and taxation regulations</li>
 </ul>
 <p>Brands must establish clear contractual frameworks that explicitly outline the nature of product exchanges, intellectual property rights, and potential financial responsibilities. Creators, similarly, need robust documentation to manage potential tax implications and protect their professional interests.</p>
-<p><img src="/assets/cms/6e815a78-1770745822226_infographic-on-influencer-gifting-risks-and-practi_2p7x2o7bqkgeirqzvnbdb.png" alt="Infographic on influencer gifting risks and practices" loading="lazy"></p>
+<p><img src="/assets/cms/6e815a78-1770745822226-infographic-on-influencer-gif.png" alt="Infographic on influencer gifting risks and practices" loading="lazy"></p>
 <p>Navigating these complexities requires proactive communication, professional legal counsel, and a transparent approach to documenting product exchanges. Understanding the nuanced landscape of rights, responsibilities, and potential financial consequences is crucial for sustainable and legally sound influencer collaborations.</p>
 <p>The table below summarises critical risks and best practice safeguards for influencer gifting campaigns:</p>
 <table>

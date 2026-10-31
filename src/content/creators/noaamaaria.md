@@ -10,7 +10,7 @@ socials:
   instagram: "https://www.instagram.com/noaamaaria/"
   youtube: "https://www.youtube.com/@noaamaaria"
 order: 155
-image: "/assets/cms/6ba9c3db-446550242_813548907379292_6217299490329651843_n.webp"
+image: "/assets/cms/6ba9c3db-446550242-813548907379292-6217299490329651.webp"
 profile: true
 seo: 
   title: "noaamaaria is managed by Stride Social"

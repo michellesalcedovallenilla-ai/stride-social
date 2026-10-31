@@ -7,12 +7,12 @@ dateLabel: "April 16, 2026"
 author: "Alex Hendy"
 order: 0
 featured: true
-cardImage: "/assets/cms/fd991833-1775013174379_woman-managing-mobile-game-influencer-campaign.jpeg"
-asideImage: "/assets/cms/fd991830-1775013174379_woman-managing-mobile-game-influencer-campaign.jpeg"
+cardImage: "/assets/cms/fd991833-1775013174379-woman-managing-mobile-game-i.jpeg"
+asideImage: "/assets/cms/fd991830-1775013174379-woman-managing-mobile-game-i.jpeg"
 seo: 
   title: "Mobile game influencer marketing: a step-by-step guide"
   description: "Learn how to plan, execute, and scale mobile game influencer campaigns with a step-by-step framework built for measurable ROI and sustained player growth."
-  ogImage: "/assets/cms/fd991833-1775013174379_woman-managing-mobile-game-influencer-campaign.jpeg"
+  ogImage: "/assets/cms/fd991833-1775013174379-woman-managing-mobile-game-i.jpeg"
 ---
 <p></p><p>Mobile game influencer campaigns can feel like a gamble. You invest budget, brief a handful of creators, watch the installs trickle in, and then struggle to explain the ROI to your leadership team. The frustrating part is that the potential is clearly there. <a href="https://igamingb2b.net/mobile-gaming-influencer/" rel="nofollow noopener noreferrer" target="_blank">Influencer marketing for mobile games</a> consistently achieves strong returns when campaigns are built on clear frameworks rather than gut instinct. This guide walks you through every stage, from pre-launch preparation to scaling with confidence, so your next campaign delivers repeatable, measurable results rather than a one-off spike that fades within a fortnight.</p>
 <h2 id="key-takeaways">Key Takeaways</h2>
@@ -90,7 +90,7 @@ seo:
 </table>
 <p>Pro Tip: Map your attribution platform to each influencer’s unique code or link before any content goes live. Retrofitting tracking after launch is nearly impossible and leaves you flying blind on ROI.</p>
 <p>When <a href="/blog/how-to-launch-influencer-campaigns-brand-growth-en">launching influencer campaigns</a>, teams that invest two to three weeks in preparation consistently outperform those that rush to market. Armed with campaign goals and the essential groundwork, you are ready to tackle the influencer selection process.</p>
-<p><img src="/assets/cms/fd991a47-1775013154525_infographic-of-mobile-game-influencer-steps.jpeg" alt="Infographic of mobile game influencer steps" loading="lazy"></p>
+<p><img src="/assets/cms/fd991a47-1775013154525-infographic-of-mobile-game-i.jpeg" alt="Infographic of mobile game influencer steps" loading="lazy"></p>
 <h2 id="how-to-select-the-right-influencers-for-your-mobile-game">How to select the right influencers for your mobile game</h2>
 <p>Follower count is a vanity metric. It tells you how many people once clicked a follow button, not how many will download your game. The metrics that actually predict performance are engagement rate and audience genre overlap.</p>
 <p>Here is a step-by-step process for vetting influencers effectively:</p>
@@ -129,7 +129,7 @@ seo:
 </table>
 <p>Pro Tip: Review the <a href="/case-studies/papaya-gaming">Papaya Gaming case study</a> to see how genre-matched micro-influencers drove measurable install volume at a fraction of the cost of a single celebrity partnership. Similarly, the <a href="/case-studies/holafly-app---driving-app-downloads-with-travel-influencers">app downloads campaign</a> demonstrates how audience fit consistently outweighs raw reach.</p>
 <p>Now you know whom to work with. It is time to prepare your campaign for maximum ROI and brand impact.</p>
-<p><img src="/assets/cms/fd991a43-1775013148982_team-analyzing-influencer-marketing-performance-data.jpeg" alt="Team analyzing influencer marketing performance data" loading="lazy"></p>
+<p><img src="/assets/cms/fd991a43-1775013148982-team-analyzing-influencer-ma.jpeg" alt="Team analyzing influencer marketing performance data" loading="lazy"></p>
 <h2 id="structuring-briefing-and-compensating-influencers">Structuring, briefing, and compensating influencers</h2>
 <p>The brief is where most campaigns quietly fail. Marketers who over-script content strip away the authenticity that makes influencer marketing work in the first place. Your brief should provide direction, not a screenplay.</p>
 <p>A strong brief covers:</p>

@@ -1,0 +1,25 @@
+# Industries Stride Social works in (client brief, PDF §4).
+- id: technology
+  label: Technology
+  order: 1
+- id: lifestyle
+  label: Lifestyle
+  order: 2
+- id: beauty
+  label: Beauty
+  order: 3
+- id: fashion
+  label: Fashion
+  order: 4
+- id: sport
+  label: Sport
+  order: 5
+- id: travel
+  label: Travel
+  order: 6
+- id: home
+  label: Home
+  order: 7
+- id: trades-construction
+  label: Trades & Construction
+  order: 8

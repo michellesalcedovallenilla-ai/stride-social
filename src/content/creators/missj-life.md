@@ -10,7 +10,7 @@ socials:
   instagram: "https://www.instagram.com/miss_ilhaam_/"
   youtube: "https://www.youtube.com/@Missj_life"
 order: 140
-image: "/assets/cms/0a4b7a8a-370851607_665476011955636_7025766626319065655_n.webp"
+image: "/assets/cms/0a4b7a8a-370851607-665476011955636-7025766626319065.webp"
 profile: true
 seo: 
   title: "missj_life is managed by Stride Social"
