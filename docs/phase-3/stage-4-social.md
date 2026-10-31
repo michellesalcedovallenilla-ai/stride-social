@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-4-social`. Review gate: **Gate 4**, the Social review plus a test submission received in Stride's inbox or CRM (docs/phase-2/08-roadmap.md). The second half is blocked until Stride names the form destination (Q13) and the host (Q21).
 
+**Gate 4 (Social review) approved by the owner on 2026-10-31.** The test submission is still owed: it happens once Q13 and Q21 are answered, before launch.
+
 ## What was built
 
 ### `/social` landing: the eight sections from the brief (PDF §4)
