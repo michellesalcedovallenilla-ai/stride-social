@@ -12,9 +12,11 @@
     "check:links": "node scripts/checks/links.mjs",
     "check:placeholders": "node scripts/checks/placeholders.mjs",
     "check:content": "node scripts/checks/content.mjs",
-    "ci": "npm run check && npm run build && npm run check:links && npm run check:placeholders && npm run check:content",
+    "ci": "npm run check && npm run build && npm run check:links && npm run check:redirects && npm run check:seo && npm run check:placeholders && npm run check:content",
     "migrate:content": "node scripts/migrate/extract-content.mjs",
-    "migrate:assets": "node scripts/migrate/download-assets.mjs"
+    "migrate:assets": "node scripts/migrate/download-assets.mjs",
+    "check:redirects": "node scripts/checks/redirects.mjs",
+    "check:seo": "node scripts/checks/seo.mjs"
   },
   "engines": {
     "node": ">=20.3.0"

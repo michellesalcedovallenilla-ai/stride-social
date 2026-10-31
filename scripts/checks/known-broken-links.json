@@ -1,3 +1,3 @@
 {
-  "/blog/anker": "Inherited from the live site (blog/top-7-benefits-ugc-food-brands-2026-en links to it; 404 on live too). Likely meant /case-studies/anker. Remove this entry once the content is fixed."
+  "/insights/anker": "Inherited from the old site: the article top-7-benefits-ugc-food-brands-2026-en links to /blog/anker (a 404 on the live site too), which the legacy-link rewrite turns into /insights/anker. Probably meant the Anker case study (/work/anker). Remove this entry once the article is fixed."
 }

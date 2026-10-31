@@ -26,7 +26,7 @@ const platforms = platformsOf(creator);
   <a class="rcard__link" href={routes.creator(creator.id)}>
     <span class="rcard__media">
       {d.portrait ? (
-        <img src={d.portrait.src} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" />
+        <img src={d.portrait.src} alt="" sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 260px" loading={eager ? 'eager' : 'lazy'} decoding="async" />
       ) : (
         <span class="rcard__initial" aria-hidden="true">{d.name.replace(/[^a-z0-9]/gi, '').charAt(0)}</span>
       )}

@@ -56,7 +56,7 @@ const sizes = tiles.length >= 5 ? ['xl', 'm', 'm', 'm', 'l'] : tiles.length === 
         {t.kind === 'work' ? (
           <a class="tile__link" href={t.href}>
             <span class="tile__media">
-              <img src={t.image.src} alt={t.image.alt} loading="lazy" decoding="async" />
+              <img src={t.image.src} alt={t.image.alt} sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 60vw" loading="lazy" decoding="async" />
             </span>
             <span class="tile__info">
               <span class="tile__meta">{t.meta}</span>

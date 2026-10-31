@@ -44,7 +44,7 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={`${d.name} | Stride Talent roster`} description={seoDescription} division="talent" ogImage={d.portrait?.src} jsonLd={jsonLd}>
+<SiteLayout title={`${d.name} | Stride Talent roster`} description={seoDescription} division="talent" ogImage={d.portrait?.src} ogType="profile" jsonLd={jsonLd}>
   <article class="profile">
     <div class="profile__inner container-wide">
       <div class="profile__crumbs">
@@ -53,7 +53,7 @@ const jsonLd = [
 
       <figure class="profile__portrait">
         {d.portrait ? (
-          <img src={d.portrait.src} alt={d.portrait.alt} fetchpriority="high" decoding="async" />
+          <img src={d.portrait.src} alt={d.portrait.alt} sizes="(max-width: 1023px) 420px, 40vw" fetchpriority="high" decoding="async" />
         ) : (
           <span class="profile__initial" aria-hidden="true">{d.name.replace(/[^a-z0-9]/gi, '').charAt(0)}</span>
         )}

@@ -22,8 +22,8 @@ const used = (Object.keys(departments) as (keyof typeof departments)[]).filter((
         {leaders.map((m) => (
           <li class="person person--lead">
             <div class="person__photo">
-              <img src={m.data.photo.src} alt={m.data.photo.alt} loading="eager" />
-              {m.data.photoAlt && <img class="person__alt" src={m.data.photoAlt.src} alt="" loading="lazy" />}
+              <img src={m.data.photo.src} alt={m.data.photo.alt} sizes="(max-width: 767px) 100vw, 360px" loading="eager" />
+              {m.data.photoAlt && <img class="person__alt" src={m.data.photoAlt.src} alt="" sizes="(max-width: 767px) 50vw, 200px" loading="lazy" />}
             </div>
             <h3 class="person__name">{m.data.name}</h3>
             <p class="person__role">{m.data.role}</p>
@@ -48,8 +48,8 @@ const used = (Object.keys(departments) as (keyof typeof departments)[]).filter((
       {others.map((m) => (
         <li class="person" data-filter-department={m.data.department}>
           <div class="person__photo">
-            <img src={m.data.photo.src} alt={m.data.photo.alt} loading="lazy" />
-            {m.data.photoAlt && <img class="person__alt" src={m.data.photoAlt.src} alt="" loading="lazy" />}
+            <img src={m.data.photo.src} alt={m.data.photo.alt} sizes="(max-width: 767px) 50vw, 200px" loading="lazy" />
+            {m.data.photoAlt && <img class="person__alt" src={m.data.photoAlt.src} alt="" sizes="(max-width: 767px) 50vw, 200px" loading="lazy" />}
           </div>
           <h3 class="person__name">{m.data.name}</h3>
           <p class="person__role">{m.data.role}</p>
@@ -105,7 +105,7 @@ const used = (Object.keys(departments) as (keyof typeof departments)[]).filter((
   }
 
   /* Filters need the script; without it everyone is listed. */
-  .team:global(.is-enhanced) .team__chips {
+  :global(.js) .team .team__chips {
     display: flex;
   }
 

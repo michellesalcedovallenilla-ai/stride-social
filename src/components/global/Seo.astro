@@ -1,0 +1,43 @@
+---
+// Per-page SEO tags (docs/phase-2/07-technical-architecture.md §5): title, description, canonical,
+// Open Graph and Twitter cards (falling back to the shared Stride image), robots and JSON-LD.
+// Preview builds are always noindex, so preview deploys never compete with the live site.
+// hreflang is left out until a page actually has a translation (the /zh locale comes later).
+import { site } from '@/config/site';
+import { isPreview } from '@/lib/env';
+
+export interface Props {
+  title: string;
+  description?: string | null;
+  ogImage?: string | null;
+  ogType?: 'website' | 'article' | 'profile';
+  path: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description: fullDescription, ogImage, ogType = 'website', path, noindex = false, jsonLd = [] } = Astro.props;
+// Search results show about 155 characters: trim longer descriptions (many come from the old
+// site) at a word boundary rather than let them be cut mid-word.
+const description = fullDescription && fullDescription.length > 160 ? `${fullDescription.slice(0, 155).replace(/\s+\S*$/, '')}…` : fullDescription;
+const canonical = path === '/' ? `${site.url}/` : new URL(path, site.url).href.replace(/\/$/, '');
+const image = new URL(ogImage ?? site.ogDefault, site.url).href;
+const robots = noindex || isPreview ? 'noindex' : null;
+---
+
+<title>{title}</title>
+{description && <meta name="description" content={description} />}
+<link rel="canonical" href={canonical} />
+{robots && <meta name="robots" content={robots} />}
+<meta property="og:site_name" content="Stride" />
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:image" content={image} />
+<meta property="og:locale" content="en_GB" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+<meta name="twitter:image" content={image} />
+{jsonLd.map((block) => <script type="application/ld+json" set:html={JSON.stringify(block)} />)}

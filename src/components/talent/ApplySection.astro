@@ -48,6 +48,8 @@ const points = ['look', 'need', 'next'].map(item).filter((p) => p !== undefined)
 
 <style>
   .apply {
+    /* Muted text (slate) is too light on peach; use navy for 4.5:1 contrast. */
+    --slate: var(--navy-700);
     position: relative;
     z-index: 1;
     padding: var(--section-pad) 0;

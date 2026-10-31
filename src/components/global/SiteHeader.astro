@@ -573,8 +573,14 @@ const bar = division !== 'group' ? divisionBars[division] : null;
   }
 
   @media (max-width: 479px) {
+    /* Hidden visually on small phones, but kept as the button's accessible name. */
     .header__menu-label {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
 
     .division-bar__cta {

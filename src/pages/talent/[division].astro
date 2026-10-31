@@ -204,6 +204,8 @@ const description = active && d.tagline ? d.tagline : `${d.name}, a specialist d
   }
 
   .dv-cta {
+    /* Muted text (slate) is too light on peach; use navy for 4.5:1 contrast. */
+    --slate: var(--navy-700);
     position: relative;
     z-index: 1;
     background: var(--peach);

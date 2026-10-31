@@ -35,7 +35,7 @@ const looped = columns.map((col) => {
         <div class={`t-hero__col t-hero__col--${c + 1}`}>
           <div class="t-hero__track" style={`--dur: ${46 + ((c * 7) % 20)}s`}>
             {[...col, ...col].map((p) => (
-              <img src={p.src} alt="" loading={c < 3 ? 'eager' : 'lazy'} decoding="async" />
+              <img src={p.src} alt="" sizes="(max-width: 767px) 50vw, (max-width: 1023px) 25vw, 17vw" loading={c < 3 ? 'eager' : 'lazy'} decoding="async" />
             ))}
           </div>
         </div>

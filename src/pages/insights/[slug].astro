@@ -8,6 +8,7 @@ import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
 import Prose from '@/components/core/Prose.astro';
 import { categoryLabels, formatDate, getArticles, normaliseHeadings, realAside, type Article } from '@/lib/insights';
 import { routes } from '@/lib/routes';
+import { rewriteLegacyLinks } from '@/lib/legacy-links';
 import { site } from '@/config/site';
 
 export async function getStaticPaths() {
@@ -17,8 +18,9 @@ export async function getStaticPaths() {
 
 const { article, articles } = Astro.props as { article: Article; articles: Article[] };
 const d = article.data;
-// Bodies are migrated HTML; headings are renumbered so the outline never skips a level.
-const body = normaliseHeadings((article.body ?? '').replace(/<!--[\s\S]*?-->/g, ''));
+// Bodies are migrated HTML: headings are renumbered so the outline never skips a level, and links
+// to the previous site's URLs point straight at the new pages.
+const body = rewriteLegacyLinks(normaliseHeadings((article.body ?? '').replace(/<!--[\s\S]*?-->/g, '')));
 const aside = realAside(article);
 const related = articles.filter((a) => a.id !== article.id && a.data.category === d.category).slice(0, 3);
 const url = new URL(routes.article(article.id), site.url).href;
@@ -42,7 +44,7 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={d.seo?.title ?? `${d.title} | Stride Insights`} description={d.seo?.description ?? d.standfirst} ogImage={d.cover.src} jsonLd={jsonLd}>
+<SiteLayout title={d.seo?.title ?? `${d.title} | Stride Insights`} description={d.seo?.description ?? d.standfirst} ogImage={d.cover.src} ogType="article" jsonLd={jsonLd}>
   <article class="article">
     <header class="article__head container-wide">
       <Breadcrumbs items={[{ label: 'Insights', href: '/insights' }, { label: categoryLabels[d.category], href: routes.insightsFiltered(d.category) }]} tone="light" />
@@ -84,7 +86,7 @@ const jsonLd = [
           {related.map((a) => (
             <li>
               <a class="related__link" href={routes.article(a.id)}>
-                <span class="related__media"><img src={a.data.cover.src} alt="" loading="lazy" /></span>
+                <span class="related__media"><img src={a.data.cover.src} alt="" sizes="(max-width: 1023px) 100vw, 30vw" loading="lazy" /></span>
                 <span class="related__meta">{formatDate(a.data.date)}</span>
                 <span class="related__title">{a.data.title}</span>
               </a>
