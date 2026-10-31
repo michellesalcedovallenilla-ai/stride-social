@@ -1,0 +1,30 @@
+# "What creators can learn" (client brief, PDF §6). Availability is unknown until Stride
+# confirms it (Q11). Set status to available or planned; the site never guesses.
+- id: getting-started
+  title: Getting started with content creation
+  status: unconfirmed
+  order: 1
+- id: ugc-creation
+  title: UGC creation
+  status: unconfirmed
+  order: 2
+- id: social-presence
+  title: Building a social media presence
+  status: unconfirmed
+  order: 3
+- id: brand-opportunities
+  title: Finding brand opportunities
+  status: unconfirmed
+  order: 4
+- id: pricing-negotiation
+  title: Pricing and negotiating collaborations
+  status: unconfirmed
+  order: 5
+- id: portfolios
+  title: Creating professional portfolios
+  status: unconfirmed
+  order: 6
+- id: sustainable-careers
+  title: Developing sustainable creator careers
+  status: unconfirmed
+  order: 7

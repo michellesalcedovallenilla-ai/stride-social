@@ -1,0 +1,221 @@
+# Brand partners. approval.status: confirmed (Stride approved display) · legacy (logo shown on the old site) · none.
+- id: ace
+  name: ACE
+  logo: /assets/site/9815226a-10.webp
+  approval:
+    status: legacy
+- id: adobe
+  name: Adobe
+  logo: null
+  approval:
+    status: none
+- id: airup
+  name: Airup
+  logo: null
+  approval:
+    status: none
+- id: aliexpress
+  name: AliExpress
+  logo: /assets/site/aebbd7c3-18.webp
+  approval:
+    status: legacy
+- id: anker
+  name: Anker
+  logo: /assets/site/0a0e5dfb-company-logos-copy.webp
+  approval:
+    status: legacy
+- id: azar
+  name: Azar
+  logo: /assets/site/22d2a848-23.webp
+  approval:
+    status: legacy
+- id: barsys
+  name: Barsys
+  logo: null
+  approval:
+    status: none
+- id: blitz
+  name: Blitz
+  logo: /assets/site/41340ddb-untitled-design-13-copy.webp
+  approval:
+    status: legacy
+- id: bloom
+  name: Bloom
+  logo: /assets/site/f55b468b-21.webp
+  approval:
+    status: legacy
+- id: bolt
+  name: Bolt
+  logo: /assets/site/1c96962d-5.webp
+  approval:
+    status: legacy
+- id: bulldog-skincare
+  name: Bulldog Skincare
+  logo: /assets/site/c26efb66-13.webp
+  approval:
+    status: legacy
+- id: c2-gripz
+  name: C2 Gripz
+  logo: null
+  approval:
+    status: none
+- id: cash-app
+  name: Cash App
+  logo: /assets/site/7f56b37d-8.webp
+  approval:
+    status: legacy
+- id: comfelie
+  name: Comfelie
+  logo: null
+  approval:
+    status: none
+- id: fairy
+  name: Fairy
+  logo: /assets/site/9089b02f-company-logos-copy-2.webp
+  approval:
+    status: legacy
+- id: genshin-impact
+  name: Genshin Impact
+  logo: /assets/site/5f4655c2-company-logos-.webp
+  approval:
+    status: legacy
+- id: glam-ai
+  name: Glam AI
+  logo: null
+  approval:
+    status: none
+- id: govee
+  name: Govee
+  logo: null
+  approval:
+    status: none
+- id: greene-king
+  name: Greene King
+  logo: null
+  approval:
+    status: none
+- id: holafly
+  name: Holafly
+  logo: null
+  approval:
+    status: none
+- id: jackery
+  name: Jackery
+  logo: null
+  approval:
+    status: none
+- id: laifen
+  name: Laifen
+  logo: null
+  approval:
+    status: none
+- id: manscaped
+  name: Manscaped
+  logo: /assets/site/0cd46f51-7.webp
+  approval:
+    status: legacy
+- id: mars
+  name: Mars
+  logo: null
+  approval:
+    status: none
+- id: merge-gardens
+  name: Merge Gardens
+  logo: /assets/site/335ccdd8-2.webp
+  approval:
+    status: legacy
+- id: meta
+  name: Meta
+  logo: null
+  approval:
+    status: none
+- id: narwal
+  name: Narwal
+  logo: null
+  approval:
+    status: none
+- id: nordvpn
+  name: NordVPN
+  logo: /assets/site/06bb5040-6.webp
+  approval:
+    status: legacy
+- id: overdub
+  name: Overdub
+  logo: null
+  approval:
+    status: none
+- id: procter-gamble
+  name: P&G
+  logo: null
+  approval:
+    status: none
+- id: papaya-gaming
+  name: Papaya Gaming
+  logo: null
+  approval:
+    status: none
+- id: rhinoshields
+  name: Rhinoshields
+  logo: null
+  approval:
+    status: none
+- id: ring
+  name: Ring
+  logo: null
+  approval:
+    status: none
+- id: samsung
+  name: Samsung
+  logo: null
+  approval:
+    status: none
+- id: student-minds
+  name: Student Minds
+  logo: /assets/site/f2dff515-untitled-design-13-.webp
+  approval:
+    status: legacy
+- id: temu
+  name: Temu
+  logo: null
+  approval:
+    status: none
+- id: tinder
+  name: Tinder
+  logo: /assets/site/9815227e-11.webp
+  approval:
+    status: legacy
+- id: tooletries
+  name: Tooletries
+  logo: /assets/site/c5e6652a-22.webp
+  approval:
+    status: legacy
+- id: trainpal
+  name: TrainPal
+  logo: null
+  approval:
+    status: none
+- id: true-classic
+  name: True Classic
+  logo: null
+  approval:
+    status: none
+- id: unidentified-logo-03
+  name: Unidentified logo 03
+  logo: /assets/site/d8517930-untitled-design-13-copy-3.webp
+  approval:
+    status: legacy
+- id: voodoo
+  name: Voodoo
+  logo: /assets/site/44ffcb92-untitled-design-13-copy-2.webp
+  approval:
+    status: legacy
+- id: xgimi
+  name: XGIMI
+  logo: null
+  approval:
+    status: none
+- id: zovoo
+  name: Zovoo
+  logo: /assets/site/ae82c4e9-17.webp
+  approval:
+    status: legacy

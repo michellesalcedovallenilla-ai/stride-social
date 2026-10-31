@@ -9,7 +9,7 @@ export interface Props {
 }
 
 const { label = 'What people say about us' } = Astro.props;
-const items = (await getCollection('testimonials')).sort((a, b) => a.id.localeCompare(b.id));
+const items = (await getCollection('legacyTestimonials')).sort((a, b) => a.id.localeCompare(b.id));
 ---
 
 <section class="testimonials">

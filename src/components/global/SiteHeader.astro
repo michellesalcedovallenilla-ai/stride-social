@@ -18,11 +18,11 @@ export interface Props {
 const { division, path, overlay = false } = Astro.props;
 
 // Feature tiles shown on the right of each mega panel.
-const latest = (await getCollection('blog')).filter((p) => p.data.date).sort((a, b) => b.data.date!.localeCompare(a.data.date!))[0];
-const featuredCase = (await getCollection('caseStudies')).filter((c) => c.data.home).sort((a, b) => a.data.home!.order - b.data.home!.order)[0];
+const latest = (await getCollection('insights', (p) => p.data.visible && p.data.date !== null)).sort((a, b) => b.data.date!.getTime() - a.data.date!.getTime())[0];
+const featuredCase = (await getCollection('work', (w) => w.data.visible && w.data.featuredOn.includes('home'))).sort((a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99))[0];
 const features: Record<MegaMenu['feature'], { href: string; image: string; eyebrow: string; title: string; interim?: boolean }> = {
-  'latest-article': { href: routes.article(latest.id), image: latest.data.cardImage, eyebrow: 'Latest insight', title: latest.data.title },
-  'featured-case-study': { href: routes.caseStudy(featuredCase.id), image: featuredCase.data.home!.back, eyebrow: 'Featured work', title: featuredCase.data.title },
+  'latest-article': { href: routes.article(latest.id), image: latest.data.cover.src, eyebrow: 'Latest insight', title: latest.data.title },
+  'featured-case-study': { href: routes.caseStudy(featuredCase.id), image: (featuredCase.data.hero ?? featuredCase.data.card).src, eyebrow: 'Featured work', title: featuredCase.data.title },
   'roster-portrait': { href: routes.creator('aqsaxiqbal'), image: '/assets/cms/7a2c07a0-aq.jpg', eyebrow: 'From the roster', title: 'Aqsaxiqbal', interim: true },
   education: { href: '/education', image: '/assets/site/b9208d92-stride-social.webp', eyebrow: 'Stride Education', title: 'Every creator starts somewhere.', interim: true },
 };

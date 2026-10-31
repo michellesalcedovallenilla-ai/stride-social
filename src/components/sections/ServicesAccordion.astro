@@ -8,7 +8,7 @@ export interface Props {
 }
 
 const { heading = 'our Services' } = Astro.props;
-const services = (await getCollection('services')).sort((a, b) => a.id.localeCompare(b.id));
+const services = (await getCollection('legacyServices')).sort((a, b) => a.id.localeCompare(b.id));
 ---
 
 <section class="services">
