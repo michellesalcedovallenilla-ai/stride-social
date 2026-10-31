@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-3-homepage`. Review gate: **Gate 3**, homepage review at desktop, tablet and mobile (docs/phase-2/08-roadmap.md).
 
+**Gate 3 approved by the owner on 2026-10-31.** The open items below stay open for Stride; the homepage ships with labelled placeholders until they are answered.
+
 ## What was built
 
 All ten sections from the client brief (PDF §3), composed per `docs/phase-2/05-wireframes.md` §A. Copy lives in `src/content/pages/home.yaml`, and each section's data comes from the Phase 3 collections.
