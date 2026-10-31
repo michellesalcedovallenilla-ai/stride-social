@@ -1,6 +1,6 @@
-// Form definitions shared by the page markup (src/components/social/EnquiryForm.astro) and the
-// server-side validation (src/lib/forms/brand-enquiry.ts), so both enforce the same rules
-// (docs/phase-2/07-technical-architecture.md §6).
+// Form definitions shared by the page markup (src/components/social/EnquiryForm.astro,
+// src/components/talent/ApplicationForm.astro) and the server-side validation
+// (src/lib/forms/*.ts), so both enforce the same rules (docs/phase-2/07-technical-architecture.md §6).
 import { services } from './navigation';
 
 /** Public inbox used as the fallback when a form can't be sent (from the current contact page). */
@@ -31,5 +31,29 @@ export const brandEnquiryLimits = {
   budget: 80,
   brief: 4000,
   /** Submissions faster than this after page load are treated as bots. */
+  minFillMs: 3000,
+} as const;
+
+/** Where the talent application form posts. Empty until Stride confirms the destination (Q13). */
+export const talentApplicationAction = import.meta.env.PUBLIC_TALENT_APPLICATION_ACTION ?? '';
+
+// Primary platforms (docs/phase-2/05-wireframes.md C7).
+export const platformOptions = [
+  { value: 'tiktok', label: 'TikTok' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'twitch', label: 'Twitch' },
+  { value: 'podcast', label: 'Podcast' },
+  { value: 'other', label: 'Other' },
+];
+
+export const talentApplicationLimits = {
+  name: 120,
+  email: 254,
+  country: 80,
+  link: 300,
+  /** Social link rows: the first is required, the rest optional. */
+  links: 5,
+  intro: 500,
   minFillMs: 3000,
 } as const;

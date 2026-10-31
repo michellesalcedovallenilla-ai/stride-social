@@ -1,0 +1,214 @@
+---
+// Stride Talent C5 "Creator experiences": one large serif quote at a time with the creator's
+// portrait, name and previous/next controls. Shown only with at least two creator testimonials
+// that may be published: confirmed consent in production; preview also shows legacy-consent
+// quotes from the previous site, labelled.
+import { getCollection } from 'astro:content';
+import Eyebrow from '../core/Eyebrow.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { isPreview } from '@/lib/env';
+
+export interface Props {
+  copy: { eyebrow?: string; headline?: string };
+}
+
+const { copy } = Astro.props;
+const quotes = (
+  await getCollection('testimonials', (t) => t.data.type === 'creator' && (t.data.consent.status === 'confirmed' || (isPreview && t.data.consent.status === 'legacy')))
+).sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
+const interim = quotes.some((q) => q.data.consent.status !== 'confirmed');
+---
+
+{quotes.length >= 2 && (
+  <section class="quotes" id="stories" aria-labelledby="quotes-title" data-quotes>
+    <div class="quotes__inner container-wide">
+      <header class="quotes__head">
+        <Eyebrow tone="light">{copy.eyebrow}</Eyebrow>
+        <h2 class="quotes__title" id="quotes-title">{copy.headline}</h2>
+        {interim && <PlaceholderNotice variant="inline" label="Consent to re-confirm">— quotes from the previous site</PlaceholderNotice>}
+      </header>
+
+      <div class="quotes__stage" aria-live="polite">
+        {quotes.map((q, i) => (
+          <figure class="quote" data-quote hidden={i > 0} aria-label={`Quote ${i + 1} of ${quotes.length}`}>
+            {q.data.image && (
+              <div class="quote__media">
+                <img src={q.data.image.src} alt="" loading="lazy" decoding="async" />
+              </div>
+            )}
+            <div class="quote__body">
+              <blockquote class="quote__text">“{q.data.quote}”</blockquote>
+              <figcaption class="quote__who">
+                <span class="quote__name">{q.data.name}</span>
+                <span class="quote__role">{q.data.role}</span>
+              </figcaption>
+            </div>
+          </figure>
+        ))}
+      </div>
+
+      <div class="quotes__controls">
+        <button class="quotes__arrow" type="button" data-quote-prev aria-label="Previous quote">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M15 8H2M7 3 2 8l5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+        </button>
+        <p class="quotes__count" data-quote-count>1 / {quotes.length}</p>
+        <button class="quotes__arrow" type="button" data-quote-next aria-label="Next quote">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .quotes {
+    position: relative;
+    z-index: 1;
+    padding: var(--section-pad) 0;
+    background: var(--peach);
+    color: var(--navy-900);
+  }
+
+  .quotes__inner {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .quotes__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .quotes__head > :global(.eyebrow) {
+    flex-basis: 100%;
+  }
+
+  .quotes__title {
+    font-family: var(--font-display);
+    font-size: var(--type-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .quote {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-7) var(--gutter);
+    align-items: center;
+    margin: 0;
+  }
+
+  .quote[hidden] {
+    display: none;
+  }
+
+  .quote__media {
+    grid-column: 1 / 5;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .quote__media img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .quote__body {
+    grid-column: 6 / -1;
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .quote__text {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4.2vw, 4.25rem);
+    font-style: italic;
+    line-height: 1.08;
+  }
+
+  .quote__who {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .quote__name {
+    font-weight: 700;
+  }
+
+  .quote__role {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .quotes__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .quotes__arrow {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--navy-900);
+    border-radius: 50%;
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out);
+  }
+
+  .quotes__arrow:hover {
+    background: var(--navy-900);
+    color: var(--peach);
+  }
+
+  .quotes__arrow svg {
+    width: 18px;
+  }
+
+  .quotes__count {
+    min-width: 4ch;
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    text-align: center;
+  }
+
+  @media (max-width: 767px) {
+    .quote__media,
+    .quote__body {
+      grid-column: 1 / -1;
+    }
+
+    .quote__media {
+      width: min(60%, 280px);
+    }
+  }
+</style>
+
+<script>
+  // Previous/next through the quotes; the stage is a live region, so the new quote is read out.
+  document.querySelectorAll<HTMLElement>('[data-quotes]').forEach((root) => {
+    const quotes = [...root.querySelectorAll<HTMLElement>('[data-quote]')];
+    const count = root.querySelector<HTMLElement>('[data-quote-count]');
+    let current = 0;
+    const show = (i: number) => {
+      current = (i + quotes.length) % quotes.length;
+      quotes.forEach((q, j) => (q.hidden = j !== current));
+      if (count) count.textContent = `${current + 1} / ${quotes.length}`;
+    };
+    root.querySelector('[data-quote-prev]')?.addEventListener('click', () => show(current - 1));
+    root.querySelector('[data-quote-next]')?.addEventListener('click', () => show(current + 1));
+  });
+</script>

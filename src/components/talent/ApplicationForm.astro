@@ -1,0 +1,127 @@
+---
+// Stride Talent application form (docs/phase-2/05-wireframes.md C7; replaces the Typeform used at
+// /creator-sign-up once Stride confirms, Q13). Fields only; the frame is core/FormShell.
+// Social links are repeatable: two rows show, "Add another link" reveals up to five (without JS
+// all five show). Server-side validation: src/lib/forms/talent-application.ts.
+import { getCollection } from 'astro:content';
+import Field from '../core/Field.astro';
+import CheckboxGroup from '../core/CheckboxGroup.astro';
+import FormShell from '../core/FormShell.astro';
+import { enquiryEmail, platformOptions, talentApplicationAction, talentApplicationLimits as max } from '@/config/forms';
+
+export interface Props {
+  messages: { success: string; error: string; unavailable: string; consent: string };
+  /** Shown under the success message, e.g. a pointer to Stride Education. */
+  after?: { text: string; href: string; label: string };
+  tone?: 'light' | 'dark';
+}
+
+const { messages, after, tone = 'light' } = Astro.props;
+const categories = (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ value: c.id, label: c.data.label }));
+const linkRows = Array.from({ length: max.links }, (_, i) => i);
+---
+
+<FormShell action={talentApplicationAction} email={enquiryEmail} subject="Stride Talent application" submitLabel="Join Stride Talent" messages={messages} tone={tone}>
+  <div class="app__grid">
+    <Field name="name" label="Name" required autocomplete="name" maxlength={max.name} messages={{ required: 'Enter your name' }} tone={tone} />
+    <Field name="email" label="Email" type="email" required autocomplete="email" maxlength={max.email} messages={{ required: 'Enter your email', invalid: 'Enter an email address in the format name@example.com' }} tone={tone} />
+    <Field name="country" label="Country" required autocomplete="country-name" maxlength={max.country} messages={{ required: 'Enter the country you live in' }} tone={tone} />
+    <Field name="category" label="Content category" type="select" required options={categories} messages={{ required: 'Choose the category that fits your content best' }} tone={tone} />
+    <div class="app__wide">
+      <CheckboxGroup name="platforms" legend="Primary platforms" options={platformOptions} required messages={{ required: 'Choose at least one platform' }} tone={tone} />
+    </div>
+    <fieldset class="app__wide app__links" data-repeat="2">
+      <legend class="app__legend">Social account links <span class="app__req" aria-hidden="true">*</span></legend>
+      <p class="app__hint" id="links-hint">Full links to your profiles, starting with https://. The first one is required.</p>
+      {linkRows.map((i) => (
+        <div data-repeat-item>
+          <Field
+            name="links"
+            id={`field-links-${i + 1}`}
+            label={`Profile link ${i + 1}`}
+            type="url"
+            required={i === 0}
+            labelHidden
+            placeholder="https://"
+            maxlength={max.link}
+            messages={{ required: 'Add a link to at least one of your profiles', invalid: 'Enter a full link, starting with https://' }}
+            tone={tone}
+          />
+        </div>
+      ))}
+      <button class="app__add" type="button" data-repeat-add hidden>+ Add another link</button>
+    </fieldset>
+    <div class="app__wide">
+      <Field name="intro" label="Short introduction" type="textarea" required rows={5} maxlength={max.intro} counter hint="Who you are, what you make and where you want to take it." messages={{ required: 'Tell us a little about yourself' }} tone={tone} />
+    </div>
+  </div>
+  {after && (
+    <p slot="done" class="app__after">{after.text} <a href={after.href}>{after.label}</a></p>
+  )}
+</FormShell>
+
+<style>
+  .app__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--gutter);
+  }
+
+  .app__wide {
+    grid-column: 1 / -1;
+  }
+
+  .app__links {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .app__links [hidden] {
+    display: none;
+  }
+
+  .app__legend {
+    padding: 0;
+    font-size: var(--type-small);
+    font-weight: 600;
+  }
+
+  .app__req {
+    margin-left: 2px;
+    color: var(--accent-ink);
+  }
+
+  .app__hint {
+    font-size: var(--type-small);
+    color: var(--slate);
+  }
+
+  .app__add {
+    justify-self: start;
+    min-height: 44px;
+    font-size: var(--type-small);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .app__after {
+    max-width: 44ch;
+  }
+
+  .app__after a {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 767px) {
+    .app__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

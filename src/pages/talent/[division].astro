@@ -1,0 +1,256 @@
+---
+// Talent division page (docs/phase-2/05-wireframes.md §E DivisionPage): hero · what makes this
+// division different · its creators · apply CTA. Divisions marked coming-soon (all five today,
+// Q24) get a short, honest holding page that the navigation can link to: noindex, no invented
+// members or copy, with routes to the full roster and the application form.
+import { getCollection, render } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import Eyebrow from '@/components/core/Eyebrow.astro';
+import Badge from '@/components/core/Badge.astro';
+import Button from '@/components/core/Button.astro';
+import DraftTag from '@/components/core/DraftTag.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import RosterCard from '@/components/talent/RosterCard.astro';
+import { getRoster } from '@/lib/roster';
+import { isPreview } from '@/lib/env';
+
+export async function getStaticPaths() {
+  const divisions = await getCollection('talentDivisions');
+  return divisions.map((division) => ({ params: { division: division.id }, props: { division } }));
+}
+
+const { division } = Astro.props;
+const d = division.data;
+const active = d.status === 'active';
+const short = d.name.replace(/^Stride /, '');
+const { Content } = await render(division);
+const hasBody = d.copyStatus !== 'needed' && (division.body ?? '').replace(/<!--[\s\S]*?-->/g, '').trim() !== '';
+const members = (await getRoster()).filter((c) => c.data.divisions.some((x) => x.id === division.id));
+const categories = Object.fromEntries((await getCollection('categories')).map((c) => [c.id, c.data.label]));
+const description = active && d.tagline ? d.tagline : `${d.name}, a specialist division of Stride Talent.`;
+---
+
+<SiteLayout title={`${d.name} | Stride Talent`} description={description} division="talent" noindex={!active}>
+  <header class="dv-hero">
+    {d.hero && <img class="dv-hero__img" src={d.hero.src} alt={d.hero.alt} fetchpriority="high" />}
+    <div class="dv-hero__inner container-wide">
+      <Breadcrumbs items={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Divisions', href: '/talent#divisions' }, { label: d.name }]} tone="light" />
+      <div class="dv-hero__text">
+        <Eyebrow tone="light">Stride Talent division</Eyebrow>
+        <h1 class="dv-hero__title">
+          <span class="dv-hero__brand">Stride</span>
+          {short}
+        </h1>
+        {!active && <Badge status="planned" />}
+        {active && d.tagline && <p class="dv-hero__tagline">{d.tagline}</p>}
+        {!active && (
+          <p class="dv-hero__tagline">
+            A specialist division of Stride Talent. Until it opens, explore the full roster or apply for representation.
+          </p>
+        )}
+      </div>
+    </div>
+  </header>
+
+  {(hasBody || isPreview) && (
+    <section class="dv-block" aria-labelledby="dv-about">
+      <div class="dv-block__inner container-wide">
+        <h2 class="dv-block__label" id="dv-about">About the division</h2>
+        <div class="dv-block__body">
+          <DraftTag status={d.copyStatus === 'approved' ? 'approved' : 'draft'} />
+          {hasBody ? (
+            <div class="dv-prose"><Content /></div>
+          ) : (
+            <PlaceholderNotice variant="block" label="Division copy needed">
+              <p>What makes this division different: its focus, partners and know-how (Q24).</p>
+            </PlaceholderNotice>
+          )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {(members.length > 0 || isPreview) && (
+    <section class="dv-block" aria-labelledby="dv-members">
+      <div class="dv-block__inner container-wide">
+        <h2 class="dv-block__label" id="dv-members">Creators</h2>
+        <div class="dv-block__body">
+          {members.length > 0 ? (
+            <ul class="dv-grid" role="list">
+              {members.map((c) => <RosterCard creator={c} categoryLabels={categories} />)}
+            </ul>
+          ) : (
+            <PlaceholderNotice variant="block" label="No creators assigned yet">
+              <p>Creators join this division once Stride assigns them (Q24).</p>
+            </PlaceholderNotice>
+          )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="dv-cta" aria-labelledby="dv-cta-title">
+    <div class="dv-cta__inner container-wide">
+      <h2 class="dv-cta__title" id="dv-cta-title">Join Stride Talent.</h2>
+      <div class="dv-cta__actions">
+        <Button href="/talent/apply" tone="light" arrow>Apply For Management</Button>
+        <Button href="/talent/roster" variant="secondary" tone="light">Explore Our Roster</Button>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .dv-hero {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .dv-hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    opacity: 0.25;
+  }
+
+  .dv-hero__inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-8);
+    padding-block: var(--space-7) var(--space-9);
+  }
+
+  .dv-hero__text {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .dv-hero__title {
+    display: grid;
+    font-family: var(--font-display);
+    font-size: var(--type-hero);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .dv-hero__brand {
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent-ink);
+  }
+
+  .dv-hero__tagline {
+    max-width: 44ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+  }
+
+  .dv-block {
+    position: relative;
+    z-index: 1;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .dv-block__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5) var(--gutter);
+    padding-block: var(--space-9);
+    border-top: 1px solid var(--line);
+  }
+
+  .dv-block__label {
+    grid-column: 1 / 4;
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+  }
+
+  .dv-block__body {
+    grid-column: 4 / -1;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .dv-prose {
+    max-width: 62ch;
+    font-size: var(--type-lead);
+    line-height: 1.5;
+  }
+
+  .dv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-6) var(--gutter);
+    width: 100%;
+  }
+
+  .dv-cta {
+    position: relative;
+    z-index: 1;
+    background: var(--peach);
+    color: var(--navy-900);
+  }
+
+  .dv-cta__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding-block: clamp(64px, 8vw, 128px);
+  }
+
+  .dv-cta__title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 6.25rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.88;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .dv-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  @media (max-width: 1023px) {
+    .dv-block__label,
+    .dv-block__body {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .dv-hero__title {
+      font-size: 13vw;
+      font-stretch: 112%;
+    }
+
+    .dv-cta__title {
+      font-size: 10.6vw;
+      font-stretch: 112%;
+    }
+  }
+</style>

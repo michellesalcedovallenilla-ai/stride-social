@@ -1,0 +1,306 @@
+---
+// Stride Talent C1 "MORE THAN MANAGEMENT." (docs/phase-2/05-wireframes.md): a wall of real roster
+// portraits in columns drifting at different speeds, with the headline on a clear paper band
+// across the middle. One control pauses the drift (WCAG 2.2.2); under reduced motion the columns
+// stand still. Portraits need consent: preview labels legacy-consent ones, production uses
+// confirmed ones only, and with none the band stands on its own.
+import Button from '../core/Button.astro';
+import Eyebrow from '../core/Eyebrow.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+
+export interface Props {
+  eyebrow?: string;
+  lines: string[];
+  body: string;
+  actions: { label: string; href: string }[];
+  portraits: { src: string }[];
+  interim?: boolean;
+}
+
+const { eyebrow, lines, body, actions, portraits, interim = false } = Astro.props;
+const COLUMNS = 6;
+// Deal portraits into columns, then repeat each column so it is tall enough to loop seamlessly.
+const columns = Array.from({ length: COLUMNS }, (_, c) => portraits.filter((_, i) => i % COLUMNS === c)).filter((col) => col.length > 0);
+const looped = columns.map((col) => {
+  const filled = [...col];
+  while (filled.length < 4) filled.push(...col);
+  return filled;
+});
+---
+
+<section class:list={['t-hero', { 't-hero--plain': looped.length === 0 }]} aria-labelledby="t-hero-title" data-motion-root>
+  {looped.length > 0 && (
+    <div class="t-hero__wall" aria-hidden="true">
+      {looped.map((col, c) => (
+        <div class={`t-hero__col t-hero__col--${c + 1}`}>
+          <div class="t-hero__track" style={`--dur: ${46 + ((c * 7) % 20)}s`}>
+            {[...col, ...col].map((p) => (
+              <img src={p.src} alt="" loading={c < 3 ? 'eager' : 'lazy'} decoding="async" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+  {interim && <PlaceholderNotice label="Interim portraits" class="t-hero__interim">— roster photos, consent to be re-confirmed</PlaceholderNotice>}
+
+  <div class="t-hero__band">
+    <div class="t-hero__inner container-wide">
+      <div class="t-hero__head">
+        {eyebrow && <Eyebrow tone="light">{eyebrow}</Eyebrow>}
+        <h1 class="t-hero__title" id="t-hero-title" data-reveal-lines="load">
+          {lines.map((line, i) => (
+            <span class="reveal-line" style={`--line: ${i}`}><span class="reveal-line__inner">{line}</span></span>
+          ))}
+        </h1>
+      </div>
+      <div class="t-hero__aside" data-reveal="load" style="--reveal-delay: 0.4s">
+        <p class="t-hero__body">{body}</p>
+        <div class="t-hero__actions">
+          {actions.map((a, i) => (
+            <Button href={a.href} variant={i === 0 ? 'primary' : 'secondary'} tone="light">{a.label}</Button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {looped.length > 0 && (
+    <button class="t-hero__toggle" type="button" data-motion-toggle aria-label="Pause moving portraits">
+      <svg class="t-hero__icon t-hero__icon--pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h3v12H4zM9 2h3v12H9z" fill="currentColor"></path></svg>
+      <svg class="t-hero__icon t-hero__icon--play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6z" fill="currentColor"></path></svg>
+    </button>
+  )}
+</section>
+
+<style>
+  .t-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 640px;
+    height: calc(100svh - var(--header-h) - var(--division-bar-h));
+    max-height: 980px;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .t-hero--plain {
+    min-height: 0;
+    height: auto;
+    padding-block: var(--section-pad);
+    background: var(--peach);
+  }
+
+  .t-hero__wall {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+    padding-inline: 12px;
+  }
+
+  .t-hero__col {
+    overflow: hidden;
+  }
+
+  .t-hero__track {
+    display: grid;
+    gap: 12px;
+    animation: t-hero-drift var(--dur) linear infinite;
+  }
+
+  /* Neighbouring columns travel in opposite directions. */
+  .t-hero__col:nth-child(even) .t-hero__track {
+    animation-direction: reverse;
+  }
+
+  .t-hero.is-paused .t-hero__track {
+    animation-play-state: paused;
+  }
+
+  @keyframes t-hero-drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-50% - 6px)); }
+  }
+
+  .t-hero__track img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    max-width: none;
+    object-fit: cover;
+    filter: sepia(0.14) saturate(0.92);
+  }
+
+  .t-hero :global(.t-hero__interim) {
+    top: var(--space-3);
+  }
+
+  .t-hero__band {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    background: var(--paper);
+    box-shadow: 0 0 0 1px rgb(6 20 43 / 0.06);
+  }
+
+  .t-hero--plain .t-hero__band {
+    background: none;
+    box-shadow: none;
+  }
+
+  .t-hero__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: end;
+    gap: var(--space-6) var(--gutter);
+    padding-block: var(--space-7);
+  }
+
+  .t-hero__head {
+    grid-column: 1 / 8;
+    display: grid;
+    gap: var(--space-4);
+    container-type: inline-size;
+  }
+
+  /* Sized to its column so "MANAGEMENT." never runs under the aside. */
+  .t-hero__title {
+    font-family: var(--font-display);
+    font-size: min(9.6cqi, 8rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  /* The last line carries the division accent as an underline band. */
+  .t-hero__title .reveal-line:last-child .reveal-line__inner {
+    background: linear-gradient(transparent 62%, var(--peach) 62%, var(--peach) 90%, transparent 90%);
+  }
+
+  .t-hero__aside {
+    grid-column: 8 / -1;
+    display: grid;
+    gap: var(--space-5);
+    padding-bottom: 0.4rem;
+  }
+
+  .t-hero__body {
+    max-width: 34ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+  }
+
+  .t-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .t-hero__toggle {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgb(6 20 43 / 0.4);
+    border-radius: 50%;
+    background: rgb(245 244 240 / 0.85);
+    color: var(--navy-900);
+    backdrop-filter: blur(6px);
+  }
+
+  .t-hero__toggle[hidden] {
+    display: none;
+  }
+
+  .t-hero__icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .t-hero__icon--play,
+  .t-hero.is-paused .t-hero__icon--pause {
+    display: none;
+  }
+
+  .t-hero.is-paused .t-hero__icon--play {
+    display: block;
+  }
+
+  @media (max-width: 1023px) {
+    .t-hero__wall {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .t-hero__col:nth-child(n + 5) {
+      display: none;
+    }
+
+    .t-hero__head,
+    .t-hero__aside {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Phones: two columns of portraits, the band sits at the bottom. */
+  @media (max-width: 767px) {
+    .t-hero {
+      align-items: flex-end;
+      height: auto;
+      min-height: calc(100svh - var(--header-h) - var(--division-bar-h));
+    }
+
+    .t-hero__wall {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding-inline: 8px;
+    }
+
+    .t-hero__col:nth-child(n + 3) {
+      display: none;
+    }
+
+    .t-hero__track {
+      gap: 8px;
+    }
+
+    .t-hero__inner {
+      padding-block: var(--space-6) calc(var(--space-6) + 48px);
+    }
+
+    .t-hero__title {
+      font-stretch: 112%;
+      font-size: min(11cqi, 5rem);
+    }
+  }
+
+  @media (max-width: 479px) {
+    .t-hero__title {
+      font-stretch: 100%;
+      font-size: 12.4cqi;
+    }
+
+    .t-hero__actions > :global(*) {
+      flex: 1 1 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .t-hero__track {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initMotionToggles } from '@/scripts/system/motion-toggle';
+  initMotionToggles();
+</script>

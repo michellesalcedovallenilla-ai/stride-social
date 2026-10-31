@@ -1,23 +1,25 @@
 ---
-// Opening block for Social sub-pages (services index, Our Work): breadcrumbs, eyebrow, display
-// h1 and a short line of copy on navy. A slot below takes page-specific extras (filters, links).
-import Breadcrumbs from '../global/Breadcrumbs.astro';
+// Opening block for division sub-pages (services index, Our Work, roster): breadcrumbs, eyebrow,
+// display h1 and a short line of copy on the division surface (navy for Social, paper for
+// Talent). `tone` follows that surface. A slot below takes page-specific extras.
+import Breadcrumbs from './Breadcrumbs.astro';
 import Eyebrow from '../core/Eyebrow.astro';
 import DraftTag from '../core/DraftTag.astro';
 
 export interface Props {
   crumbs: { label: string; href?: string }[];
   copy: { status: 'approved' | 'draft'; eyebrow?: string; headline?: string; body?: string };
+  tone?: 'light' | 'dark';
 }
 
-const { crumbs, copy } = Astro.props;
+const { crumbs, copy, tone = 'dark' } = Astro.props;
 ---
 
-<header class="p-intro">
+<header class:list={['p-intro', `p-intro--on-${tone}`]}>
   <div class="p-intro__inner container-wide">
-    <Breadcrumbs items={crumbs} tone="dark" />
+    <Breadcrumbs items={crumbs} tone={tone} />
     <div class="p-intro__main">
-      <Eyebrow tone="dark">{copy.eyebrow}</Eyebrow>
+      <Eyebrow tone={tone}>{copy.eyebrow}</Eyebrow>
       <h1 class="p-intro__title" data-reveal-lines="load">
         <span class="reveal-line"><span class="reveal-line__inner">{copy.headline}</span></span>
       </h1>
@@ -32,8 +34,8 @@ const { crumbs, copy } = Astro.props;
   .p-intro {
     position: relative;
     z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
+    background: var(--surface);
+    color: var(--surface-ink);
   }
 
   .p-intro__inner {
@@ -62,7 +64,7 @@ const { crumbs, copy } = Astro.props;
     max-width: 46ch;
     font-size: var(--type-lead);
     line-height: 1.4;
-    color: rgb(255 255 255 / 0.85);
+    opacity: 0.85;
   }
 
   @media (max-width: 479px) {

@@ -1,0 +1,92 @@
+# Stride Talent landing copy (docs/phase-2/05-wireframes.md §C). status: approved = from the
+# client brief or signed off; draft = written by us, shows a "Draft copy" tag in preview and
+# blocks production.
+sections:
+  hero:
+    status: approved
+    eyebrow: Stride Talent
+    lines: [More than, management.]
+    body: We represent creators and help them turn influence into long-term careers.
+    items:
+      - label: Explore Our Roster
+        href: /talent/roster
+      - label: Apply For Management
+        href: /talent/apply
+    # Roster ids for the portrait wall (proposed; each needs confirmed consent before launch).
+    featured: [amandaagy, ambsholly, aqsaxiqbal, camilla-gimenez, carlosdia, hamajineo, itstimiduhh, koliamishka, lancetann, lauraeletel, spencer-sebastian-yang, tiffanydaviesfx, beingamina, thegreyindian]
+
+  # Facts from the client brief (PDF §5): since 2022, over 600 creators. Confirm both (Q1, Q2).
+  intro:
+    status: draft
+    eyebrow: About Stride Talent
+    body: "Since 2022, Stride Talent has represented creators across global markets. Today we work with more than 600 of them, and our mission hasn't changed: to make being a creator a better experience."
+
+  services:
+    status: draft
+    eyebrow: What we do
+    headline: Your career. Our commitment.
+    # Service names verbatim from the brief; one-line descriptions drafted for approval.
+    items:
+      - label: Commercial partnership sourcing
+        copy: We look for brands that suit your content and your audience, and bring the right ones to you.
+      - label: Brand deal negotiations
+        copy: We negotiate fees, usage and terms, so every deal is worth doing.
+      - label: Campaign coordination
+        copy: Briefs, deadlines, approvals and invoices, handled, so you can focus on making the content.
+      - label: Legal and contractual support
+        copy: We go through contracts with you and make sure the terms protect your work and your time.
+      - label: Personal brand development
+        copy: We help you sharpen what you stand for and grow it across platforms.
+      - label: Long-term career planning
+        copy: We plan past the next post, towards where you want to be in a year and beyond.
+      - label: New commercial opportunities
+        copy: We help you find income beyond sponsored posts as your audience and ambitions grow.
+      - label: Industry connections and creator community
+        copy: You join a network of creators, brands and industry people who share what works.
+
+  roster:
+    status: approved
+    eyebrow: The roster
+    headline: Creator roster.
+    cta: { label: See Full Roster, href: /talent/roster }
+
+  rosterPage:
+    status: draft
+    eyebrow: Stride Talent
+    headline: Our roster.
+    body: Creators we represent and work with, across lifestyle, tech, beauty, fashion and more.
+
+  experiences:
+    status: approved
+    eyebrow: In their words
+    headline: Creator experiences.
+
+  divisions:
+    status: approved
+    eyebrow: Specialist divisions
+    headline: Divisions.
+
+  apply:
+    status: draft
+    eyebrow: Apply for representation
+    headline: Join Stride Talent.
+    items:
+      - key: look
+        label: Who we look for
+        copy: Creators with a clear voice, an engaged audience and a sense of where they want to go next.
+      - key: need
+        label: What we need
+        copy: Your links, your content category and a few lines about you.
+      - key: next
+        label: What happens next
+        copy: The talent team reads every application. If it's a fit, we'll be in touch to talk it through.
+      - key: success
+        label: "Thanks, {name}. The talent team will review your application."
+      - key: education
+        label: Just starting out? Stride Education helps emerging creators learn the industry.
+      - key: error
+        label: Your application was not sent. Try again, or email us directly.
+      - key: unavailable
+        label: Applications are temporarily unavailable here. Email us and we'll pick it up from there.
+      - key: consent
+        label: We use these details to review your application. See our privacy policy.

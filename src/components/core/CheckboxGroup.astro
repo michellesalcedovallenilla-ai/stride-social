@@ -1,0 +1,146 @@
+---
+// A set of checkboxes under one legend (e.g. "Primary platforms"). `required` means at least one
+// must be ticked; src/scripts/system/form.ts checks it and fills the error line with
+// `messages.required`. Boxes are large enough to tap (44px rows).
+export interface Props {
+  name: string;
+  legend: string;
+  options: { value: string; label: string }[];
+  required?: boolean;
+  hint?: string;
+  messages?: { required?: string };
+  tone?: 'light' | 'dark';
+}
+
+const { name, legend, options, required = false, hint, messages, tone = 'light' } = Astro.props;
+const id = `group-${name}`;
+---
+
+<fieldset
+  class:list={['checks', `checks--on-${tone}`]}
+  id={id}
+  data-check-group={name}
+  data-required={required ? 'true' : undefined}
+  data-msg-required={messages?.required}
+  aria-describedby={hint ? `${id}-hint` : undefined}
+>
+  <legend class="checks__legend">
+    {legend}
+    {required ? <span class="checks__req" aria-hidden="true">*</span> : <span class="checks__optional">(optional)</span>}
+  </legend>
+  {hint && <p class="checks__hint" id={`${id}-hint`}>{hint}</p>}
+  <div class="checks__options">
+    {options.map((o) => (
+      <label class="checks__option">
+        <input type="checkbox" name={name} value={o.value} />
+        <span>{o.label}</span>
+      </label>
+    ))}
+  </div>
+  <p class="checks__error" id={`${id}-error`} hidden>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 4v5M8 11v1" stroke="currentColor" stroke-width="1.5"></path></svg>
+    <span class="checks__error-text"></span>
+  </p>
+</fieldset>
+
+<style>
+  .checks {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .checks__legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    font-size: var(--type-small);
+    font-weight: 600;
+  }
+
+  .checks__req {
+    margin-left: 2px;
+    color: var(--accent-ink);
+  }
+
+  .checks__optional {
+    margin-left: 6px;
+    font-weight: 400;
+    color: var(--slate);
+  }
+
+  .checks__hint {
+    font-size: var(--type-small);
+    color: var(--slate);
+  }
+
+  .checks__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Each option is a pill-sized tap target; the native box stays visible for clarity. */
+  .checks__option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--navy-500);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--navy-900);
+    font-size: var(--type-small);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .checks__option:has(input:checked) {
+    border-color: var(--navy-900);
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .checks__option:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px rgb(47 107 255 / 0.35);
+  }
+
+  .checks__option input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-ink);
+  }
+
+  .checks--error .checks__option {
+    border-color: #b42318;
+  }
+
+  .checks__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--type-small);
+    font-weight: 500;
+    color: #b42318;
+  }
+
+  .checks__error[hidden] {
+    display: none;
+  }
+
+  .checks__error svg {
+    width: 16px;
+    flex: none;
+  }
+
+  .checks--on-dark .checks__legend {
+    color: var(--white);
+  }
+
+  .checks--on-dark .checks__error {
+    color: #ffb4a9;
+  }
+</style>
