@@ -1,46 +1,58 @@
 ---
 // Labelled form control with hint and error text (labels always visible; errors tied with
 // aria-describedby; never colour-only). The error line is always rendered (hidden when empty) so
-// client-side validation can fill it in (src/scripts/system/enquiry-form.ts).
+// client-side validation can fill it in (src/scripts/system/form.ts), using the `messages` given
+// here. `counter` shows a live character count for fields with a maxlength.
 import type { HTMLAttributes } from 'astro/types';
 
 export interface Props {
   name: string;
   label: string;
+  /** Defaults to field-{name}; set it when several controls share a name. */
+  id?: string;
   type?: 'text' | 'email' | 'url' | 'tel' | 'textarea' | 'select';
   required?: boolean;
   hint?: string;
   error?: string;
+  /** Client-side error messages: empty required field, and wrong format (email/url). */
+  messages?: { required?: string; invalid?: string };
   autocomplete?: HTMLAttributes<'input'>['autocomplete'];
   options?: { value: string; label: string }[];
   placeholder?: string;
   rows?: number;
   maxlength?: number;
+  counter?: boolean;
+  /** URL query parameter that preselects this field (src/scripts/system/form.ts). */
+  prefill?: string;
+  /** Hide the label visually (it stays for screen readers), e.g. in a repeated group. */
+  labelHidden?: boolean;
   tone?: 'light' | 'dark';
 }
 
-const { name, label, type = 'text', required = false, hint, error, autocomplete, options = [], placeholder, rows = 5, maxlength, tone = 'light' } = Astro.props;
-const id = `field-${name}`;
-const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
+const { name, label, id: idProp, type = 'text', required = false, hint, error, messages, autocomplete, options = [], placeholder, rows = 5, maxlength, counter = false, prefill, labelHidden = false, tone = 'light' } = Astro.props;
+const id = idProp ?? `field-${name}`;
+const describedBy = [hint && `${id}-hint`, counter && `${id}-count`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
 const invalid = error ? ('true' as const) : undefined;
+const msg = { 'data-msg-required': messages?.required, 'data-msg-invalid': messages?.invalid, 'data-counter': counter ? 'true' : undefined, 'data-prefill': prefill };
 ---
 
 <div class:list={['field', `field--on-${tone}`, { 'field--error': error }]}>
-  <label class="field__label" for={id}>
+  <label class:list={['field__label', { 'visually-hidden': labelHidden }]} for={id}>
     {label}
     {required ? <span class="field__req" aria-hidden="true">*</span> : <span class="field__optional">(optional)</span>}
   </label>
   {hint && <p class="field__hint" id={`${id}-hint`}>{hint}</p>}
   {type === 'textarea' ? (
-    <textarea class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} rows={rows} maxlength={maxlength} placeholder={placeholder}></textarea>
+    <textarea class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} rows={rows} maxlength={maxlength} placeholder={placeholder} {...msg}></textarea>
   ) : type === 'select' ? (
-    <select class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete}>
+    <select class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} {...msg}>
       <option value="">Select…</option>
       {options.map((o) => <option value={o.value}>{o.label}</option>)}
     </select>
   ) : (
-    <input class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} type={type} placeholder={placeholder} maxlength={maxlength} />
+    <input class="field__control" id={id} name={name} required={required} aria-invalid={invalid} aria-describedby={describedBy} autocomplete={autocomplete} type={type} placeholder={placeholder} maxlength={maxlength} {...msg} />
   )}
+  {counter && maxlength && <p class="field__count" id={`${id}-count`} aria-live="off">0 / {maxlength}</p>}
   <p class="field__error" id={`${id}-error`} hidden={!error}>
     <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 4v5M8 11v1" stroke="currentColor" stroke-width="1.5"></path></svg>
     <span class="field__error-text">{error}</span>
@@ -105,6 +117,13 @@ const invalid = error ? ('true' as const) : undefined;
     border-width: 2px;
   }
 
+  .field__count {
+    justify-self: end;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    color: var(--slate);
+  }
+
   .field__error {
     display: flex;
     align-items: center;
@@ -128,7 +147,8 @@ const invalid = error ? ('true' as const) : undefined;
   }
 
   .field--on-dark .field__hint,
-  .field--on-dark .field__optional {
+  .field--on-dark .field__optional,
+  .field--on-dark .field__count {
     color: rgb(255 255 255 / 0.72);
   }
 

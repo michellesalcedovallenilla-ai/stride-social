@@ -1,0 +1,34 @@
+---
+// Talent application page (docs/phase-2/03-sitemap.md: /talent/apply): the C7 section on its own,
+// with the page's h1. The same form ends the /talent page.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import ApplySection from '@/components/talent/ApplySection.astro';
+
+const copy = (await getEntry('pages', 'talent'))?.data.sections.apply;
+if (!copy) throw new Error('Missing apply in src/content/pages/talent.yaml');
+const hero = (await getEntry('pages', 'talent'))?.data.sections.hero;
+---
+
+<SiteLayout title="Apply for management | Stride Talent" description={hero?.body ?? copy.headline} division="talent">
+  <div class="apply-crumbs">
+    <div class="container-wide">
+      <Breadcrumbs items={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Apply' }]} tone="light" />
+    </div>
+  </div>
+  <ApplySection copy={copy} headingLevel="h1" />
+</SiteLayout>
+
+<style>
+  .apply-crumbs {
+    position: relative;
+    z-index: 1;
+    padding-block: var(--space-6) 0;
+    background: var(--peach);
+  }
+
+  .apply-crumbs + :global(.apply) {
+    padding-top: var(--space-8);
+  }
+</style>

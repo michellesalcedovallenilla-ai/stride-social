@@ -1,0 +1,54 @@
+---
+// Creator roster directory (docs/phase-2/05-wireframes.md §E): live name search, category chips,
+// results count, portrait grid, load more and an empty state. Filters live in the URL
+// (/talent/roster?category=beauty&q=amy). Only published creators appear (src/lib/roster.ts).
+import { getCollection, getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import PageIntro from '@/components/global/PageIntro.astro';
+import RosterGrid from '@/components/talent/RosterGrid.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import { getRoster } from '@/lib/roster';
+import { isPreview } from '@/lib/env';
+
+const roster = await getRoster();
+const categories = (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ id: c.id, label: c.data.label }));
+const copy = (await getEntry('pages', 'talent'))?.data.sections.rosterPage;
+if (!copy) throw new Error('Missing rosterPage in src/content/pages/talent.yaml');
+const interim = roster.some((c) => c.data.consent.status !== 'confirmed');
+---
+
+<SiteLayout title="Creator roster | Stride Talent" description={copy.body} division="talent">
+  <PageIntro crumbs={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Roster' }]} copy={copy} tone="light">
+    {isPreview && interim && (
+      <PlaceholderNotice variant="inline" label="Interim profiles">— from the previous site; consent, countries and categories to be confirmed (Q9, Q10)</PlaceholderNotice>
+    )}
+  </PageIntro>
+  <section class="roster" aria-label="Creators">
+    <div class="container-wide">
+      {roster.length > 0 ? (
+        <RosterGrid creators={roster} categories={categories} mode="directory" limit={24} nameLevel="h2" />
+      ) : (
+        <p class="roster__none">The roster is being updated. Brands can still <a href="/social/enquire">get in touch</a>.</p>
+      )}
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .roster {
+    position: relative;
+    z-index: 1;
+    padding-bottom: var(--section-pad);
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .roster__none {
+    font-size: var(--type-lead);
+  }
+
+  .roster__none a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

@@ -7,5 +7,8 @@ export const routes = {
   service: (slug: string) => `/social/services/${slug}`,
   workFiltered: (filter: { industry?: string; service?: string }) => `/work?${new URLSearchParams(filter)}`,
   article: (slug: string) => `/blog/${slug}`, // → /insights/[slug] in Stage 7
-  creator: (slug: string) => `/creators/${slug}`, // → /talent/roster/[slug] in Stage 5
+  creator: (slug: string) => `/talent/roster/${slug}`,
+  rosterFiltered: (category: string) => `/talent/roster?category=${category}`,
+  creatorEnquiry: (slug: string) => `/social/enquire?creator=${slug}`,
+  talentDivision: (slug: string) => `/talent/${slug}`,
 };

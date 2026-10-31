@@ -1,6 +1,6 @@
 // Server-side validation for the Stride Social brand enquiry form. The host's form function
 // (Q21: Vercel, Netlify or Cloudflare) imports this, then sends the email/CRM notification
-// (Q13). Client-side checks in src/scripts/system/enquiry-form.ts are for usability only; this
+// (Q13). Client-side checks in src/scripts/system/form.ts are for usability only; this
 // is the source of truth. Never log the submitted values (docs/phase-2/07 §6, privacy).
 import { z } from 'astro/zod';
 import { brandEnquiryLimits as max, marketOptions, serviceOptions } from '@/config/forms';

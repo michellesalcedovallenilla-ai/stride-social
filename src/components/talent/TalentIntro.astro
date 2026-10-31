@@ -1,0 +1,91 @@
+---
+// Stride Talent C2: one large statement in the display face, sentence case, with the talent
+// markets as small labels beneath (verified markets only).
+import { getCollection } from 'astro:content';
+import Eyebrow from '../core/Eyebrow.astro';
+import DraftTag from '../core/DraftTag.astro';
+
+export interface Props {
+  copy: { status: 'approved' | 'draft'; eyebrow?: string; body?: string };
+}
+
+const { copy } = Astro.props;
+const markets = await getCollection('markets', (m) => m.data.status === 'verified' && m.data.roles.includes('talent-market'));
+---
+
+<section class="t-intro" aria-label={copy.eyebrow}>
+  <div class="t-intro__inner container-wide">
+    <div class="t-intro__label">
+      <Eyebrow tone="light">{copy.eyebrow}</Eyebrow>
+      <DraftTag status={copy.status} />
+    </div>
+    <p class="t-intro__statement" data-reveal-lines>{copy.body}</p>
+    {markets.length > 0 && (
+      <ul class="t-intro__markets" role="list" aria-label="Talent markets">
+        {markets.map((m) => <li>{m.data.label}</li>)}
+      </ul>
+    )}
+  </div>
+</section>
+
+<style>
+  .t-intro {
+    position: relative;
+    z-index: 1;
+    padding: var(--section-pad) 0;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .t-intro__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-6) var(--gutter);
+  }
+
+  .t-intro__label,
+  .t-intro__statement,
+  .t-intro__markets {
+    grid-column: 2 / 12;
+  }
+
+  .t-intro__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .t-intro__statement {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.6vw, 3.75rem);
+    font-weight: 700;
+    font-stretch: 108%;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+
+  .t-intro__markets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .t-intro__markets li {
+    padding: 6px 12px;
+    background: var(--peach);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--navy-900);
+  }
+
+  @media (max-width: 1023px) {
+    .t-intro__label,
+    .t-intro__statement,
+    .t-intro__markets {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

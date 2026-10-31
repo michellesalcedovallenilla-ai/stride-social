@@ -1,0 +1,131 @@
+---
+// Stride Talent C7 "Apply for representation": peach split. Left: "JOIN STRIDE TALENT" with three
+// short points on what Stride looks for and what happens next. Right: the application form (the
+// same form lives on its own at /talent/apply).
+import Eyebrow from '../core/Eyebrow.astro';
+import DraftTag from '../core/DraftTag.astro';
+import ApplicationForm from './ApplicationForm.astro';
+
+export interface Props {
+  copy: { status: 'approved' | 'draft'; eyebrow?: string; headline?: string; items?: { key?: string; label: string; copy?: string }[] };
+  /** h1 on /talent/apply, h2 inside the landing page. */
+  headingLevel?: 'h1' | 'h2';
+}
+
+const { copy, headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
+const item = (key: string) => copy.items?.find((i) => i.key === key);
+const msg = (key: string) => item(key)?.label ?? '';
+const points = ['look', 'need', 'next'].map(item).filter((p) => p !== undefined);
+---
+
+<section class="apply" id="apply" aria-labelledby="apply-title">
+  <div class="apply__inner container-wide">
+    <div class="apply__lead">
+      <Eyebrow tone="light">{copy.eyebrow}</Eyebrow>
+      <Heading class="apply__title" id="apply-title">{copy.headline}</Heading>
+      <DraftTag status={copy.status} />
+      <ol class="apply__points" role="list">
+        {points.map((p, i) => (
+          <li>
+            <span class="apply__n">{String(i + 1).padStart(2, '0')}</span>
+            <div>
+              <p class="apply__point-title">{p!.label}</p>
+              <p>{p!.copy}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <div class="apply__form">
+      <ApplicationForm
+        messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }}
+        after={{ text: msg('education'), href: '/education', label: 'Explore Stride Education' }}
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .apply {
+    position: relative;
+    z-index: 1;
+    padding: var(--section-pad) 0;
+    background: var(--peach);
+    color: var(--navy-900);
+    scroll-margin-top: calc(var(--header-h) + var(--division-bar-h));
+  }
+
+  .apply__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-8) var(--gutter);
+    align-items: start;
+  }
+
+  .apply__lead {
+    grid-column: 1 / 6;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    position: sticky;
+    top: calc(var(--header-h) + var(--division-bar-h) + var(--space-6));
+    container-type: inline-size;
+  }
+
+  .apply__title {
+    font-family: var(--font-display);
+    font-size: min(16cqi, 6.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.88;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .apply__points {
+    display: grid;
+    gap: var(--space-5);
+    width: 100%;
+    margin-top: var(--space-5);
+  }
+
+  .apply__points li {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgb(6 20 43 / 0.25);
+  }
+
+  .apply__n {
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    line-height: 1.7;
+  }
+
+  .apply__point-title {
+    font-weight: 700;
+  }
+
+  .apply__form {
+    grid-column: 7 / -1;
+    min-width: 0;
+  }
+
+  /* Fields sit on peach: give the controls a little more contrast. */
+  .apply__form :global(.field__control) {
+    border-color: var(--navy-700);
+  }
+
+  @media (max-width: 1023px) {
+    .apply__lead,
+    .apply__form {
+      grid-column: 1 / -1;
+    }
+
+    .apply__lead {
+      position: static;
+    }
+  }
+</style>

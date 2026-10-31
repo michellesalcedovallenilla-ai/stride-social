@@ -7,6 +7,7 @@ import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 import { primaryNav, contactLink, divisionBars, type DivisionKey, type MegaMenu } from '@/config/navigation';
 import { socials } from '@/config/site';
 import { routes } from '@/lib/routes';
+import { getRoster } from '@/lib/roster';
 
 export interface Props {
   division: DivisionKey;
@@ -20,10 +21,15 @@ const { division, path, overlay = false } = Astro.props;
 // Feature tiles shown on the right of each mega panel.
 const latest = (await getCollection('insights', (p) => p.data.visible && p.data.date !== null)).sort((a, b) => b.data.date!.getTime() - a.data.date!.getTime())[0];
 const featuredCase = (await getCollection('work', (w) => w.data.visible && w.data.featuredOn.includes('home'))).sort((a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99))[0];
+// Roster tile: a published creator with a portrait (src/lib/roster.ts), so it never links to a profile that isn't built.
+const roster = (await getRoster()).filter((c) => c.data.portrait);
+const rosterPick = roster.find((c) => c.id === 'aqsaxiqbal') ?? roster[0];
 const features: Record<MegaMenu['feature'], { href: string; image: string; eyebrow: string; title: string; interim?: boolean }> = {
   'latest-article': { href: routes.article(latest.id), image: latest.data.cover.src, eyebrow: 'Latest insight', title: latest.data.title },
   'featured-case-study': { href: routes.caseStudy(featuredCase.id), image: (featuredCase.data.hero ?? featuredCase.data.card).src, eyebrow: 'Featured work', title: featuredCase.data.title },
-  'roster-portrait': { href: routes.creator('aqsaxiqbal'), image: '/assets/cms/7a2c07a0-aq.jpg', eyebrow: 'From the roster', title: 'Aqsaxiqbal', interim: true },
+  'roster-portrait': rosterPick
+    ? { href: routes.creator(rosterPick.id), image: rosterPick.data.portrait!.src, eyebrow: 'From the roster', title: rosterPick.data.name, interim: rosterPick.data.consent.status !== 'confirmed' }
+    : { href: '/talent/roster', image: '/assets/site/b9208d92-stride-social.webp', eyebrow: 'Stride Talent', title: 'Explore the roster' },
   education: { href: '/education', image: '/assets/site/b9208d92-stride-social.webp', eyebrow: 'Stride Education', title: 'Every creator starts somewhere.', interim: true },
 };
 

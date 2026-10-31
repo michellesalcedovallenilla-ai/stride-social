@@ -1,0 +1,204 @@
+---
+// Creator grid with category chips, shared by the Talent landing preview (C4) and the full
+// directory (/talent/roster). Behaviour: src/scripts/system/roster-filter.ts.
+//   preview:   chips filter the first `limit` matches inline; "See full roster" carries the
+//              chosen category into the directory URL.
+//   directory: adds name search, a live results count, "Load more" and an empty state; the
+//              category and search are kept in the URL (?category=&q=).
+// Only categories with at least one creator get a chip; preview builds list the brief's
+// categories that have nobody mapped yet. Without JS every creator is listed.
+import Chip from '../core/Chip.astro';
+import Button from '../core/Button.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import RosterCard from './RosterCard.astro';
+import type { Creator } from '@/lib/roster';
+import { isPreview } from '@/lib/env';
+
+export interface Props {
+  creators: Creator[];
+  categories: { id: string; label: string }[];
+  mode: 'preview' | 'directory';
+  /** Preview: how many cards show. Directory: page size before "Load more". */
+  limit: number;
+  /** Preview only: the full roster link. */
+  more?: { label: string; href: string };
+  nameLevel?: 'h2' | 'h3';
+}
+
+const { creators, categories, mode, limit, more, nameLevel = 'h3' } = Astro.props;
+const labels = Object.fromEntries(categories.map((c) => [c.id, c.label]));
+const inCategory = (c: Creator, id: string) => c.data.mainCategory?.id === id || c.data.categories.some((x) => x.id === id);
+const count = (id: string) => creators.filter((c) => inCategory(c, id)).length;
+const chips = categories.map((c) => ({ ...c, n: count(c.id) }));
+const empty = chips.filter((c) => c.n === 0).map((c) => c.label);
+// Preview keeps the page light: the first `limit` creators overall plus the first `limit` in each
+// category, so every chip has a full row to show. Cards past the first `limit` start hidden.
+const shown =
+  mode === 'preview'
+    ? creators.filter((c, i) => i < limit || chips.some((ch) => inCategory(c, ch.id) && creators.filter((x) => inCategory(x, ch.id)).indexOf(c) < limit))
+    : creators;
+---
+
+<div class:list={['rgrid', `rgrid--${mode}`]} data-roster={mode} data-limit={limit}>
+  <div class="rgrid__bar">
+    {mode === 'directory' && (
+      <div class="rgrid__search">
+        <label class="rgrid__search-label" for="roster-search">Search creators</label>
+        <input id="roster-search" class="rgrid__search-input" type="search" placeholder="Search by name" autocomplete="off" data-roster-search />
+      </div>
+    )}
+    <div class="rgrid__chips" role="group" aria-label="Filter by category" data-roster-chips>
+      <Chip value="all" active>All</Chip>
+      {chips.filter((c) => c.n > 0).map((c) => (
+        <Chip value={c.id}>{c.label} {mode === 'directory' && <span class="rgrid__n">{c.n}</span>}</Chip>
+      ))}
+    </div>
+    {isPreview && empty.length > 0 && (
+      <PlaceholderNotice variant="inline" label="No creators mapped yet">— {empty.join(', ')} (category mapping is proposed; divisions need members, Q24)</PlaceholderNotice>
+    )}
+    {mode === 'directory' && <p class="rgrid__count" role="status" aria-live="polite" data-roster-count>{creators.length} creators</p>}
+  </div>
+
+  <ul class="rgrid__list" role="list" data-roster-list>
+    {shown.map((c, i) => (
+      <RosterCard creator={c} categoryLabels={labels} nameLevel={nameLevel} eager={mode === 'directory' && i < 8} hidden={mode === 'preview' && i >= limit} />
+    ))}
+  </ul>
+
+  {mode === 'directory' && (
+    <>
+      <div class="rgrid__empty" hidden data-roster-empty>
+        <p>No creators match. </p>
+        <Button variant="secondary" data-roster-clear>Clear filters</Button>
+      </div>
+      <div class="rgrid__more">
+        <Button variant="secondary" data-roster-more hidden>Load more</Button>
+      </div>
+    </>
+  )}
+  {mode === 'preview' && more && (
+    <div class="rgrid__more">
+      <Button href={more.href} data-roster-link>{more.label}</Button>
+    </div>
+  )}
+</div>
+
+<style>
+  .rgrid {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .rgrid__bar {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .rgrid__search {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 480px;
+  }
+
+  .rgrid__search-label {
+    font-size: var(--type-small);
+    font-weight: 600;
+  }
+
+  .rgrid__search-input {
+    min-height: 52px;
+    padding: 14px var(--space-4);
+    border: 1px solid var(--navy-500);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--navy-900);
+  }
+
+  .rgrid__search-input:focus-visible {
+    outline: none;
+    border-color: var(--navy-900);
+    box-shadow: 0 0 0 3px rgb(47 107 255 / 0.35);
+  }
+
+  .rgrid__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .rgrid__n {
+    margin-left: 4px;
+    opacity: 0.6;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rgrid__count {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .rgrid__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-7) var(--gutter);
+  }
+
+  .rgrid--directory .rgrid__list {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .rgrid__empty {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    font-size: var(--type-lead);
+  }
+
+  .rgrid__empty[hidden] {
+    display: none;
+  }
+
+  .rgrid__more {
+    display: flex;
+    justify-content: center;
+  }
+
+  .rgrid__more :global([hidden]) {
+    display: none;
+  }
+
+  @media (max-width: 1023px) {
+    .rgrid__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .rgrid__list,
+    .rgrid--directory .rgrid__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6) var(--gutter);
+    }
+
+    /* Chips scroll sideways on phones. */
+    .rgrid__chips {
+      flex-wrap: nowrap;
+      margin-inline: calc(-1 * var(--margin));
+      padding-inline: var(--margin);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .rgrid__chips :global(.chip) {
+      flex: none;
+    }
+  }
+</style>
+
+<script>
+  import { initRosterFilters } from '@/scripts/system/roster-filter';
+  initRosterFilters();
+</script>

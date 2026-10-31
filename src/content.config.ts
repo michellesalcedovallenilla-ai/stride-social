@@ -352,6 +352,8 @@ const sectionCopy = z.object({
     .array(z.object({ key: z.string().optional(), label: z.string(), copy: z.string().optional(), cta: z.string().optional(), href: z.string().optional(), audience: z.string().optional() }))
     .optional(),
   awaiting: z.array(z.string()).optional(),
+  /** Collection entry ids hand-picked for this section (e.g. hero portraits from the roster). */
+  featured: z.array(z.string()).optional(),
 });
 const pages = defineCollection({
   loader: glob({ pattern: '*.yaml', base: './src/content/pages' }),
