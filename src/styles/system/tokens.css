@@ -1,0 +1,110 @@
+/*
+ * Stride design system: tokens (Phase 2 spec: docs/phase-2/04-design-system.md).
+ * Division themes only change accent, surface and photographic mood; everything else is shared.
+ * Breakpoints (literal in media queries): ≥ 1024px desktop · 768–1023px tablet · < 768px mobile.
+ */
+:root {
+  /* Core palette */
+  --navy-900: #06142b;
+  --navy-700: #1b2a44;
+  --navy-500: #3a4a66;
+  --paper: #f5f4f0;
+  --white: #ffffff;
+  --line: #dbdbdb;
+  --line-dark: rgb(255 255 255 / 0.16);
+  --slate: #5b6577;
+  --ice: #c3f2fb;
+  --peach: #f4c7ae;
+  --sun: #ffd45c;
+  --ice-deep: #0e6f86;
+  --peach-deep: #9a4a24;
+  --sun-deep: #7a5a00;
+  --focus: #2f6bff;
+
+  /* Semantic roles (division themes override these) */
+  --accent: var(--ice);
+  --accent-ink: var(--ice-deep);
+  --surface: var(--paper);
+  --surface-ink: var(--navy-900);
+
+  /* Type families */
+  --font-display: 'Archivo Variable', 'Archivo', 'Arial Narrow', system-ui, sans-serif;
+  --font-text: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+
+  /* Type scale (fluid, mobile → desktop) */
+  --type-hero: clamp(3.5rem, 11vw, 11rem);
+  --type-display: clamp(2.75rem, 7vw, 7rem);
+  --type-h1: clamp(2.25rem, 4.5vw, 4.5rem);
+  --type-h2: clamp(1.75rem, 3vw, 3rem);
+  --type-h3: clamp(1.25rem, 1.8vw, 1.75rem);
+  --type-lead: clamp(1.125rem, 1.4vw, 1.5rem);
+  --type-body: 1.0625rem;
+  --type-small: 0.875rem;
+  --type-label: 0.75rem;
+
+  /* Display width settings (Archivo wdth axis) */
+  --stretch-wide: 125%;
+  --stretch-normal: 100%;
+
+  /* Space (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --space-11: 192px;
+  --section-pad: clamp(64px, 10vw, 192px);
+
+  /* Layout */
+  --margin: clamp(16px, 4vw, 64px);
+  --gutter: 24px;
+  --container: 1440px;
+  --container-wide: 1680px;
+  --header-h: 76px;
+  --division-bar-h: 44px;
+  --radius: 2px;
+
+  /* Motion */
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 450ms;
+  --dur-reveal: 700ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --gutter: 16px;
+    --header-h: 64px;
+  }
+}
+
+/* Division themes */
+[data-division='social'] {
+  --accent: var(--ice);
+  --accent-ink: var(--ice-deep);
+  --surface: var(--navy-900);
+  --surface-ink: var(--white);
+}
+
+[data-division='talent'] {
+  --accent: var(--peach);
+  --accent-ink: var(--peach-deep);
+  --surface: var(--paper);
+  --surface-ink: var(--navy-900);
+}
+
+[data-division='education'] {
+  --accent: var(--sun);
+  --accent-ink: var(--sun-deep);
+  --surface: var(--white);
+  --surface-ink: var(--navy-900);
+}

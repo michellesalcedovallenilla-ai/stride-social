@@ -1,0 +1,76 @@
+---
+// Phase 3 layout for every redesigned page. Sets the division theme (data-division), renders the
+// new header/division bar/footer and loads the motion scripts. Phase 1 pages keep BaseLayout
+// until each one is replaced.
+import '@/styles/system/index.css';
+import Seo from '@/components/ui/Seo.astro';
+import SiteHeader from '@/components/global/SiteHeader.astro';
+import SiteFooter from '@/components/global/SiteFooter.astro';
+import { site } from '@/config/site';
+import type { DivisionKey } from '@/config/navigation';
+
+export interface Props {
+  title: string;
+  description?: string | null;
+  ogImage?: string | null;
+  division?: DivisionKey;
+  /** The page opens with a full-bleed dark hero: header starts transparent with light text. */
+  headerOverlay?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+}
+
+const { title, description, ogImage, division = 'group', headerOverlay = false, jsonLd, noindex } = Astro.props;
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') || '/';
+---
+
+<!doctype html>
+<html lang="en" data-division={division}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      // Safety net: if the motion scripts never start, show everything rather than hidden content.
+      setTimeout(() => {
+        const root = document.documentElement;
+        if (!root.classList.contains('motion-ready')) root.classList.remove('js');
+      }, 3000);
+    </script>
+    <Seo title={title} description={description} ogImage={ogImage} path={path} jsonLd={jsonLd} noindex={noindex} />
+    <link rel="icon" href={site.favicon} type="image/png" />
+    <link rel="apple-touch-icon" href={site.appleTouchIcon} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader division={division} path={path} overlay={headerOverlay} />
+    <main id="main" class:list={['page', { 'page--overlay': headerOverlay, 'page--with-bar': division !== 'group' }]}>
+      <slot />
+    </main>
+    <SiteFooter />
+    <script>
+      import { initSmoothScroll } from '@/scripts/smooth-scroll';
+      import { initReveal } from '@/scripts/reveal';
+      import { initRevealLines } from '@/scripts/system/reveal-lines';
+      document.documentElement.classList.add('motion-ready');
+      initSmoothScroll();
+      initReveal();
+      initRevealLines();
+    </script>
+  </body>
+</html>
+
+<style>
+  .page {
+    padding-top: var(--header-h);
+  }
+
+  .page--with-bar {
+    padding-top: calc(var(--header-h) + var(--division-bar-h));
+  }
+
+  .page--overlay {
+    padding-top: 0;
+  }
+</style>

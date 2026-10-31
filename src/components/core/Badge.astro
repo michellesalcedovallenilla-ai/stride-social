@@ -1,0 +1,57 @@
+---
+// Status label. `available` / `planned` mark Stride Education items (brief §6: always distinguish them).
+export interface Props {
+  status: 'available' | 'planned' | 'draft' | 'interim';
+  class?: string;
+}
+
+const labels = { available: 'Available now', planned: 'Coming soon', draft: 'Draft', interim: 'Interim' } as const;
+const { status, class: className } = Astro.props;
+---
+
+<span class:list={['badge', `badge--${status}`, className]}><slot>{labels[status]}</slot></span>
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .badge--available {
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .badge--planned {
+    border: 1px solid currentColor;
+    color: var(--slate);
+  }
+
+  .badge--planned::before {
+    background: transparent;
+    border: 1px solid currentColor;
+  }
+
+  .badge--draft,
+  .badge--interim {
+    background: var(--sun);
+    color: var(--navy-900);
+  }
+</style>

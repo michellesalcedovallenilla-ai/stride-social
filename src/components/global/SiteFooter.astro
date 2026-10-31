@@ -1,0 +1,156 @@
+---
+// Comprehensive dark navy footer (brief §3.10; columns per docs/phase-2/03-sitemap.md §2).
+import StrideLogo from '../core/StrideLogo.astro';
+import { footerColumns, legalLinks } from '@/config/navigation';
+import { site, socials } from '@/config/site';
+
+const contactRoutes = [
+  { label: 'Brand enquiries', href: '/social/enquire' },
+  { label: 'Creator applications', href: '/talent/apply' },
+  { label: 'Education', href: '/education/enquire' },
+  { label: 'General', href: '/contact' },
+];
+---
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <a href="/" aria-label="Stride home"><StrideLogo tone="dark" /></a>
+      <p class="footer__line">Built around creators.</p>
+    </div>
+
+    <nav class="footer__cols" aria-label="Footer">
+      {footerColumns.map((col) => (
+        <div class="footer__col">
+          <p class="footer__title">{col.title}</p>
+          <ul role="list">
+            {col.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          </ul>
+        </div>
+      ))}
+      <div class="footer__col">
+        <p class="footer__title">Contact</p>
+        <ul role="list">
+          {contactRoutes.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        </ul>
+        <ul class="footer__social" role="list">
+          {socials.map((s) => <li><a href={s.href} target="_blank" rel="noopener">{s.label}</a></li>)}
+        </ul>
+      </div>
+    </nav>
+
+    <div class="footer__base">
+      <p>© {new Date().getFullYear()} {site.legalName} · {site.companyNumber}</p>
+      <ul class="footer__legal" role="list">
+        {legalLinks.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    z-index: 1;
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-8) var(--gutter);
+    max-width: calc(var(--container-wide) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: var(--space-9) var(--margin) var(--space-6);
+  }
+
+  .footer__brand {
+    grid-column: 1 / 5;
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+
+  .footer__line {
+    max-width: 26ch;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    line-height: 1.25;
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  .footer__cols {
+    grid-column: 5 / -1;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-6);
+  }
+
+  .footer__title {
+    margin-bottom: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .footer__col ul {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .footer__col a,
+  .footer__legal a {
+    font-size: var(--type-small);
+    color: rgb(255 255 255 / 0.78);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .footer__col a:hover,
+  .footer__legal a:hover {
+    color: var(--white);
+  }
+
+  .footer__social {
+    margin-top: var(--space-5);
+  }
+
+  .footer__base {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--line-dark);
+    font-size: var(--type-small);
+    color: rgb(255 255 255 / 0.6);
+  }
+
+  .footer__legal {
+    display: flex;
+    gap: var(--space-5);
+  }
+
+  @media (max-width: 1023px) {
+    .footer__brand,
+    .footer__cols {
+      grid-column: 1 / -1;
+    }
+
+    .footer__cols {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 599px) {
+    .footer__cols {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-6) var(--space-4);
+    }
+  }
+</style>

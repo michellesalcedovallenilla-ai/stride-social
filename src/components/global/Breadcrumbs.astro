@@ -1,0 +1,59 @@
+---
+// Breadcrumb trail plus matching BreadcrumbList structured data.
+import { site } from '@/config/site';
+
+export interface Props {
+  items: { label: string; href?: string }[];
+  tone?: 'light' | 'dark';
+}
+
+const { items, tone = 'light' } = Astro.props;
+const trail = [{ label: 'Home', href: '/' }, ...items];
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.label, ...(t.href ? { item: new URL(t.href, site.url).href } : {}) })),
+};
+---
+
+<nav class:list={['crumbs', `crumbs--on-${tone}`]} aria-label="Breadcrumb">
+  <ol role="list">
+    {trail.map((t, i) => (
+      <li>
+        {t.href && i < trail.length - 1 ? <a href={t.href}>{t.label}</a> : <span aria-current="page">{t.label}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+<style>
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .crumbs li + li::before {
+    content: '/';
+    margin-right: var(--space-2);
+    opacity: 0.5;
+  }
+
+  .crumbs--on-light {
+    color: var(--slate);
+  }
+
+  .crumbs--on-dark {
+    color: rgb(255 255 255 / 0.7);
+  }
+
+  .crumbs a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

@@ -1,0 +1,8 @@
+/* Entry point for the Phase 3 design system (used by SiteLayout). Phase 1 pages keep src/styles/global.css. */
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/instrument-serif/400-italic.css';
+@import './tokens.css';
+@import './base.css';

@@ -1,0 +1,81 @@
+---
+// Labelled stand-in for every page in the approved sitemap that is not built yet, so no link is a
+// dead end (brief §8). Pages render in their division's theme. Remove an entry from
+// `plannedPages` (src/config/navigation.ts) when its real page ships.
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import Eyebrow from '@/components/core/Eyebrow.astro';
+import Button from '@/components/core/Button.astro';
+import { plannedPages, type DivisionKey } from '@/config/navigation';
+
+export function getStaticPaths() {
+  return plannedPages.map((p) => ({ params: { planned: p.path }, props: p }));
+}
+
+const { path, title, stage, summary } = Astro.props;
+const first = path.split('/')[0];
+const division: DivisionKey = first === 'social' || first === 'talent' || first === 'education' ? first : first === 'work' ? 'social' : 'group';
+const dark = division === 'social';
+---
+
+<SiteLayout title={`${title} — Stride (planned page)`} description={summary} division={division} noindex>
+  <section class:list={['planned', { 'planned--dark': dark }]}>
+    <div class="planned__inner">
+      <Eyebrow tone={dark ? 'dark' : 'light'}>Planned page · {stage}</Eyebrow>
+      <h1 class="planned__title">{title}</h1>
+      <p class="planned__summary">{summary}</p>
+      <PlaceholderNotice variant="block" label="Not built yet">
+        <p>
+          This page is part of the approved sitemap and is scheduled for {stage} of the Phase 3 roadmap
+          (docs/phase-2/08-roadmap.md). Content that depends on the client is listed in the approval checklist.
+        </p>
+      </PlaceholderNotice>
+      <div class="planned__actions">
+        <Button href="/" tone={dark ? 'dark' : 'light'}>Back to the homepage</Button>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .planned {
+    min-height: 70vh;
+    background: var(--surface);
+    color: var(--surface-ink);
+  }
+
+  .planned__inner {
+    display: grid;
+    gap: var(--space-6);
+    max-width: calc(var(--container) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: var(--space-10) var(--margin) var(--space-9);
+  }
+
+  .planned__title {
+    font-family: var(--font-display);
+    font-size: var(--type-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  .planned__summary {
+    max-width: 48ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+  }
+
+  .planned--dark :global(.ph-block) {
+    border-color: rgb(255 255 255 / 0.4);
+    color: var(--white);
+  }
+
+  .planned__actions {
+    display: flex;
+    gap: var(--space-4);
+  }
+</style>

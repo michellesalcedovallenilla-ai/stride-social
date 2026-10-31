@@ -1,0 +1,152 @@
+---
+// Image or muted looping video with a poster. Autoplaying video always gets a visible
+// pause/play control (WCAG 2.2.2) and only plays while on screen; under reduced motion it
+// starts paused. `play="hover"` plays inside the nearest [data-media-hover] element on desktop.
+// Behaviour lives in src/scripts/system/media.ts.
+type VideoSource = { mp4: string; webm?: string; poster: string };
+
+export interface Props {
+  image?: { src: string; alt: string; width?: number; height?: number };
+  video?: VideoSource & { mobile?: VideoSource; label: string };
+  play?: 'auto' | 'hover';
+  /** CSS aspect ratio ("4 / 5"), or "fill" to cover the positioned parent. */
+  ratio?: string;
+  priority?: boolean;
+  position?: string;
+  controlsPosition?: 'bottom-left' | 'bottom-right';
+  class?: string;
+}
+
+const { image, video, play = 'auto', ratio = 'fill', priority = false, position = '50% 50%', controlsPosition = 'bottom-left', class: className } = Astro.props;
+const fill = ratio === 'fill';
+---
+
+<div class:list={['media', { 'media--fill': fill }, className]} style={fill ? undefined : `aspect-ratio: ${ratio}`}>
+  {image && !video && (
+    <img
+      class="media__el"
+      src={image.src}
+      alt={image.alt}
+      width={image.width}
+      height={image.height}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : undefined}
+      decoding="async"
+      style={`object-position: ${position}`}
+    />
+  )}
+  {video && (
+    <>
+      <video
+        class:list={['media__el', { 'media__el--desktop': video.mobile }]}
+        data-video={play}
+        muted
+        loop
+        playsinline
+        preload={priority ? 'auto' : 'none'}
+        poster={video.poster}
+        aria-label={video.label}
+        style={`object-position: ${position}`}
+      >
+        {video.webm && <source src={video.webm} type="video/webm" />}
+        <source src={video.mp4} type="video/mp4" />
+      </video>
+      {video.mobile && (
+        <video class="media__el media__el--mobile" data-video={play} muted loop playsinline preload="none" poster={video.mobile.poster} aria-label={video.label}>
+          {video.mobile.webm && <source src={video.mobile.webm} type="video/webm" />}
+          <source src={video.mobile.mp4} type="video/mp4" />
+        </video>
+      )}
+      {play === 'auto' && (
+        <button class:list={['media__toggle', `media__toggle--${controlsPosition}`]} type="button" data-video-toggle aria-label="Pause background video">
+          <svg class="media__icon media__icon--pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h3v12H4zM9 2h3v12H9z" fill="currentColor"></path></svg>
+          <svg class="media__icon media__icon--play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6z" fill="currentColor"></path></svg>
+        </button>
+      )}
+    </>
+  )}
+  <slot />
+</div>
+
+<style>
+  .media {
+    position: relative;
+    overflow: hidden;
+    background: var(--navy-700);
+  }
+
+  .media--fill {
+    position: absolute;
+    inset: 0;
+  }
+
+  .media__el {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .media__el--mobile {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .media__el--desktop {
+      display: none;
+    }
+
+    .media__el--mobile {
+      display: block;
+    }
+  }
+
+  .media__toggle {
+    position: absolute;
+    bottom: var(--space-4);
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 50%;
+    background: rgb(6 20 43 / 0.35);
+    color: var(--white);
+    backdrop-filter: blur(6px);
+    transition: background-color var(--dur-base) var(--ease-out);
+  }
+
+  .media__toggle:hover {
+    background: rgb(6 20 43 / 0.6);
+  }
+
+  .media__toggle--bottom-left {
+    left: var(--space-4);
+  }
+
+  .media__toggle--bottom-right {
+    right: var(--space-4);
+  }
+
+  .media__icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .media__icon--play,
+  .media.is-paused .media__icon--pause {
+    display: none;
+  }
+
+  .media.is-paused .media__icon--play {
+    display: block;
+  }
+</style>
+
+<script>
+  import { initMedia } from '@/scripts/system/media';
+  initMedia();
+</script>
