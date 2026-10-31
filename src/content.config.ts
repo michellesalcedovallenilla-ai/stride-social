@@ -103,11 +103,6 @@ const clientLogos = defineCollection({
   schema: z.object({ src: z.string(), alt: z.string() }),
 });
 
-const legacyServices = defineCollection({
-  loader: file('./src/content/data/services.json'),
-  schema: z.object({ title: z.string(), description: z.string(), bullets: z.array(z.string()) }),
-});
-
 /* ==========================================================================
  * Phase 3 content model (docs/phase-2/06-content-architecture.md).
  * The collections above are legacy: they feed Phase 1 pages until each stage replaces them.
@@ -341,6 +336,49 @@ const sponsorships = defineCollection({
   }),
 });
 
+// Our History milestones. Only verified milestones render in production; legacy ones (from the
+// previous site's timeline) show in preview, labelled, until Stride confirms them (Q1).
+const milestones = defineCollection({
+  loader: file('./src/content/history/milestones.yaml'),
+  schema: z.object({
+    year: z.number(),
+    title: z.string(),
+    body: z.string(),
+    image: media.nullable().default(null),
+    status: verification,
+    source: z.string(),
+    order: z.number(),
+  }),
+});
+
+// Careers: open roles. Production lists only roles Stride has confirmed as open.
+const roles = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/careers' }),
+  schema: z.object({
+    title: z.string(),
+    summary: z.string(),
+    location: z.string().nullable(),
+    salary: z.string().nullable(),
+    /** open = confirmed by Stride · legacy = posted on the previous site, to confirm · closed */
+    status: z.enum(['open', 'legacy', 'closed']),
+    /** The placement scheme gets its own highlight on the Careers page. */
+    scheme: z.boolean().default(false),
+    order: z.number(),
+    seo: pageSeo,
+  }),
+});
+
+// Legal pages. Text must come from Stride (Q15); until then the template shows a labelled notice.
+const legal = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/legal' }),
+  schema: z.object({
+    title: z.string(),
+    status: z.enum(['awaiting', 'approved']),
+    updated: z.coerce.date().nullable().default(null),
+    summary: z.string(),
+  }),
+});
+
 // Editable copy for hand-composed pages (one YAML file per page, sections keyed by name).
 // status: approved (from the client brief or signed off) · draft (written by us, needs sign-off).
 const sectionCopy = z.object({
@@ -370,7 +408,6 @@ export const collections = {
   jobs,
   legacyTestimonials,
   clientLogos,
-  legacyServices,
   // Phase 3
   categories,
   industries,
@@ -386,5 +423,8 @@ export const collections = {
   work,
   insights,
   sponsorships,
+  milestones,
+  roles,
+  legal,
   pages,
 };

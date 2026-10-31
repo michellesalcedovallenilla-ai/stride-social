@@ -6,6 +6,22 @@ import { services } from './navigation';
 /** Public inbox used as the fallback when a form can't be sent (from the current contact page). */
 export const enquiryEmail = 'team@stride-social.com';
 
+/** Public careers inbox (the application route on the previous site). */
+export const careersEmail = 'Careers@stride-social.com';
+
+/** Where the general contact form posts (/contact). Empty until Stride confirms (Q13). */
+export const contactAction = import.meta.env.PUBLIC_CONTACT_FORM_ACTION ?? '';
+
+export const contactTopics = [
+  { value: 'general', label: 'General question' },
+  { value: 'press', label: 'Press and media' },
+  { value: 'partnerships', label: 'Partnerships' },
+  { value: 'careers', label: 'Careers' },
+  { value: 'other', label: 'Something else' },
+];
+
+export const contactLimits = { name: 120, email: 254, message: 2000, minFillMs: 3000 } as const;
+
 /** Where the brand enquiry form posts. Empty until Stride confirms the destination (Q13). */
 export const brandEnquiryAction = import.meta.env.PUBLIC_BRAND_ENQUIRY_ACTION ?? '';
 

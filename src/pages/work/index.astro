@@ -30,7 +30,7 @@ if (!copy) throw new Error('Missing src/content/pages/work.yaml');
 <SiteLayout title="Our Work | Stride Social case studies" description={copy.body} division="social">
   <PageIntro crumbs={[{ label: 'Our Work' }]} copy={copy} />
 
-  <section class="archive" aria-label="Case studies" data-work-filter>
+  <section class="archive" aria-label="Case studies" data-archive>
     <div class="archive__bar container-wide">
       {groups.map((g) => (
         <div class="archive__group">
@@ -41,7 +41,7 @@ if (!copy) throw new Error('Missing src/content/pages/work.yaml');
           </div>
         </div>
       ))}
-      <p class="archive__count" role="status" aria-live="polite" data-filter-count>{work.length} case studies</p>
+      <p class="archive__count" role="status" aria-live="polite" data-filter-count data-noun="case study|case studies">{work.length} case studies</p>
     </div>
 
     <div class="container-wide">
@@ -154,6 +154,6 @@ if (!copy) throw new Error('Missing src/content/pages/work.yaml');
 </style>
 
 <script>
-  import { initWorkFilters } from '@/scripts/system/work-filter';
-  initWorkFilters();
+  import { initArchiveFilters } from '@/scripts/system/archive-filter';
+  initArchiveFilters();
 </script>

@@ -1,0 +1,127 @@
+---
+// Long-form text (articles, job descriptions, legal pages) from HTML or Markdown content.
+// Styles the migrated markup: headings, lists, links, quotes, images and wide tables, which
+// scroll sideways on phones instead of breaking the page.
+export interface Props {
+  html?: string;
+  class?: string;
+}
+
+const { html, class: className } = Astro.props;
+---
+
+<div class:list={['prose', className]}>
+  {html ? <Fragment set:html={html} /> : <slot />}
+</div>
+
+<style>
+  .prose {
+    max-width: 68ch;
+    font-size: 1.125rem;
+    line-height: 1.65;
+    color: var(--navy-900);
+    overflow-wrap: break-word;
+  }
+
+  .prose :global(> * + *) {
+    margin-top: 1.1em;
+  }
+
+  .prose :global(h2),
+  .prose :global(h3),
+  .prose :global(h4) {
+    margin-top: 2em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 106%;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+
+  .prose :global(h2) {
+    font-size: clamp(1.625rem, 2.6vw, 2.25rem);
+  }
+
+  .prose :global(h3) {
+    font-size: clamp(1.375rem, 2vw, 1.75rem);
+  }
+
+  .prose :global(h4) {
+    font-size: 1.25rem;
+  }
+
+  .prose :global(a) {
+    text-decoration: underline;
+    text-decoration-color: var(--accent-ink);
+    text-underline-offset: 3px;
+  }
+
+  .prose :global(strong) {
+    font-weight: 650;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.3em;
+  }
+
+  .prose :global(ul) {
+    list-style: disc;
+  }
+
+  .prose :global(ol) {
+    list-style: decimal;
+  }
+
+  .prose :global(li + li) {
+    margin-top: 0.4em;
+  }
+
+  .prose :global(blockquote) {
+    margin-inline: 0;
+    padding-left: var(--space-5);
+    border-left: 3px solid var(--accent);
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  .prose :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .prose :global(figure) {
+    margin: 2em 0;
+  }
+
+  /* Wide tables scroll inside their own box. */
+  .prose :global(table) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    min-width: 140px;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .prose :global(th) {
+    font-weight: 650;
+    background: var(--paper);
+  }
+
+  /* Spacer paragraphs from the old editor. */
+  .prose :global(p:empty) {
+    display: none;
+  }
+</style>

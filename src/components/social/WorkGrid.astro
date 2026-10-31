@@ -1,7 +1,7 @@
 ---
 // Case study mosaic with mixed tile sizes, shared by the Our Work archive and the "related work"
 // rows on service pages. Each tile carries its industry and service ids so the archive filter
-// (src/scripts/system/work-filter.ts) can show and hide tiles without a page load.
+// (src/scripts/system/archive-filter.ts) can show and hide tiles without a page load.
 // Result figures appear only when verified; otherwise the tile lists the services.
 import type { CollectionEntry } from 'astro:content';
 import { getEntries, getEntry } from 'astro:content';
@@ -37,9 +37,9 @@ const tiles = await Promise.all(
 const sizes = ['l', 's', 's', 'm', 'm', 'w'];
 ---
 
-<ul class="wgrid" role="list" data-work-grid data-page-size={pageSize}>
+<ul class="wgrid" role="list" data-archive-grid data-page-size={pageSize} data-sizes={sizes.join(' ')} data-size-prefix="wtile--">
   {tiles.map((t, i) => (
-    <li class={`wtile wtile--${sizes[i % sizes.length]}`} data-industries={t.industryIds} data-services={t.serviceIds}>
+    <li class={`wtile wtile--${sizes[i % sizes.length]}`} data-filter-industry={t.industryIds} data-filter-service={t.serviceIds}>
       <a class="wtile__link" href={routes.caseStudy(t.id)}>
         <span class="wtile__media">
           <img src={t.image.src} alt="" loading="lazy" decoding="async" />

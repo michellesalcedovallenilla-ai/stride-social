@@ -1,0 +1,44 @@
+# Contact hub copy (brief §7: separate paths for brands, established creators, emerging creators
+# and general enquiries).
+sections:
+  hero:
+    status: draft
+    eyebrow: Contact
+    headline: Get in touch.
+    body: Tell us who you are and we'll point you to the right team.
+  routes:
+    status: draft
+    items:
+      - key: social
+        audience: For brands
+        label: Start a campaign
+        copy: Influencer campaigns, UGC, events and TikTok Shop.
+        href: /social/enquire
+      - key: talent
+        audience: For established creators
+        label: Apply for management
+        copy: Representation, brand deals and long-term career support.
+        href: /talent/apply
+      - key: education
+        audience: For emerging creators
+        label: Stride Education
+        copy: Learn the industry and start building your creator career.
+        href: /education/enquire
+      - key: general
+        audience: Everything else
+        label: General enquiries
+        copy: Press, partnerships or anything else.
+        href: "#general"
+  general:
+    status: draft
+    eyebrow: General enquiries
+    headline: Send us a message.
+    items:
+      - key: success
+        label: "Thanks, {name}. We'll get back to you."
+      - key: error
+        label: Your message was not sent. Try again, or email us directly.
+      - key: unavailable
+        label: The form is temporarily unavailable. Email us and we'll pick it up from there.
+      - key: consent
+        label: We use these details to reply to your message. See our privacy policy.

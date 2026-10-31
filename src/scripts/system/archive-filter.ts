@@ -1,19 +1,23 @@
-// Our Work archive filter: industry and service chips narrow the case study grid without a page
-// load, and the choice is kept in the URL (?industry=&service=) so filtered views can be shared.
-// "Load more" reveals the next page of matching tiles. Markup: [data-work-filter] root with chip
-// groups [data-filter-group="industry|service"], the grid [data-work-grid], a count
-// [data-filter-count], an empty state [data-filter-empty] and [data-load-more].
+// Archive filtering (Our Work, Insights): chips narrow a grid without a page load, and the choice
+// is kept in the URL (?industry=&service=, ?category=) so filtered views can be shared.
+// "Load more" reveals the next page of matching items.
+// Markup: a [data-archive] root with chip groups [data-filter-group="<key>"] (chips carry
+// data-value; "all" = no filter), items in [data-archive-grid] carrying data-filter-<key>
+// (space-separated ids), a count [data-filter-count] (data-noun="case study|case studies"),
+// an empty state [data-filter-empty], a clear button [data-filter-clear] and [data-load-more].
+// If the grid has data-sizes, visible items get those size classes in turn (mosaic rhythm).
 
-const SIZES = ['l', 's', 's', 'm', 'm', 'w'];
-/** The "All" chip carries data-value="all". */
 const chipValue = (chip: HTMLElement) => (chip.dataset.value === 'all' ? '' : (chip.dataset.value ?? ''));
 
-function initFilter(root: HTMLElement) {
-  const grid = root.querySelector<HTMLElement>('[data-work-grid]');
+function initArchive(root: HTMLElement) {
+  const grid = root.querySelector<HTMLElement>('[data-archive-grid]');
   if (!grid) return;
-  const tiles = [...grid.querySelectorAll<HTMLElement>(':scope > li')];
-  const pageSize = Number(grid.dataset.pageSize) || tiles.length;
+  const items = [...grid.querySelectorAll<HTMLElement>(':scope > li')];
+  const pageSize = Number(grid.dataset.pageSize) || items.length;
+  const sizes = grid.dataset.sizes?.split(' ');
+  const sizePrefix = grid.dataset.sizePrefix ?? '';
   const count = root.querySelector<HTMLElement>('[data-filter-count]');
+  const [one, many] = (count?.dataset.noun ?? 'item|items').split('|');
   const empty = root.querySelector<HTMLElement>('[data-filter-empty]');
   const more = root.querySelector<HTMLButtonElement>('[data-load-more]');
   const groups = [...root.querySelectorAll<HTMLElement>('[data-filter-group]')];
@@ -29,17 +33,13 @@ function initFilter(root: HTMLElement) {
   }
 
   const render = () => {
-    const matches = tiles.filter((t) =>
-      groups.every((g) => {
-        const key = g.dataset.filterGroup!;
-        const list = (key === 'industry' ? t.dataset.industries : t.dataset.services) ?? '';
-        return !state[key] || list.split(' ').includes(state[key]);
-      }),
+    const matches = items.filter((item) =>
+      Object.entries(state).every(([key, value]) => !value || (item.getAttribute(`data-filter-${key}`) ?? '').split(' ').includes(value)),
     );
-    tiles.forEach((t) => (t.hidden = true));
-    matches.slice(0, shown).forEach((t, i) => {
-      t.hidden = false;
-      t.className = t.className.replace(/wtile--\w+/, `wtile--${SIZES[i % SIZES.length]}`);
+    items.forEach((item) => (item.hidden = true));
+    matches.slice(0, shown).forEach((item, i) => {
+      item.hidden = false;
+      if (sizes) item.className = item.className.replace(new RegExp(`${sizePrefix}\w+`), `${sizePrefix}${sizes[i % sizes.length]}`);
     });
 
     for (const g of groups) {
@@ -50,7 +50,7 @@ function initFilter(root: HTMLElement) {
       });
     }
     const visible = Math.min(shown, matches.length);
-    if (count) count.textContent = `Showing ${visible} of ${matches.length} case ${matches.length === 1 ? 'study' : 'studies'}`;
+    if (count) count.textContent = `Showing ${visible} of ${matches.length} ${matches.length === 1 ? one : many}`;
     if (empty) empty.hidden = matches.length > 0;
     if (more) more.hidden = matches.length <= shown;
   };
@@ -74,11 +74,11 @@ function initFilter(root: HTMLElement) {
   }
 
   more?.addEventListener('click', () => {
-    const firstNew = tiles.filter((t) => !t.hidden).length;
+    const firstNew = items.filter((i) => !i.hidden).length;
     shown += pageSize;
     render();
-    // Move focus to the first newly shown case study so keyboard users keep their place.
-    tiles.filter((t) => !t.hidden)[firstNew]?.querySelector('a')?.focus();
+    // Move focus to the first newly shown item so keyboard users keep their place.
+    items.filter((i) => !i.hidden)[firstNew]?.querySelector('a')?.focus();
   });
 
   root.querySelector('[data-filter-clear]')?.addEventListener('click', () => {
@@ -92,10 +92,10 @@ function initFilter(root: HTMLElement) {
   render();
 }
 
-export function initWorkFilters() {
-  document.querySelectorAll<HTMLElement>('[data-work-filter]').forEach((root) => {
-    if (root.dataset.filterReady) return;
-    root.dataset.filterReady = 'true';
-    initFilter(root);
+export function initArchiveFilters() {
+  document.querySelectorAll<HTMLElement>('[data-archive]').forEach((root) => {
+    if (root.dataset.archiveReady) return;
+    root.dataset.archiveReady = 'true';
+    initArchive(root);
   });
 }

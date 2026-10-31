@@ -1,29 +1,268 @@
 ---
-import { getCollection } from 'astro:content';
-import BaseLayout from '@/layouts/BaseLayout.astro';
-import MarqueeHero from '@/components/sections/MarqueeHero.astro';
-import JobList from '@/components/company/JobList.astro';
+// Careers (docs/phase-2/05-wireframes.md §E; brief §7: company information, team culture,
+// available opportunities and an application route). Replaces the Phase 1 page at the same URL.
+// Culture intro (awaiting Stride) · open roles · placement scheme highlight · how to apply.
+// Production lists only roles Stride has confirmed open; preview also shows the previous site's
+// postings, labelled.
+import { getCollection, getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import PageIntro from '@/components/global/PageIntro.astro';
+import Eyebrow from '@/components/core/Eyebrow.astro';
+import Button from '@/components/core/Button.astro';
+import DraftTag from '@/components/core/DraftTag.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import { careersEmail } from '@/config/forms';
+import { routes } from '@/lib/routes';
+import { isPreview } from '@/lib/env';
 
-const jobs = (await getCollection('jobs'))
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((j) => ({ href: `/jobs/${j.id}`, title: j.data.title, location: j.data.location }));
+const s = (await getEntry('pages', 'careers'))?.data.sections;
+if (!s) throw new Error('Missing src/content/pages/careers.yaml');
+const roles = (await getCollection('roles', (r) => r.data.status === 'open' || (isPreview && r.data.status === 'legacy'))).sort((a, b) => a.data.order - b.data.order);
+const scheme = roles.find((r) => r.data.scheme);
+const mailto = `mailto:${careersEmail}?subject=${encodeURIComponent('Application')}`;
 ---
 
-<BaseLayout
-  title="Stride Social | Careers"
-  description="Stride Social is a creator management and marketing agency exclusively managing some of the best creators from all around the world."
-  nav="solid"
-  background="smoke"
->
-  <MarqueeHero
-    tone="light"
-    title="Careers"
-    intro="We are currently hiring for the following positions, we look forward to speaking with you!"
-  />
-  <JobList
-    jobs={jobs}
-    noteHeading="Don’t see a role that suits you?"
-    noteText="Email your CV to"
-    email="careers@stride-social.com"
-  />
-</BaseLayout>
+<SiteLayout title="Careers | Stride" description={s.hero.body}>
+  <PageIntro crumbs={[{ label: 'Careers' }]} copy={s.hero} tone="light" />
+
+  {isPreview && (
+    <section class="culture" aria-labelledby="culture-title">
+      <div class="container-wide culture__inner">
+        <div>
+          <Eyebrow tone="light">{s.culture.eyebrow}</Eyebrow>
+          <h2 class="culture__title" id="culture-title">{s.culture.headline}</h2>
+        </div>
+        <PlaceholderNotice variant="block" label="Needed from Stride">
+          <p>{(s.culture.awaiting ?? []).join(' · ')}. Production leaves this section out until it exists.</p>
+        </PlaceholderNotice>
+      </div>
+    </section>
+  )}
+
+  <section class="roles" aria-labelledby="roles-title">
+    <div class="container-wide">
+      <header class="roles__head">
+        <Eyebrow tone="light">{s.roles.eyebrow}</Eyebrow>
+        <h2 class="roles__title" id="roles-title">{s.roles.headline}</h2>
+      </header>
+      {roles.length > 0 ? (
+        <ul class="roles__list" role="list">
+          {roles.map((r) => (
+            <li>
+              <a class="role" href={routes.role(r.id)}>
+                <span class="role__title">{r.data.title}</span>
+                <span class="role__meta">{[r.data.location, r.data.salary].filter(Boolean).join(' · ')}</span>
+                {r.data.status === 'legacy' && <PlaceholderNotice variant="inline" label="To confirm">— posted on the previous site; still open?</PlaceholderNotice>}
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="roles__none">No open roles right now. We still like hearing from people who want to work with creators.</p>
+      )}
+    </div>
+  </section>
+
+  {scheme && (
+    <section class="scheme" aria-labelledby="scheme-title">
+      <div class="container-wide scheme__inner">
+        <p class="scheme__label">Placement scheme</p>
+        <h2 class="scheme__title" id="scheme-title">{scheme.data.title.replace(/^Placement Scheme:\s*/i, '')}</h2>
+        <p class="scheme__summary">{scheme.data.summary}</p>
+        <Button href={routes.role(scheme.id)} tone="light" arrow>About the placement</Button>
+      </div>
+    </section>
+  )}
+
+  <section class="apply-route" aria-labelledby="apply-route-title">
+    <div class="container-wide apply-route__inner">
+      <div>
+        <Eyebrow tone="dark">{s.apply.eyebrow}</Eyebrow>
+        <h2 class="apply-route__title" id="apply-route-title">{s.apply.headline}</h2>
+        <DraftTag status={s.apply.status} />
+      </div>
+      <div class="apply-route__body">
+        <p>{s.apply.body}</p>
+        <Button href={mailto} tone="dark">{careersEmail}</Button>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .culture,
+  .roles {
+    position: relative;
+    z-index: 1;
+    padding-block: var(--space-9);
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .culture {
+    background: var(--white);
+  }
+
+  .culture__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: var(--space-7) var(--gutter);
+  }
+
+  .culture__title,
+  .roles__title,
+  .apply-route__title {
+    font-family: var(--font-display);
+    font-size: var(--type-h1);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .roles__head {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+
+  .roles__list {
+    border-top: 1px solid var(--navy-900);
+  }
+
+  .role {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 28px;
+    align-items: center;
+    gap: var(--space-2) var(--space-5);
+    padding: var(--space-6) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .role__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.4vw, 2.25rem);
+    font-weight: 800;
+    font-stretch: 108%;
+    line-height: 1.05;
+  }
+
+  .role__meta {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .role :global(.ph-tag) {
+    grid-column: 1 / 3;
+  }
+
+  .role svg {
+    grid-column: 3;
+    grid-row: 1;
+    width: 22px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .role:hover svg {
+    transform: translateX(5px);
+  }
+
+  .roles__none {
+    max-width: 52ch;
+    font-size: var(--type-lead);
+  }
+
+  .scheme {
+    position: relative;
+    z-index: 1;
+    background: var(--ice);
+    color: var(--navy-900);
+  }
+
+  .scheme__inner {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    padding-block: var(--space-9);
+  }
+
+  .scheme__label {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .scheme__title {
+    max-width: 18ch;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.4vw, 4.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  .scheme__summary {
+    max-width: 44ch;
+    font-size: var(--type-lead);
+  }
+
+  .apply-route {
+    position: relative;
+    z-index: 1;
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .apply-route__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-7) var(--gutter);
+    align-items: end;
+    padding-block: clamp(64px, 8vw, 128px);
+  }
+
+  .apply-route__inner > div:first-child {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .apply-route__body {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    max-width: 46ch;
+    font-size: var(--type-lead);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 1023px) {
+    .culture__inner,
+    .apply-route__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 599px) {
+    .role {
+      grid-template-columns: minmax(0, 1fr) 24px;
+    }
+
+    .role__meta,
+    .role :global(.ph-tag) {
+      grid-column: 1;
+    }
+
+    .role svg {
+      grid-column: 2;
+      grid-row: 1 / 3;
+    }
+  }
+</style>

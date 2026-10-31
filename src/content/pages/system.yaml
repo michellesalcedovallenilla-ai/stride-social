@@ -1,0 +1,7 @@
+# Copy for system pages (404).
+sections:
+  notFound:
+    status: approved
+    eyebrow: Error 404
+    headline: Page not found.
+    body: The page you're looking for has moved or doesn't exist. Try one of these instead.

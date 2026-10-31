@@ -1,0 +1,208 @@
+---
+// Our Team: leadership in a larger row, then everyone else in a filterable grid (department
+// chips via src/scripts/system/archive-filter.ts). Portraits crossfade to a second photo on hover
+// where one exists. Names, roles and genuine photos only; bios appear when supplied.
+import { getCollection } from 'astro:content';
+import Chip from '../core/Chip.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { isPreview } from '@/lib/env';
+
+const departments = { leadership: 'Leadership', talent: 'Talent', campaigns: 'Campaigns', social: 'Social media', sales: 'Sales', operations: 'Operations' } as const;
+const team = (await getCollection('team', (m) => m.data.visible)).sort((a, b) => a.data.order - b.data.order);
+const leaders = team.filter((m) => m.data.department === 'leadership');
+const others = team.filter((m) => m.data.department !== 'leadership');
+const used = (Object.keys(departments) as (keyof typeof departments)[]).filter((d) => d !== 'leadership' && others.some((m) => m.data.department === d));
+---
+
+<div class="team" data-archive>
+  {leaders.length > 0 && (
+    <section class="team__leaders container-wide" aria-labelledby="leaders-title">
+      <h2 class="team__label" id="leaders-title">Leadership</h2>
+      <ul class="team__leader-list" role="list">
+        {leaders.map((m) => (
+          <li class="person person--lead">
+            <div class="person__photo">
+              <img src={m.data.photo.src} alt={m.data.photo.alt} loading="eager" />
+              {m.data.photoAlt && <img class="person__alt" src={m.data.photoAlt.src} alt="" loading="lazy" />}
+            </div>
+            <h3 class="person__name">{m.data.name}</h3>
+            <p class="person__role">{m.data.role}</p>
+            {m.data.bio && <p class="person__bio">{m.data.bio}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="team__all container-wide" aria-labelledby="all-title">
+    <div class="team__bar">
+      <h2 class="team__label" id="all-title">The team</h2>
+      <div class="team__chips" role="group" aria-label="Filter by team" data-filter-group="department">
+        <Chip value="all" active>Everyone</Chip>
+        {used.map((d) => <Chip value={d}>{departments[d]}</Chip>)}
+      </div>
+      <p class="team__count" role="status" aria-live="polite" data-filter-count data-noun="person|people">{others.length} people</p>
+      {isPreview && <PlaceholderNotice variant="inline" label="Departments proposed">— derived from job titles; confirm (Gate 2)</PlaceholderNotice>}
+    </div>
+    <ul class="team__grid" role="list" data-archive-grid>
+      {others.map((m) => (
+        <li class="person" data-filter-department={m.data.department}>
+          <div class="person__photo">
+            <img src={m.data.photo.src} alt={m.data.photo.alt} loading="lazy" />
+            {m.data.photoAlt && <img class="person__alt" src={m.data.photoAlt.src} alt="" loading="lazy" />}
+          </div>
+          <h3 class="person__name">{m.data.name}</h3>
+          <p class="person__role">{m.data.role}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</div>
+
+<style>
+  .team {
+    display: grid;
+    gap: var(--space-9);
+    padding-bottom: var(--section-pad);
+  }
+
+  .team__label {
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .team__leaders {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .team__leader-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: var(--gutter);
+  }
+
+  .team__all {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .team__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+  }
+
+  .team__chips {
+    display: none;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Filters need the script; without it everyone is listed. */
+  .team:global(.is-enhanced) .team__chips {
+    display: flex;
+  }
+
+  .team__count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .team__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-7) var(--gutter);
+  }
+
+  .person {
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+  }
+
+  .person[hidden] {
+    display: none;
+  }
+
+  .person__photo {
+    position: relative;
+    margin-bottom: var(--space-3);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--line);
+  }
+
+  .person__photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .person__alt {
+    opacity: 0;
+    transition: opacity var(--dur-slow) var(--ease-out);
+  }
+
+  .person:hover .person__alt {
+    opacity: 1;
+  }
+
+  .person__name {
+    font-weight: 700;
+  }
+
+  .person--lead .person__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+    font-weight: 850;
+    font-stretch: 112%;
+    text-transform: uppercase;
+  }
+
+  .person__role {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .person__bio {
+    margin-top: var(--space-3);
+    max-width: 48ch;
+  }
+
+  @media (max-width: 767px) {
+    .team__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .team__count {
+      margin-left: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .person__alt {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { initArchiveFilters } from '@/scripts/system/archive-filter';
+  initArchiveFilters();
+</script>

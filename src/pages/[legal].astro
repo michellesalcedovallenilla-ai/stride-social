@@ -1,0 +1,148 @@
+---
+// Legal pages: privacy, cookies, terms (docs/phase-2/05-wireframes.md §E): a plain, readable
+// document with a table of contents built from the text's headings. The text must come from
+// Stride (Q15). Until then each page says so, stays out of search results, and the labelled
+// notice blocks a production release.
+import { getCollection, render } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import Prose from '@/components/core/Prose.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import { enquiryEmail } from '@/config/forms';
+import { formatDate } from '@/lib/insights';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('legal');
+  return pages.map((page) => ({ params: { legal: page.id }, props: { page } }));
+}
+
+const { page } = Astro.props;
+const d = page.data;
+const { Content, headings } = await render(page);
+const toc = headings.filter((h) => h.depth === 2);
+const ready = d.status === 'approved' && (page.body ?? '').trim() !== '';
+---
+
+<SiteLayout title={`${d.title} | Stride`} description={d.summary} noindex={!ready}>
+  <article class="legal">
+    <header class="legal__head container-wide">
+      <Breadcrumbs items={[{ label: d.title }]} tone="light" />
+      <h1 class="legal__title">{d.title}</h1>
+      {ready && d.updated && <p class="legal__updated">Last updated {formatDate(d.updated)}</p>}
+    </header>
+    <div class="legal__body container-wide">
+      {ready ? (
+        <>
+          {toc.length > 1 && (
+            <nav class="legal__toc" aria-label="Contents">
+              <p class="legal__toc-label">Contents</p>
+              <ol role="list">
+                {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+              </ol>
+            </nav>
+          )}
+          <Prose class="legal__prose"><Content /></Prose>
+        </>
+      ) : (
+        <div class="legal__pending">
+          <PlaceholderNotice variant="block" label="Legal text to be supplied by Stride (Q15)">
+            <p>{d.summary} Add the approved text to src/content/legal/{page.id}.md and set status: approved.</p>
+          </PlaceholderNotice>
+          <p>Questions in the meantime: <a href={`mailto:${enquiryEmail}`}>{enquiryEmail}</a></p>
+        </div>
+      )}
+    </div>
+  </article>
+</SiteLayout>
+
+<style>
+  .legal {
+    position: relative;
+    z-index: 1;
+    background: var(--white);
+    color: var(--navy-900);
+  }
+
+  .legal__head {
+    display: grid;
+    gap: var(--space-5);
+    padding-block: var(--space-7) var(--space-8);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .legal__title {
+    font-family: var(--font-display);
+    font-size: var(--type-h1);
+    font-weight: 850;
+    font-stretch: 110%;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .legal__updated,
+  .legal__toc-label {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .legal__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr);
+    gap: var(--space-8) var(--gutter);
+    padding-block: var(--space-9) var(--section-pad);
+  }
+
+  .legal__toc {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-6));
+  }
+
+  .legal__toc ol {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--type-small);
+  }
+
+  .legal__toc a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .legal__body > :global(.legal__prose) {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .legal__pending {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-5);
+    max-width: 760px;
+  }
+
+  .legal__pending a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 1023px) {
+    .legal__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .legal__toc {
+      position: static;
+    }
+
+    .legal__body > :global(.legal__prose) {
+      grid-column: 1;
+    }
+  }
+</style>

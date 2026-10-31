@@ -1,0 +1,144 @@
+---
+// Job page (docs/phase-2/05-wireframes.md §E): title, location, salary · description · apply
+// (the careers inbox, with the role in the subject). Built only for roles that may be listed:
+// confirmed open, or in preview the previous site's postings, labelled.
+import { getCollection, render } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import Button from '@/components/core/Button.astro';
+import Prose from '@/components/core/Prose.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import { careersEmail } from '@/config/forms';
+import { isPreview } from '@/lib/env';
+import { site } from '@/config/site';
+
+export async function getStaticPaths() {
+  const roles = await getCollection('roles', (r) => r.data.status === 'open' || (isPreview && r.data.status === 'legacy'));
+  return roles.map((role) => ({ params: { slug: role.id }, props: { role } }));
+}
+
+const { role } = Astro.props;
+const d = role.data;
+const { Content } = await render(role);
+const mailto = `mailto:${careersEmail}?subject=${encodeURIComponent(`Application: ${d.title}`)}`;
+// Cap the title so its longest word fits the column on small phones.
+const longest = Math.max(1, ...d.title.split(/\s+/).map((w) => w.length));
+const fit = `${(100 / (longest * 0.9)).toFixed(2)}cqi`;
+// JobPosting only lists fields that are real (salary "Upon Application" is not a figure).
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: d.title,
+    description: d.summary,
+    hiringOrganization: { '@type': 'Organization', name: 'Stride Social', sameAs: site.url },
+    ...(d.location && /remote/i.test(d.location) ? { jobLocationType: 'TELECOMMUTE' } : {}),
+  },
+];
+---
+
+<SiteLayout title={d.seo?.title ?? `${d.title} | Careers at Stride`} description={d.seo?.description ?? d.summary} jsonLd={isPreview && d.status !== 'open' ? undefined : jsonLd}>
+  <article class="job">
+    <header class="job__head container-wide">
+      <Breadcrumbs items={[{ label: 'Careers', href: '/careers' }, { label: d.title }]} tone="light" />
+      <div class="job__titles">
+        {d.status === 'legacy' && <PlaceholderNotice variant="inline" label="To confirm">— posted on the previous site; confirm it's still open (and the details, e.g. the office mentioned)</PlaceholderNotice>}
+        <h1 class="job__title" style={`--fit: ${fit}`}>{d.title}</h1>
+        <p class="job__meta">{[d.location, d.salary].filter(Boolean).join(' · ')}</p>
+        <p class="job__summary">{d.summary}</p>
+        <Button href={mailto} tone="light" arrow>Apply by email</Button>
+      </div>
+    </header>
+    <div class="job__body container-wide">
+      <Prose><Content /></Prose>
+      <aside class="job__apply">
+        <p class="job__apply-label">How to apply</p>
+        <p>Email your CV to <a href={mailto}>{careersEmail}</a> with the role in the subject line.</p>
+      </aside>
+    </div>
+  </article>
+</SiteLayout>
+
+<style>
+  .job {
+    position: relative;
+    z-index: 1;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .job__head {
+    display: grid;
+    gap: var(--space-7);
+    padding-block: var(--space-7) var(--space-8);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .job__titles {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    justify-items: start;
+    max-width: 980px;
+    container-type: inline-size;
+  }
+
+  .job__title {
+    font-family: var(--font-display);
+    font-size: min(clamp(2.25rem, 5vw, 5rem), var(--fit));
+    font-weight: 850;
+    font-stretch: 110%;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+  }
+
+  .job__meta,
+  .job__apply-label {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  .job__summary {
+    max-width: 52ch;
+    font-size: var(--type-lead);
+  }
+
+  .job__body {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: var(--space-8) var(--gutter);
+    padding-block: var(--space-9) var(--section-pad);
+  }
+
+  .job__apply {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-6));
+    padding: var(--space-5);
+    background: var(--white);
+  }
+
+  .job__apply a {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 1023px) {
+    .job__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .job__apply {
+      position: static;
+    }
+  }
+</style>

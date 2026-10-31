@@ -1,0 +1,23 @@
+# Careers copy. Culture copy and photography need Stride's input (brief §7: company information,
+# team culture, available opportunities, application route).
+sections:
+  hero:
+    status: draft
+    eyebrow: Careers
+    headline: Work at Stride.
+    body: Join the team that represents creators, runs campaigns for brands and teaches the next generation.
+  culture:
+    status: draft
+    eyebrow: Life at Stride
+    headline: What it's like here.
+    awaiting: [A few lines on team culture from Stride, Team photography]
+  roles:
+    status: approved
+    eyebrow: Opportunities
+    headline: Open roles.
+  apply:
+    status: draft
+    eyebrow: How to apply
+    headline: Don't see your role?
+    # The current application route on the previous site is this mailbox.
+    body: Send your CV and a few lines about why you'd like to join to the careers inbox. Tell us which team you'd fit best.
