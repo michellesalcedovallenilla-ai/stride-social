@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-7-group-pages`. Review gate: **Gate 7**, a content completeness review (docs/phase-2/08-roadmap.md).
 
+**Gate 7 approved by the owner on 2026-10-31.** The content listed under "Open items" is still owed by Stride; production keeps those parts hidden or labelled until it arrives.
+
 ## What was built
 
 Every page in the approved sitemap now exists. `plannedPages` is empty, so no link in the header, footer or division bars leads to a placeholder page. Copy lives in `src/content/pages/{about,history,team,sponsorships,insights,careers,contact,system}.yaml`.
