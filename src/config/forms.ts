@@ -47,6 +47,17 @@ export const platformOptions = [
   { value: 'other', label: 'Other' },
 ];
 
+/** Where the Stride Education enquiry form posts. Empty until Stride confirms the route (Q11, Q13). */
+export const educationEnquiryAction = import.meta.env.PUBLIC_EDUCATION_ENQUIRY_ACTION ?? '';
+
+export const educationEnquiryLimits = {
+  name: 120,
+  email: 254,
+  country: 80,
+  message: 1000,
+  minFillMs: 3000,
+} as const;
+
 export const talentApplicationLimits = {
   name: 120,
   email: 254,

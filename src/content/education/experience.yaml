@@ -1,26 +1,39 @@
 # "The experience" (client brief, PDF §6). The brief requires available and planned items to be
 # clearly distinguished, so every item stays unconfirmed until Stride confirms it (Q11).
+# Summaries drafted for approval (copyStatus: draft).
 - id: practical-lessons
   title: Practical lessons
+  summary: Hands-on lessons built around real creator work, not theory.
+  copyStatus: draft
   status: unconfirmed
   order: 1
 - id: industry-mentoring
   title: Industry mentoring
+  summary: Guidance from people who work with brands and creators every day.
+  copyStatus: draft
   status: unconfirmed
   order: 2
 - id: creator-community
   title: Creator community
+  summary: Creators at the same stage as you, sharing what works.
+  copyStatus: draft
   status: unconfirmed
   order: 3
 - id: training-resources
   title: Training resources
+  summary: Guides and templates to come back to as you grow.
+  copyStatus: draft
   status: unconfirmed
   order: 4
 - id: workshops-calls
   title: Workshops and educational calls
+  summary: Live sessions to ask questions and work through problems together.
+  copyStatus: draft
   status: unconfirmed
   order: 5
 - id: industry-opportunities
   title: Relevant industry opportunities
+  summary: A route towards real industry opportunities as your skills develop.
+  copyStatus: draft
   status: unconfirmed
   order: 6

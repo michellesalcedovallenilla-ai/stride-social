@@ -1,0 +1,202 @@
+---
+// Stride Education D1 "EVERY CREATOR STARTS SOMEWHERE." (docs/phase-2/05-wireframes.md): a light
+// hero. Headline and supporting line on the left; on the right a collage of three images
+// (creator filming, an editing session, a group workshop) overlapping on a sun-yellow block.
+// No education photography exists yet (Q18) and stock is ruled out, so preview shows three
+// labelled frames and production keeps only the yellow block.
+import Button from '../core/Button.astro';
+import Eyebrow from '../core/Eyebrow.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { isPreview } from '@/lib/env';
+
+export interface Props {
+  eyebrow?: string;
+  lines: string[];
+  body: string;
+  actions: { label: string; href: string }[];
+  images?: { src: string; alt: string }[];
+}
+
+const { eyebrow, lines, body, actions, images = [] } = Astro.props;
+const slots = ['A creator filming', 'An editing session', 'A group workshop'];
+---
+
+<section class="e-hero" aria-labelledby="e-hero-title">
+  <div class="e-hero__inner container-wide">
+    <div class="e-hero__text">
+      {eyebrow && <Eyebrow tone="light">{eyebrow}</Eyebrow>}
+      <h1 class="e-hero__title" id="e-hero-title" data-reveal-lines="load">
+        {lines.map((line, i) => (
+          <span class="reveal-line" style={`--line: ${i}`}><span class="reveal-line__inner">{line}</span></span>
+        ))}
+      </h1>
+      <p class="e-hero__body" data-reveal="load" style="--reveal-delay: 0.35s">{body}</p>
+      <div class="e-hero__actions" data-reveal="load" style="--reveal-delay: 0.5s">
+        {actions.map((a, i) => (
+          <Button href={a.href} variant={i === 0 ? 'primary' : 'secondary'} tone="light">{a.label}</Button>
+        ))}
+      </div>
+    </div>
+
+    <div class="e-hero__collage" aria-hidden={images.length ? undefined : 'true'} data-reveal="load" style="--reveal-delay: 0.2s">
+      <span class="e-hero__block"></span>
+      {slots.map((slot, i) => {
+        const img = images[i];
+        if (img) return <figure class={`e-hero__frame e-hero__frame--${i + 1}`}><img src={img.src} alt={img.alt} fetchpriority={i === 0 ? 'high' : undefined} /></figure>;
+        return isPreview ? (
+          <div class={`e-hero__frame e-hero__frame--${i + 1} e-hero__frame--empty`}>
+            <PlaceholderNotice variant="block" label="Awaiting photography">
+              <p>{slot} (Q18). No stock images.</p>
+            </PlaceholderNotice>
+          </div>
+        ) : null;
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .e-hero {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    background: var(--white);
+    color: var(--navy-900);
+  }
+
+  .e-hero__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-8) var(--gutter);
+    align-items: center;
+    min-height: calc(100svh - var(--header-h) - var(--division-bar-h));
+    max-height: 980px;
+    padding-block: var(--space-8);
+  }
+
+  .e-hero__text {
+    grid-column: 1 / 7;
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    container-type: inline-size;
+  }
+
+  /* Sized to its column so "SOMEWHERE." always fits. */
+  .e-hero__title {
+    font-family: var(--font-display);
+    font-size: min(11.4cqi, 8.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .e-hero__body {
+    max-width: 38ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+  }
+
+  .e-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  /* Collage: three frames on a sun block, overlapping slightly. */
+  .e-hero__collage {
+    position: relative;
+    grid-column: 7 / -1;
+    aspect-ratio: 1 / 1;
+    max-height: 72svh;
+    justify-self: stretch;
+  }
+
+  .e-hero__block {
+    position: absolute;
+    inset: 12% 6% 8% 18%;
+    background: var(--sun);
+  }
+
+  .e-hero__frame {
+    position: absolute;
+    margin: 0;
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: 0 12px 40px rgb(6 20 43 / 0.12);
+  }
+
+  .e-hero__frame img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .e-hero__frame--1 { top: 0; left: 4%; width: 46%; aspect-ratio: 4 / 5; }
+  .e-hero__frame--2 { top: 22%; right: 0; width: 40%; aspect-ratio: 1 / 1; }
+  .e-hero__frame--3 { bottom: 0; left: 30%; width: 44%; aspect-ratio: 4 / 3; }
+
+  .e-hero__frame--empty {
+    display: grid;
+    align-content: end;
+    padding: var(--space-3);
+    border: 1px dashed rgb(6 20 43 / 0.3);
+    box-shadow: none;
+  }
+
+  .e-hero__frame--empty :global(.ph-block) {
+    padding: var(--space-4);
+  }
+
+  @media (max-width: 1023px) {
+    .e-hero__inner {
+      min-height: 0;
+      max-height: none;
+    }
+
+    .e-hero__text,
+    .e-hero__collage {
+      grid-column: 1 / -1;
+    }
+
+    .e-hero__collage {
+      width: min(100%, 560px);
+    }
+  }
+
+  /* Phones: headline, then one image, then the actions stay with the text. */
+  @media (max-width: 767px) {
+    .e-hero__collage {
+      aspect-ratio: 4 / 3;
+    }
+
+    .e-hero__frame--2,
+    .e-hero__frame--3 {
+      display: none;
+    }
+
+    .e-hero__frame--1 {
+      inset: 0 12% 0 0;
+      width: auto;
+      aspect-ratio: auto;
+    }
+
+    .e-hero__block {
+      inset: 14% 0 -6% 22%;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .e-hero__title {
+      font-stretch: 112%;
+    }
+
+    .e-hero__actions > :global(*) {
+      flex: 1 1 100%;
+    }
+  }
+</style>

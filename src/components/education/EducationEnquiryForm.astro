@@ -1,0 +1,55 @@
+---
+// Stride Education enquiry form (docs/phase-2/05-wireframes.md D6; the waitlist fields until Q11
+// settles the route): name, email, country, platforms, the topics they want to learn, and an
+// optional message. Fields only; the frame is core/FormShell. Server-side validation:
+// src/lib/forms/education-enquiry.ts.
+import { getCollection } from 'astro:content';
+import Field from '../core/Field.astro';
+import CheckboxGroup from '../core/CheckboxGroup.astro';
+import FormShell from '../core/FormShell.astro';
+import { educationEnquiryAction, educationEnquiryLimits as max, enquiryEmail, platformOptions } from '@/config/forms';
+
+export interface Props {
+  messages: { success: string; error: string; unavailable: string; consent: string };
+  tone?: 'light' | 'dark';
+}
+
+const { messages, tone = 'light' } = Astro.props;
+// Every brief topic can be chosen here: asking what people want to learn doesn't claim it's offered.
+const topics = (await getCollection('educationTopics')).sort((a, b) => a.data.order - b.data.order).map((t) => ({ value: t.id, label: t.data.title }));
+---
+
+<FormShell action={educationEnquiryAction} email={enquiryEmail} subject="Stride Education enquiry" submitLabel="Send enquiry" messages={messages} tone={tone}>
+  <div class="edu-form__grid">
+    <Field name="name" label="Name" required autocomplete="name" maxlength={max.name} messages={{ required: 'Enter your name' }} tone={tone} />
+    <Field name="email" label="Email" type="email" required autocomplete="email" maxlength={max.email} messages={{ required: 'Enter your email', invalid: 'Enter an email address in the format name@example.com' }} tone={tone} />
+    <Field name="country" label="Country" required autocomplete="country-name" maxlength={max.country} messages={{ required: 'Enter the country you live in' }} tone={tone} />
+    <div class="edu-form__wide">
+      <CheckboxGroup name="platforms" legend="Platforms you post on" options={platformOptions} tone={tone} />
+    </div>
+    <div class="edu-form__wide">
+      <CheckboxGroup name="topics" legend="What would you like to learn?" options={topics} tone={tone} />
+    </div>
+    <div class="edu-form__wide">
+      <Field name="message" label="Anything else?" type="textarea" rows={4} maxlength={max.message} counter tone={tone} />
+    </div>
+  </div>
+</FormShell>
+
+<style>
+  .edu-form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--gutter);
+  }
+
+  .edu-form__wide {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 767px) {
+    .edu-form__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

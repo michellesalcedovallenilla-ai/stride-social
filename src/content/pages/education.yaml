@@ -1,0 +1,58 @@
+# Stride Education landing copy (docs/phase-2/05-wireframes.md §D). status: approved = from the
+# client brief or signed off; draft = written by us, shows a "Draft copy" tag in preview and
+# blocks production.
+sections:
+  hero:
+    status: approved
+    eyebrow: Stride Education
+    lines: [Every creator, starts somewhere.]
+    body: Learn the skills, understand the industry, and take the first steps toward building a career as a creator.
+    items:
+      - label: Explore Stride Education
+        href: "#learn"
+      - label: Enquire
+        href: /education/enquire
+
+  # Verbatim from the brief (PDF §6, "Our purpose").
+  purpose:
+    status: approved
+    eyebrow: Our purpose
+    body: |-
+      Stride operates directly within the influencer industry, working with brands and established creators.
+
+      Stride Education exists to make practical knowledge and industry experience more accessible to people at the beginning of their careers.
+
+  learn:
+    status: approved
+    eyebrow: What you'll learn
+    headline: What creators can learn.
+
+  experience:
+    status: approved
+    eyebrow: How it works
+    headline: The experience.
+
+  stories:
+    status: approved
+    eyebrow: In their words
+    headline: Creator stories.
+
+  # The action depends on Q11 (waitlist, enquiry or course link); "Enquire" works for all three.
+  final:
+    status: approved
+    headline: Start building your creator career.
+    cta: { label: Enquire, href: /education/enquire }
+
+  enquiry:
+    status: draft
+    eyebrow: Stride Education
+    body: Tell us a little about yourself and what you'd like to learn, and we'll let you know how Stride Education can help.
+    items:
+      - key: success
+        label: "Thanks, {name}. We'll be in touch about Stride Education."
+      - key: error
+        label: Your enquiry was not sent. Try again, or email us directly.
+      - key: unavailable
+        label: Enquiries are temporarily unavailable here. Email us and we'll pick it up from there.
+      - key: consent
+        label: We use these details to reply to your enquiry. See our privacy policy.

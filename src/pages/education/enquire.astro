@@ -1,0 +1,166 @@
+---
+// Stride Education enquiry route (docs/phase-2/05-wireframes.md §E): the short form plus FAQs.
+// Whether this becomes a waitlist, an enquiry or a link to a course platform is Q11; the copy file
+// and PUBLIC_EDUCATION_ENQUIRY_ACTION change, the page doesn't. FAQs are labelled until Stride
+// supplies them, and left out in production.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import Eyebrow from '@/components/core/Eyebrow.astro';
+import DraftTag from '@/components/core/DraftTag.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import EducationEnquiryForm from '@/components/education/EducationEnquiryForm.astro';
+import { enquiryEmail } from '@/config/forms';
+import { isPreview } from '@/lib/env';
+
+const page = await getEntry('pages', 'education');
+if (!page) throw new Error('Missing src/content/pages/education.yaml');
+const { enquiry, final } = page.data.sections;
+const msg = (key: string) => enquiry.items?.find((i) => i.key === key)?.label ?? '';
+---
+
+<SiteLayout title="Enquire | Stride Education" description={enquiry.body} division="education">
+  <section class="e-enq" aria-labelledby="e-enq-title">
+    <div class="e-enq__inner container-wide">
+      <div class="e-enq__lead">
+        <Breadcrumbs items={[{ label: 'Stride Education', href: '/education' }, { label: 'Enquire' }]} tone="light" />
+        <Eyebrow tone="light">{enquiry.eyebrow}</Eyebrow>
+        <h1 class="e-enq__title" id="e-enq-title">{final.headline}</h1>
+        <p class="e-enq__body">{enquiry.body}</p>
+        <DraftTag status={enquiry.status} />
+        <p class="e-enq__direct">Prefer email? <a href={`mailto:${enquiryEmail}`}>{enquiryEmail}</a></p>
+      </div>
+      <div class="e-enq__form">
+        <EducationEnquiryForm messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }} />
+      </div>
+    </div>
+  </section>
+
+  {isPreview && (
+    <section class="e-faq" aria-labelledby="e-faq-title">
+      <div class="e-faq__inner container-wide">
+        <h2 class="e-faq__label" id="e-faq-title">Questions</h2>
+        <PlaceholderNotice variant="block" label="FAQs needed">
+          <p>Answers depend on the offer (Q11): format (cohorts, on-demand, calls), cost, who it's for, time commitment and how to join.</p>
+        </PlaceholderNotice>
+      </div>
+    </section>
+  )}
+</SiteLayout>
+
+<style>
+  .e-enq {
+    position: relative;
+    z-index: 1;
+    background: var(--white);
+    color: var(--navy-900);
+  }
+
+  .e-enq__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-8) var(--gutter);
+    align-items: start;
+    padding-block: var(--space-7) var(--section-pad);
+  }
+
+  .e-enq__lead {
+    grid-column: 1 / 6;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+    justify-items: start;
+    position: sticky;
+    top: calc(var(--header-h) + var(--division-bar-h) + var(--space-6));
+    container-type: inline-size;
+  }
+
+  .e-enq__lead > :global(.crumbs) {
+    margin-bottom: var(--space-6);
+  }
+
+  .e-enq__title {
+    font-family: var(--font-display);
+    font-size: min(13cqi, 6rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.88;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  /* A sun underline marks the page as Stride Education. */
+  .e-enq__title::after {
+    content: '';
+    display: block;
+    width: 3ch;
+    height: 0.14em;
+    margin-top: 0.18em;
+    background: var(--sun);
+  }
+
+  .e-enq__body {
+    max-width: 38ch;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+  }
+
+  .e-enq__direct {
+    font-size: var(--type-small);
+    color: var(--slate);
+  }
+
+  .e-enq__direct a {
+    color: var(--navy-900);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .e-enq__form {
+    grid-column: 7 / -1;
+    min-width: 0;
+    padding-top: var(--space-9);
+  }
+
+  .e-faq {
+    position: relative;
+    z-index: 1;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .e-faq__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--gutter);
+    padding-block: var(--space-9);
+  }
+
+  .e-faq__label {
+    font-family: var(--font-mono);
+    font-size: var(--type-small);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sun-deep);
+  }
+
+  @media (max-width: 1023px) {
+    .e-enq__lead,
+    .e-enq__form {
+      grid-column: 1 / -1;
+    }
+
+    .e-enq__lead {
+      position: static;
+    }
+
+    .e-enq__form {
+      padding-top: 0;
+    }
+
+    .e-faq__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

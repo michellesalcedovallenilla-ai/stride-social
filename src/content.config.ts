@@ -183,8 +183,10 @@ const talentDivisions = defineCollection({
 // Stride Education
 const educationItem = z.object({
   title: z.string(),
+  /** One line on what the creator gets from it. */
   summary: z.string().nullable().default(null),
   status: z.enum(['available', 'planned', 'unconfirmed']),
+  copyStatus,
   order: z.number(),
 });
 const educationTopics = defineCollection({ loader: file('./src/content/education/topics.yaml'), schema: educationItem });

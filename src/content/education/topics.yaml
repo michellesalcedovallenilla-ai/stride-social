@@ -1,30 +1,45 @@
 # "What creators can learn" (client brief, PDF §6). Availability is unknown until Stride
 # confirms it (Q11). Set status to available or planned; the site never guesses.
+# Summaries drafted for approval (copyStatus: draft).
 - id: getting-started
   title: Getting started with content creation
+  summary: Find your niche, plan your first posts and film with what you already have.
+  copyStatus: draft
   status: unconfirmed
   order: 1
 - id: ugc-creation
   title: UGC creation
+  summary: Make the kind of content brands run in their own ads, and learn how UGC briefs work.
+  copyStatus: draft
   status: unconfirmed
   order: 2
 - id: social-presence
   title: Building a social media presence
+  summary: Grow an audience that trusts you, on the platforms that suit your content.
+  copyStatus: draft
   status: unconfirmed
   order: 3
 - id: brand-opportunities
   title: Finding brand opportunities
+  summary: Understand how brands find creators, and how to pitch yourself to them.
+  copyStatus: draft
   status: unconfirmed
   order: 4
 - id: pricing-negotiation
   title: Pricing and negotiating collaborations
+  summary: Work out what to charge, read a brief and negotiate terms with confidence.
+  copyStatus: draft
   status: unconfirmed
   order: 5
 - id: portfolios
   title: Creating professional portfolios
+  summary: Put together a media kit and portfolio that brands take seriously.
+  copyStatus: draft
   status: unconfirmed
   order: 6
 - id: sustainable-careers
   title: Developing sustainable creator careers
+  summary: Plan income, workload and growth so creating stays a career, not a sprint.
+  copyStatus: draft
   status: unconfirmed
   order: 7

@@ -1,0 +1,62 @@
+---
+// Stride Education D6 "START BUILDING YOUR CREATOR CAREER.": sun-yellow closing section with one
+// primary action. The action's label and destination come from the copy file, because they depend
+// on Q11 (waitlist, enquiry or a course platform link).
+import Button from '../core/Button.astro';
+
+export interface Props {
+  copy: { headline?: string; cta?: { label: string; href: string } };
+}
+
+const { copy } = Astro.props;
+---
+
+<section class="e-final" aria-labelledby="e-final-title">
+  <div class="e-final__inner container-wide">
+    <h2 class="e-final__title" id="e-final-title" data-reveal-lines>{copy.headline}</h2>
+    {copy.cta && <Button href={copy.cta.href} tone="light" arrow class="e-final__btn">{copy.cta.label}</Button>}
+  </div>
+</section>
+
+<style>
+  .e-final {
+    position: relative;
+    z-index: 1;
+    background: var(--sun);
+    color: var(--navy-900);
+  }
+
+  .e-final__inner {
+    display: grid;
+    gap: var(--space-7);
+    justify-items: start;
+    min-height: min(80vh, 760px);
+    align-content: center;
+    padding-block: var(--section-pad);
+    container-type: inline-size;
+  }
+
+  /* Sized to the container so "BUILDING" and "CAREER." stay whole on every screen. */
+  .e-final__title {
+    max-width: 14ch;
+    font-family: var(--font-display);
+    font-size: min(10.5cqi, 9rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.86;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 479px) {
+    .e-final__title {
+      font-size: 12cqi;
+      font-stretch: 112%;
+    }
+
+    .e-final :global(.e-final__btn) {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
