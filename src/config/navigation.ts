@@ -199,8 +199,6 @@ export const legalLinks: NavLink[] = [
  * Remove an entry when its real page ships.
  */
 export const plannedPages: { path: string; title: string; stage: string; summary: string; current?: string }[] = [
-  { path: 'education', title: 'Stride Education', stage: 'Stage 6', summary: 'Creator education and career development.' },
-  { path: 'education/enquire', title: 'Enquire', stage: 'Stage 6', summary: 'Education enquiry route (format to be confirmed by Stride).' },
   { path: 'history', title: 'Our History', stage: 'Stage 7', summary: 'Editorial timeline of verified milestones.' },
   { path: 'team', title: 'Our Team', stage: 'Stage 7', summary: 'The people behind Stride.', current: '/meet-the-team' },
   { path: 'sponsorships', title: 'Our Sponsorships', stage: 'Stage 7', summary: 'Creators, teams, events and community initiatives Stride supports.' },

@@ -1,0 +1,26 @@
+---
+// Stride Education landing: the six sections from the client brief (PDF §6;
+// docs/phase-2/05-wireframes.md §D). Copy lives in src/content/pages/education.yaml; topics and
+// experience items come from the education collections, shown only with confirmed availability.
+import { getEntry } from 'astro:content';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import EduHero from '@/components/education/EduHero.astro';
+import PurposeStatement from '@/components/education/PurposeStatement.astro';
+import TopicList from '@/components/education/TopicList.astro';
+import ExperienceGrid from '@/components/education/ExperienceGrid.astro';
+import CreatorStories from '@/components/education/CreatorStories.astro';
+import EduFinal from '@/components/education/EduFinal.astro';
+
+const page = await getEntry('pages', 'education');
+if (!page) throw new Error('Missing src/content/pages/education.yaml');
+const s = page.data.sections;
+---
+
+<SiteLayout title="Stride Education | Creator Development" description={s.hero.body} division="education">
+  <EduHero eyebrow={s.hero.eyebrow} lines={s.hero.lines ?? []} body={s.hero.body ?? ''} actions={(s.hero.items ?? []).map((i) => ({ label: i.label, href: i.href ?? '/' }))} />
+  <PurposeStatement copy={s.purpose} />
+  <TopicList copy={s.learn} />
+  <ExperienceGrid copy={s.experience} />
+  <CreatorStories copy={s.stories} />
+  <EduFinal copy={s.final} />
+</SiteLayout>

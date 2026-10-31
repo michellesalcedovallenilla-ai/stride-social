@@ -1,0 +1,75 @@
+---
+// Stride Education D2 "Our purpose": a centred editorial statement (c3–c10) in the serif, taken
+// from the brief's own wording. A "from the team" signature can join it once Stride approves one.
+import Eyebrow from '../core/Eyebrow.astro';
+import DraftTag from '../core/DraftTag.astro';
+
+export interface Props {
+  copy: { status: 'approved' | 'draft'; eyebrow?: string; body?: string };
+}
+
+const { copy } = Astro.props;
+const paragraphs = (copy.body ?? '').split(/\n\s*\n/).filter(Boolean);
+---
+
+<section class="purpose" aria-label={copy.eyebrow}>
+  <div class="purpose__inner container-wide">
+    <div class="purpose__body">
+      <Eyebrow tone="light">{copy.eyebrow}</Eyebrow>
+      <DraftTag status={copy.status} />
+      {paragraphs.map((p, i) => <p class:list={['purpose__text', { 'purpose__text--lead': i === paragraphs.length - 1 }]} data-reveal="rise">{p}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .purpose {
+    position: relative;
+    z-index: 1;
+    padding: var(--section-pad) 0;
+    background: var(--paper);
+    color: var(--navy-900);
+  }
+
+  .purpose__inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--gutter);
+  }
+
+  .purpose__body {
+    grid-column: 3 / 11;
+    display: grid;
+    gap: var(--space-6);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .purpose__text {
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 3.2vw, 3.25rem);
+    font-style: italic;
+    line-height: 1.12;
+    color: var(--navy-700);
+  }
+
+  /* The second sentence is the point: set it larger, upright and in full ink. */
+  .purpose__text--lead {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.4vw, 3.5rem);
+    font-style: normal;
+    font-weight: 750;
+    font-stretch: 108%;
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    color: var(--navy-900);
+  }
+
+  @media (max-width: 1023px) {
+    .purpose__body {
+      grid-column: 1 / -1;
+      justify-items: start;
+      text-align: left;
+    }
+  }
+</style>
