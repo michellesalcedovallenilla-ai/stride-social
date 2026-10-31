@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-6-education`. Review gate: **Gate 6**, the Education review plus the client confirming every Available/Planned statement (docs/phase-2/08-roadmap.md).
 
+**Gate 6 (Education review) approved by the owner on 2026-10-31.** The Available/Planned confirmations (Q11) are still owed; until then production omits the topics and experience sections.
+
 ## What was built
 
 ### `/education` landing: the six sections from the brief (PDF §6)
