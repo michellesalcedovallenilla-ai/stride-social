@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-1-design-system`. Review gate: **Gate 1** (docs/phase-2/08-roadmap.md).
 
+**Status: Gate 1 approved by the project owner on 2026-10-31.** The design system, navigation pattern and creative proof are the baseline for Stages 2–7. The client-facing Gate 1 questions below remain open in the approval checklist.
+
 ## What to review (local: `npm run dev` → http://localhost:4321)
 
 | URL | What it shows |
