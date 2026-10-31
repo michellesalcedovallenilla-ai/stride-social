@@ -2,6 +2,8 @@
 
 Branch: `feature/stage-5-talent`. Review gate: **Gate 5**, the Talent review plus the talent team confirming roster data accuracy (docs/phase-2/08-roadmap.md).
 
+**Gate 5 (Talent review) approved by the owner on 2026-10-31.** The talent team's roster data check and creator consent are still owed before launch; production shows confirmed-consent creators only until then.
+
 ## What was built
 
 ### `/talent` landing: the seven sections from the brief (PDF §5)
