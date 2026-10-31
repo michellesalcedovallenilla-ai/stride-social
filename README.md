@@ -6,7 +6,7 @@ Nothing here is deployed. The Webflow project was never accessed: everything was
 
 ## Quick start
 
-Requires Node 20.3+ (developed on Node 26).
+Requires Node 20.3+ (developed on Node 26), Git and [Git LFS](https://git-lfs.com) (videos are stored with LFS). On Windows, run `git config --global core.longpaths true` once before cloning, because some asset filenames are long.
 
 ```bash
 npm install

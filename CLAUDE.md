@@ -49,4 +49,5 @@ npm run ci                   # everything CI runs
 
 - `duplicade-stride/` is a local Phase 1 backup. It is git-ignored; never edit it or reference it from the site.
 - Media: images live in normal Git; video files (`*.mp4`, `*.webm`) are tracked with Git LFS. Run `git lfs install` once per machine.
+- Windows: some migrated asset filenames are long (up to ~127 characters). Run `git config --global core.longpaths true` before cloning, or files fail to check out in deep folders. The names get shortened when media moves into `src/assets` (Phase 3, Stage 2).
 - The live site's own content issues (typos, one broken link `/blog/anker`) are documented in `docs/ARCHITECTURE.md`. Fix them only when asked.
