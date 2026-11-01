@@ -1,10 +1,11 @@
 ---
 // Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
 // bottom-left, description and division routes bottom-right.
-// With `intro`, desktop opens on that video first, every time: it covers the whole screen and
+// With `intro`, the page opens on that video first, every time: it covers the whole screen and
 // scrolling stays locked until it ends or is skipped, while the montage loads behind it; then it
 // fades away to the montage as the headline, copy and routes reveal
-// (src/scripts/system/hero-intro.ts). Phones go straight to the montage.
+// (src/scripts/system/hero-intro.ts). Phones play `intro.mobile` (portrait, shown whole on its
+// own navy); without it they go straight to the montage.
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 
@@ -15,14 +16,14 @@ export interface Props {
   description: string;
   routes: { label: string; href: string; division: 'social' | 'talent' | 'education' }[];
   video: VideoSource & { label: string; mobile?: VideoSource };
-  intro?: VideoSource;
+  intro?: VideoSource & { mobile?: VideoSource };
   interim?: boolean;
 }
 
 const { headline, description, routes, video, intro, interim = false } = Astro.props;
 ---
 
-<section class:list={['hero', { 'hero--intro': intro }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
+<section class:list={['hero', { 'hero--intro': intro, 'hero--intro-mobile': intro?.mobile }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
   <Media video={video} priority={!intro} controlsPosition="bottom-right" class="hero__media" />
   {interim && <PlaceholderNotice label="Interim footage" class="hero__interim">— awaiting approved montage</PlaceholderNotice>}
   <div class="hero__scrim" aria-hidden="true"></div>
@@ -30,17 +31,31 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
   {intro && (
     <>
       <div class="hero__intro">
-        <video class="hero__intro-video" data-intro-video data-mp4={intro.mp4} data-webm={intro.webm} data-poster={intro.poster} muted playsinline preload="none" aria-hidden="true"></video>
+        <video
+          class="hero__intro-video"
+          data-intro-video
+          data-mp4={intro.mp4}
+          data-webm={intro.webm}
+          data-poster={intro.poster}
+          data-mobile-mp4={intro.mobile?.mp4}
+          data-mobile-webm={intro.mobile?.webm}
+          data-mobile-poster={intro.mobile?.poster}
+          muted
+          playsinline
+          preload="none"
+          aria-hidden="true"
+        ></video>
       </div>
       <script is:inline>
-        // Decide before the page paints whether the desktop intro plays: desktop, with motion
-        // allowed. It starts at the top with scrolling locked. If the intro script never starts,
-        // show the page.
+        // Decide before the page paints whether the intro plays: motion allowed, and on phones only
+        // when there is a portrait version. It starts at the top with scrolling locked. If the
+        // intro script never starts, show the page.
         (() => {
           const hero = document.querySelector('[data-hero-intro]');
-          if (!matchMedia('(min-width: 768px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
           const video = hero.querySelector('[data-intro-video]');
-          video.poster = video.dataset.poster;
+          const phone = matchMedia('(max-width: 767px)').matches;
+          if ((phone && !video.dataset.mobileMp4) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          video.poster = phone ? video.dataset.mobilePoster : video.dataset.poster;
           hero.classList.add('is-intro-playing');
           document.documentElement.classList.add('intro-lock');
           if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -293,9 +308,14 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
       max-height: none;
     }
 
-    .hero__intro,
-    .hero__intro-toggle {
+    .hero:not(.hero--intro-mobile) .hero__intro,
+    .hero:not(.hero--intro-mobile) .hero__intro-toggle {
       display: none;
+    }
+
+    /* The portrait cut is shown whole; its navy matches the backdrop, so the bands don't show. */
+    .hero__intro-video {
+      object-fit: contain;
     }
 
     .hero__content {

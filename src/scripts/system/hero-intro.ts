@@ -1,6 +1,7 @@
-// Desktop intro for the homepage hero (components/home/HeroMontage.astro). The inline script in
-// the hero adds .is-intro-playing (and html.intro-lock) before first paint when the intro should
-// play (desktop, motion allowed), on every visit; this module plays it, then lets the hero reveal
+// Intro for the homepage hero (components/home/HeroMontage.astro). The inline script in the hero
+// adds .is-intro-playing (and html.intro-lock) before first paint when the intro should play
+// (motion allowed; on phones only with a portrait cut), on every visit. This module loads the cut
+// that fits the screen (data-mobile-* below 768px), plays it, then lets the hero reveal
 // over the montage. While it plays it covers the whole screen and page scrolling stays locked
 // (smooth scroll paused too). The intro doubles as a loading screen: once it can play to the
 // end, the montage loads behind it, so it starts the moment the intro ends. `hero:intro` tells
@@ -28,12 +29,18 @@ export function initHeroIntro() {
   const announce = () => hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
   let timer = 0;
 
-  // Sources are added on first play, so phones never download the intro.
+  // Sources are added on play, for the cut that fits the screen, so nobody downloads both.
+  const phone = window.matchMedia('(max-width: 767px)');
   const load = () => {
-    if (video.querySelector('source')) return;
+    const cut = phone.matches ? 'mobile' : 'desktop';
+    if (video.dataset.cut === cut) return;
+    video.dataset.cut = cut;
+    const d = video.dataset;
+    const [mp4, webm, poster] = cut === 'mobile' ? [d.mobileMp4, d.mobileWebm, d.mobilePoster] : [d.mp4, d.webm, d.poster];
+    video.querySelectorAll('source').forEach((s) => s.remove());
     const sources: [string | undefined, string][] = [
-      [video.dataset.webm, 'video/webm'],
-      [video.dataset.mp4, 'video/mp4'],
+      [webm, 'video/webm'],
+      [mp4, 'video/mp4'],
     ];
     for (const [src, type] of sources) {
       if (!src) continue;
@@ -42,7 +49,7 @@ export function initHeroIntro() {
       source.type = type;
       video.append(source);
     }
-    if (!video.poster && video.dataset.poster) video.poster = video.dataset.poster;
+    if (poster) video.poster = poster;
     video.load();
   };
 
@@ -87,8 +94,9 @@ export function initHeroIntro() {
   document.addEventListener('focusin', (e) => {
     if (playing() && e.target !== button) finish();
   });
-  window.matchMedia('(max-width: 767px)').addEventListener('change', (e) => {
-    if (e.matches && playing()) finish();
+  // Crossing the phone breakpoint mid-intro ends it rather than switching cuts.
+  phone.addEventListener('change', () => {
+    if (playing()) finish();
   });
 
   if (playing()) play();
