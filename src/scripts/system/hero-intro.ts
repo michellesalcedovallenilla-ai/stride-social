@@ -1,11 +1,21 @@
 // Desktop intro for the homepage hero (components/home/HeroMontage.astro). The inline script in
-// the hero adds .is-intro-playing before first paint when the intro should play (desktop, motion
-// allowed), on every visit; this module plays it, then lets the hero reveal over the montage.
-// The intro doubles as a loading screen: once it can play to the end, the montage loads behind
-// it, so it starts the moment the intro ends. `hero:intro` tells the montage
-// (src/scripts/system/media.ts) to wait, load or start.
+// the hero adds .is-intro-playing (and html.intro-lock) before first paint when the intro should
+// play (desktop, motion allowed), on every visit; this module plays it, then lets the hero reveal
+// over the montage. While it plays it covers the whole screen and page scrolling stays locked
+// (smooth scroll paused too). The intro doubles as a loading screen: once it can play to the
+// end, the montage loads behind it, so it starts the moment the intro ends. `hero:intro` tells
+// the montage (src/scripts/system/media.ts) to wait, load or start.
 // The button skips the intro while it plays and replays it afterwards (WCAG 2.2.2). Keyboard
-// focus entering the hero, a slow connection or a blocked autoplay all go straight to the hero.
+// focus moving anywhere else, a slow connection or a blocked autoplay all go straight to the page.
+
+type Lenis = { stop(): void; start(): void };
+const lenis = () => (window as unknown as { lenis?: Lenis }).lenis;
+
+function lockScroll(locked: boolean) {
+  document.documentElement.classList.toggle('intro-lock', locked);
+  if (locked) lenis()?.stop();
+  else lenis()?.start();
+}
 
 export function initHeroIntro() {
   const hero = document.querySelector<HTMLElement>('[data-hero-intro]');
@@ -40,6 +50,7 @@ export function initHeroIntro() {
     clearTimeout(timer);
     video.pause();
     hero.classList.remove('is-intro-playing');
+    lockScroll(false);
     button.textContent = 'Replay intro';
     announce();
   };
@@ -48,6 +59,7 @@ export function initHeroIntro() {
     load();
     video.currentTime = 0;
     hero.classList.add('is-intro-playing');
+    lockScroll(true);
     announce();
     button.textContent = 'Skip intro';
     clearTimeout(timer);
@@ -72,8 +84,8 @@ export function initHeroIntro() {
   });
   video.addEventListener('ended', finish);
   button.addEventListener('click', () => (playing() ? finish() : play()));
-  hero.querySelector('.hero__content')?.addEventListener('focusin', () => {
-    if (playing()) finish();
+  document.addEventListener('focusin', (e) => {
+    if (playing() && e.target !== button) finish();
   });
   window.matchMedia('(max-width: 767px)').addEventListener('change', (e) => {
     if (e.matches && playing()) finish();
