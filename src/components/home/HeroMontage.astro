@@ -1,7 +1,7 @@
 ---
 // Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
 // bottom-left, description and division routes bottom-right.
-// With `intro`, desktop opens on that video first: it plays once over the hero, then fades away to
+// With `intro`, desktop opens on that video first, every time: it plays over the hero, then fades away to
 // the montage as the headline, copy and routes reveal (src/scripts/system/hero-intro.ts). The
 // montage waits until then, so it starts from the top. Phones go straight to the montage.
 import Media from '../core/Media.astro';
@@ -32,15 +32,11 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
         <video class="hero__intro-video" data-intro-video data-mp4={intro.mp4} data-webm={intro.webm} data-poster={intro.poster} muted playsinline preload="none" aria-hidden="true"></video>
       </div>
       <script is:inline>
-        // Decide before the headline paints whether the desktop intro plays: desktop, motion
-        // allowed, not yet seen this session. If the intro script never starts, show the hero.
+        // Decide before the headline paints whether the desktop intro plays: desktop, with motion
+        // allowed. If the intro script never starts, show the hero.
         (() => {
           const hero = document.querySelector('[data-hero-intro]');
-          let seen = false;
-          try {
-            seen = sessionStorage.getItem('stride-intro-seen') === '1';
-          } catch {}
-          if (seen || !matchMedia('(min-width: 768px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          if (!matchMedia('(min-width: 768px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
           const video = hero.querySelector('[data-intro-video]');
           video.poster = video.dataset.poster;
           hero.classList.add('is-intro-playing');
