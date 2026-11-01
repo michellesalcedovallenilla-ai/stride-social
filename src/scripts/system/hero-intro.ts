@@ -1,6 +1,7 @@
 // Desktop intro for the homepage hero (components/home/HeroMontage.astro). The inline script in
 // the hero adds .is-intro-playing before first paint when the intro should play (desktop, motion
-// allowed, not yet seen this session); this module plays it once, then lets the hero reveal.
+// allowed, not yet seen this session); this module plays it once, then lets the hero reveal over
+// the montage. `hero:intro` tells the montage (src/scripts/system/media.ts) to wait or start.
 // The button skips the intro while it plays and replays it afterwards (WCAG 2.2.2). Keyboard
 // focus entering the hero, a slow connection or a blocked autoplay all go straight to the hero.
 
@@ -22,6 +23,7 @@ export function initHeroIntro() {
   const button = hero.querySelector<HTMLButtonElement>('[data-intro-toggle]');
   if (!video || !button) return;
   const playing = () => hero.classList.contains('is-intro-playing');
+  const announce = () => hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
   let timer = 0;
 
   // Sources are added on first play, so phones never download the intro.
@@ -48,12 +50,14 @@ export function initHeroIntro() {
     hero.classList.remove('is-intro-playing');
     button.textContent = 'Replay intro';
     markSeen();
+    announce();
   };
 
   const play = () => {
     load();
     video.currentTime = 0;
     hero.classList.add('is-intro-playing');
+    announce();
     button.textContent = 'Skip intro';
     clearTimeout(timer);
     timer = window.setTimeout(finish, 4000); // still not playing: show the hero instead
