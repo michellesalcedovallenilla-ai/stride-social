@@ -1,24 +1,58 @@
 ---
 // Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
 // bottom-left, description and division routes bottom-right.
+// With `intro`, desktop opens on that video instead: it plays once, then fades into the navy hero
+// as the headline, copy and routes reveal (src/scripts/system/hero-intro.ts). Phones keep the
+// montage (its mobile cut), and the interim label only shows where the montage does.
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+
+type VideoSource = { mp4: string; webm?: string; poster: string };
 
 export interface Props {
   headline: string[];
   description: string;
   routes: { label: string; href: string; division: 'social' | 'talent' | 'education' }[];
-  video: { mp4: string; webm?: string; poster: string; label: string; mobile?: { mp4: string; webm?: string; poster: string } };
+  video: VideoSource & { label: string; mobile?: VideoSource };
+  intro?: VideoSource;
   interim?: boolean;
 }
 
-const { headline, description, routes, video, interim = false } = Astro.props;
+const { headline, description, routes, video, intro, interim = false } = Astro.props;
+const montage = intro && video.mobile ? { ...video.mobile, label: video.label } : video;
 ---
 
-<section class="hero" aria-labelledby="hero-title">
-  <Media video={video} priority controlsPosition="bottom-right" class="hero__media" />
+<section class:list={['hero', { 'hero--intro': intro }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
+  <Media video={montage} priority={!intro} controlsPosition="bottom-right" class="hero__media" />
   {interim && <PlaceholderNotice label="Interim footage" class="hero__interim">— awaiting approved montage</PlaceholderNotice>}
   <div class="hero__scrim" aria-hidden="true"></div>
+
+  {intro && (
+    <>
+      <div class="hero__intro">
+        <video class="hero__intro-video" data-intro-video data-mp4={intro.mp4} data-webm={intro.webm} data-poster={intro.poster} muted playsinline preload="none" aria-hidden="true"></video>
+      </div>
+      <script is:inline>
+        // Decide before the headline paints whether the desktop intro plays: desktop, motion
+        // allowed, not yet seen this session. If the intro script never starts, show the hero.
+        (() => {
+          const hero = document.querySelector('[data-hero-intro]');
+          let seen = false;
+          try {
+            seen = sessionStorage.getItem('stride-intro-seen') === '1';
+          } catch {}
+          if (seen || !matchMedia('(min-width: 768px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          const video = hero.querySelector('[data-intro-video]');
+          video.poster = video.dataset.poster;
+          hero.classList.add('is-intro-playing');
+          setTimeout(() => {
+            if (!hero.dataset.introReady) hero.classList.remove('is-intro-playing');
+          }, 3000);
+        })();
+      </script>
+      <button class="hero__intro-toggle" type="button" data-intro-toggle>Play intro</button>
+    </>
+  )}
 
   <div class="hero__content">
     <h1 class="hero__title" id="hero-title" data-reveal-lines="load">
@@ -153,6 +187,71 @@ const { headline, description, routes, video, interim = false } = Astro.props;
     transform: translateX(4px);
   }
 
+  /* Desktop intro: covers the hero while it plays, then fades out as the content reveals.
+     Hidden states sit under .js so content can never stay invisible without scripts. */
+  .hero__intro {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: var(--navy-900);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.9s var(--ease-out),
+      visibility 0s linear 0.9s;
+  }
+
+  :global(.js) .hero.is-intro-playing .hero__intro {
+    opacity: 1;
+    visibility: visible;
+    transition: none;
+  }
+
+  .hero__intro-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  :global(.js) .hero.is-intro-playing .hero__content {
+    opacity: 0;
+  }
+
+  /* Hold the load reveals until the intro ends; they play from the start when it does. */
+  :global(.js) .hero.is-intro-playing [data-reveal='load'],
+  :global(.js) .hero.is-intro-playing .reveal-line__inner {
+    animation: none;
+  }
+
+  .hero__intro-toggle {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 4;
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 999px;
+    background: rgb(6 20 43 / 0.35);
+    color: var(--white);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    backdrop-filter: blur(6px);
+    transition: background-color var(--dur-base) var(--ease-out);
+  }
+
+  .hero__intro-toggle:hover {
+    background: rgb(6 20 43 / 0.6);
+  }
+
+  @media (min-width: 768px) {
+    .hero--intro :global(.hero__media),
+    .hero--intro :global(.hero__interim) {
+      display: none;
+    }
+  }
+
   @media (max-width: 1023px) {
     .hero__content {
       grid-template-columns: minmax(0, 1fr);
@@ -178,6 +277,11 @@ const { headline, description, routes, video, interim = false } = Astro.props;
       max-height: none;
     }
 
+    .hero__intro,
+    .hero__intro-toggle {
+      display: none;
+    }
+
     .hero__content {
       gap: var(--space-6);
       padding-bottom: calc(var(--space-8) + 12px);
@@ -201,3 +305,8 @@ const { headline, description, routes, video, interim = false } = Astro.props;
     }
   }
 </style>
+
+<script>
+  import { initHeroIntro } from '@/scripts/system/hero-intro';
+  initHeroIntro();
+</script>
