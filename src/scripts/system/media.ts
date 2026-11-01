@@ -2,8 +2,9 @@
 // - data-video="auto": plays muted while on screen; the toggle button pauses/resumes and the
 //   visitor's choice is respected. Under reduced motion videos start paused.
 // - data-video="hover": plays while the nearest [data-media-hover] is hovered (fine pointers only).
-// - Inside a hero whose intro is playing (.is-intro-playing), auto videos wait; the hero sends
-//   `hero:intro` when the intro starts or ends (src/scripts/system/hero-intro.ts).
+// - Inside a hero whose intro is playing (.is-intro-playing), auto videos wait, and load in the
+//   background once the intro can play through (.is-intro-buffered), so they start the moment it
+//   ends. The hero sends `hero:intro` on each change (src/scripts/system/hero-intro.ts).
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const visible = (v: HTMLVideoElement) => v.offsetParent !== null;
@@ -31,6 +32,10 @@ function initAuto(wrapper: HTMLElement) {
       setPaused(wrapper, false);
     } else {
       v.pause();
+      if (held() && wrapper.closest('.is-intro-buffered') && v.preload === 'none') {
+        v.preload = 'auto';
+        v.load();
+      }
       setPaused(wrapper, userPaused);
     }
   };
