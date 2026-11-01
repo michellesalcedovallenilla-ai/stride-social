@@ -1,13 +1,13 @@
 ---
 // Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
 // bottom-left, description and division routes bottom-right.
-// With `intro`, the page opens on that video first, every time: it covers the whole screen and
-// scrolling stays locked until it ends or is skipped, while the montage loads behind it; then it
-// fades away to the montage as the headline, copy and routes reveal
-// (src/scripts/system/hero-intro.ts). Phones play `intro.mobile` (portrait, shown whole on its
-// own navy); without it they go straight to the montage.
+// With `intro`, the page opens on the Stride lockup animation first (home/IntroReveal.astro), on
+// every device and every visit: it covers the whole screen and scrolling stays locked until it
+// ends or is skipped, while the montage loads behind it; then it fades away to the montage as the
+// headline, copy and routes reveal (src/scripts/system/hero-intro.ts).
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import IntroReveal from './IntroReveal.astro';
 
 type VideoSource = { mp4: string; webm?: string; poster: string };
 
@@ -16,14 +16,14 @@ export interface Props {
   description: string;
   routes: { label: string; href: string; division: 'social' | 'talent' | 'education' }[];
   video: VideoSource & { label: string; mobile?: VideoSource };
-  intro?: VideoSource & { mobile?: VideoSource };
+  intro?: { words: { label: string; division?: 'social' | 'talent' | 'education' }[] };
   interim?: boolean;
 }
 
 const { headline, description, routes, video, intro, interim = false } = Astro.props;
 ---
 
-<section class:list={['hero', { 'hero--intro': intro, 'hero--intro-mobile': intro?.mobile }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
+<section class:list={['hero', { 'hero--intro': intro }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
   <Media video={video} priority={!intro} controlsPosition="bottom-right" class="hero__media" />
   {interim && <PlaceholderNotice label="Interim footage" class="hero__interim">— awaiting approved montage</PlaceholderNotice>}
   <div class="hero__scrim" aria-hidden="true"></div>
@@ -31,35 +31,15 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
   {intro && (
     <>
       <div class="hero__intro">
-        <video
-          class="hero__intro-video"
-          data-intro-video
-          data-mp4={intro.mp4}
-          data-webm={intro.webm}
-          data-poster={intro.poster}
-          data-mobile-mp4={intro.mobile?.mp4}
-          data-mobile-webm={intro.mobile?.webm}
-          data-mobile-poster={intro.mobile?.poster}
-          muted
-          playsinline
-          preload="none"
-          aria-hidden="true"
-        ></video>
-        <div class="hero__intro-tint" aria-hidden="true"></div>
-        <div class="hero__intro-vignette" aria-hidden="true"></div>
+        <IntroReveal words={intro.words} />
         <div class="hero__intro-grain" aria-hidden="true"></div>
-        <div class="hero__intro-progress" aria-hidden="true"><span class="hero__intro-progress-bar" data-intro-progress></span></div>
       </div>
       <script is:inline>
-        // Decide before the page paints whether the intro plays: motion allowed, and on phones only
-        // when there is a portrait version. It starts at the top with scrolling locked. If the
-        // intro script never starts, show the page.
+        // Decide before the page paints whether the intro plays: whenever motion is allowed. It
+        // starts at the top with scrolling locked. If the intro script never starts, show the page.
         (() => {
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
           const hero = document.querySelector('[data-hero-intro]');
-          const video = hero.querySelector('[data-intro-video]');
-          const phone = matchMedia('(max-width: 767px)').matches;
-          if ((phone && !video.dataset.mobileMp4) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-          video.poster = phone ? video.dataset.mobilePoster : video.dataset.poster;
           hero.classList.add('is-intro-playing');
           document.documentElement.classList.add('intro-lock');
           if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -209,9 +189,9 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     transform: translateX(4px);
   }
 
-  /* Desktop intro: covers the whole screen, header included (the consent banner, z 200, stays
-     above), with page scrolling locked while it plays; then it fades out as the content reveals.
-     Hidden and locked states sit under .js so the page can never stay covered without scripts. */
+  /* Intro: covers the whole screen, header included (the consent banner, z 200, stays above), with
+     page scrolling locked while it plays; then it fades out as the content reveals. Hidden and
+     locked states sit under .js so the page can never stay covered without scripts. */
   .hero__intro {
     position: fixed;
     inset: 0;
@@ -237,33 +217,11 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     overflow: hidden;
   }
 
-  .hero__intro-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  /* One grade over both cuts: blacks lifted to the brand navy (lighten keeps anything brighter,
-     so whites and the logo stay white), a soft vignette and a fine moving film grain. */
-  .hero__intro-tint,
-  .hero__intro-vignette,
+  /* A fine moving film grain over the animation. */
   .hero__intro-grain {
     position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  .hero__intro-tint {
-    background: var(--navy-900);
-    mix-blend-mode: lighten;
-  }
-
-  .hero__intro-vignette {
-    background: radial-gradient(ellipse at center, transparent 55%, rgb(6 20 43 / 0.5) 100%);
-  }
-
-  .hero__intro-grain {
     inset: -50%;
+    pointer-events: none;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     opacity: 0.16;
     mix-blend-mode: soft-light;
@@ -277,22 +235,6 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     60% { transform: translate(-2%, -1%); }
     80% { transform: translate(3%, 3%); }
     100% { transform: translate(0, 0); }
-  }
-
-  /* Progress line: how far through the intro, in the brand ice (src/scripts/system/hero-intro.ts). */
-  .hero__intro-progress {
-    position: absolute;
-    inset: auto 0 0;
-    height: 2px;
-    background: rgb(195 242 251 / 0.18);
-  }
-
-  .hero__intro-progress-bar {
-    display: block;
-    height: 100%;
-    background: var(--ice);
-    transform: scaleX(var(--intro-progress, 0));
-    transform-origin: left center;
   }
 
   :global(.js) .hero.is-intro-playing .hero__content {
@@ -362,16 +304,6 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     .hero {
       min-height: 600px;
       max-height: none;
-    }
-
-    .hero:not(.hero--intro-mobile) .hero__intro,
-    .hero:not(.hero--intro-mobile) .hero__intro-toggle {
-      display: none;
-    }
-
-    /* The portrait cut is shown whole; its navy matches the backdrop, so the bands don't show. */
-    .hero__intro-video {
-      object-fit: contain;
     }
 
     .hero__content {

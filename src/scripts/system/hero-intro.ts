@@ -1,14 +1,13 @@
-// Intro for the homepage hero (components/home/HeroMontage.astro). The inline script in the hero
-// adds .is-intro-playing (and html.intro-lock) before first paint when the intro should play
-// (motion allowed; on phones only with a portrait cut), on every visit. This module loads the cut
-// that fits the screen (data-mobile-* below 768px), plays it, then lets the hero reveal
-// over the montage. While it plays it covers the whole screen and page scrolling stays locked
-// (smooth scroll paused too). The intro doubles as a loading screen: once it can play to the
-// end, the montage loads behind it, so it starts the moment the intro ends. `hero:intro` tells
-// the montage (src/scripts/system/media.ts) to wait, load or start.
-// A thin ice line along the bottom shows how far through it is.
-// The button skips the intro while it plays and replays it afterwards (WCAG 2.2.2). Keyboard
-// focus moving anywhere else, a slow connection or a blocked autoplay all go straight to the page.
+// Opening for the homepage hero (components/home/HeroMontage.astro, IntroReveal.astro). The inline
+// script in the hero adds .is-intro-playing (and html.intro-lock) before first paint whenever
+// motion is allowed, on every visit and every device. This module waits for the lockup's fonts (at
+// most 1.5s, so the wordmark never swaps font mid-animation), centres the mark for its entrance and
+// starts the animation (.is-intro-run); when the progress line completes, the hero reveals over
+// the montage. While it plays it covers the whole screen and page scrolling stays locked (smooth
+// scroll paused too). The montage loads behind it from the start (.is-intro-buffered); `hero:intro`
+// tells it (src/scripts/system/media.ts) to wait, load or start.
+// The button skips the intro while it plays and replays it afterwards (WCAG 2.2.2). Keyboard focus
+// moving anywhere else also goes straight to the page.
 
 type Lenis = { stop(): void; start(): void };
 const lenis = () => (window as unknown as { lenis?: Lenis }).lenis;
@@ -19,98 +18,69 @@ function lockScroll(locked: boolean) {
   else lenis()?.start();
 }
 
+const fontsReady = () =>
+  Promise.race([
+    Promise.all([document.fonts.load('850 1em "Archivo Variable"'), document.fonts.load('500 1em "IBM Plex Mono"')]),
+    new Promise((resolve) => setTimeout(resolve, 1500)),
+  ]).catch(() => {});
+
 export function initHeroIntro() {
   const hero = document.querySelector<HTMLElement>('[data-hero-intro]');
   if (!hero || hero.dataset.introReady) return;
   hero.dataset.introReady = 'true';
-  const video = hero.querySelector<HTMLVideoElement>('[data-intro-video]');
+  const lockup = hero.querySelector<HTMLElement>('[data-reveal-lockup]');
+  const mark = hero.querySelector<SVGElement>('[data-reveal-mark]');
+  const progress = hero.querySelector<HTMLElement>('[data-reveal-progress]');
   const button = hero.querySelector<HTMLButtonElement>('[data-intro-toggle]');
-  if (!video || !button) return;
+  if (!lockup || !mark || !progress || !button) return;
   const playing = () => hero.classList.contains('is-intro-playing');
   const announce = () => hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
-  const bar = hero.querySelector<HTMLElement>('[data-intro-progress]');
-  let timer = 0;
-  let frame = 0;
+  let run = 0; // each play gets a number, so a late font promise can't start an old one
+  let safety = 0;
 
-  // The progress line follows the video every frame while it plays.
-  const setProgress = (value: number) => bar?.style.setProperty('--intro-progress', String(value));
-  const track = () => {
-    setProgress(Math.min(1, video.currentTime / (video.duration || 6.2)));
-    if (playing()) frame = requestAnimationFrame(track);
-  };
-
-  // Sources are added on play, for the cut that fits the screen, so nobody downloads both.
-  const phone = window.matchMedia('(max-width: 767px)');
-  const load = () => {
-    const cut = phone.matches ? 'mobile' : 'desktop';
-    if (video.dataset.cut === cut) return;
-    video.dataset.cut = cut;
-    const d = video.dataset;
-    const [mp4, webm, poster] = cut === 'mobile' ? [d.mobileMp4, d.mobileWebm, d.mobilePoster] : [d.mp4, d.webm, d.poster];
-    video.querySelectorAll('source').forEach((s) => s.remove());
-    const sources: [string | undefined, string][] = [
-      [webm, 'video/webm'],
-      [mp4, 'video/mp4'],
-    ];
-    for (const [src, type] of sources) {
-      if (!src) continue;
-      const source = document.createElement('source');
-      source.src = src;
-      source.type = type;
-      video.append(source);
-    }
-    if (poster) video.poster = poster;
-    video.load();
+  // The mark comes together at the centre of the screen, then slides into the lockup.
+  const centreMark = () => {
+    const box = lockup.getBoundingClientRect();
+    const size = mark.getBoundingClientRect().width;
+    lockup.style.setProperty('--mark-shift', `${window.innerWidth / 2 - (box.left + size / 2)}px`);
   };
 
   const finish = () => {
-    clearTimeout(timer);
-    cancelAnimationFrame(frame);
-    video.pause();
+    run++;
+    clearTimeout(safety);
     hero.classList.remove('is-intro-playing');
     lockScroll(false);
     button.textContent = 'Replay intro';
     announce();
   };
 
-  const play = () => {
-    load();
-    video.currentTime = 0;
-    setProgress(0);
-    hero.classList.add('is-intro-playing');
+  const play = async () => {
+    const id = ++run;
+    hero.classList.remove('is-intro-run');
+    hero.classList.add('is-intro-playing', 'is-intro-buffered');
     lockScroll(true);
     announce();
     button.textContent = 'Skip intro';
-    clearTimeout(timer);
-    timer = window.setTimeout(finish, 4000); // still not playing: show the hero instead
-    video.play().catch(finish);
+    await fontsReady();
+    if (id !== run || !playing()) return;
+    centreMark();
+    void hero.offsetWidth; // restart the CSS animations on a replay
+    hero.classList.add('is-intro-run');
+    // If the animation can't run for some reason, never leave the page covered.
+    const seconds = parseFloat(getComputedStyle(progress).animationDuration) || 8;
+    clearTimeout(safety);
+    safety = window.setTimeout(() => id === run && playing() && finish(), (seconds + 2) * 1000);
   };
 
-  // The intro has the connection to itself until it can play through; then the montage loads.
-  const buffered = () => {
-    if (hero.classList.contains('is-intro-buffered')) return;
-    hero.classList.add('is-intro-buffered');
-    announce();
-  };
-  video.addEventListener('canplaythrough', buffered);
-
-  // Once it plays, end on time even if it stalls part-way.
-  video.addEventListener('playing', () => {
-    window.setTimeout(buffered, 1500); // in case canplaythrough never fires
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(track);
-    clearTimeout(timer);
-    const left = (video.duration || 6.2) - video.currentTime;
-    timer = window.setTimeout(finish, (left + 2) * 1000);
+  progress.addEventListener('animationend', () => {
+    if (playing()) finish();
   });
-  video.addEventListener('ended', finish);
   button.addEventListener('click', () => (playing() ? finish() : play()));
   document.addEventListener('focusin', (e) => {
     if (playing() && e.target !== button) finish();
   });
-  // Crossing the phone breakpoint mid-intro ends it rather than switching cuts.
-  phone.addEventListener('change', () => {
-    if (playing()) finish();
+  window.addEventListener('resize', () => {
+    if (playing()) centreMark();
   });
 
   if (playing()) play();

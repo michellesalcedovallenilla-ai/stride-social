@@ -77,14 +77,13 @@ const jsonLd = [
       },
     }}
     intro={{
-      mp4: '/assets/video/stride-intro-desktop.mp4',
-      webm: '/assets/video/stride-intro-desktop.webm',
-      poster: '/assets/site/stride-intro-desktop-poster.jpg',
-      mobile: {
-        mp4: '/assets/video/stride-intro-mobile.mp4',
-        webm: '/assets/video/stride-intro-mobile.webm',
-        poster: '/assets/site/stride-intro-mobile-poster.jpg',
-      },
+      // The divisions take turns after STRIDE; the last name holds as the opening ends.
+      words: [
+        { label: 'Social', division: 'social' },
+        { label: 'Talent', division: 'talent' },
+        { label: 'Education', division: 'education' },
+        { label: 'Group' },
+      ],
     }}
     interim
   />
