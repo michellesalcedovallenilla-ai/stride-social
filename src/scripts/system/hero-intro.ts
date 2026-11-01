@@ -35,7 +35,7 @@ export function initHeroIntro() {
   // The progress line follows the video every frame while it plays.
   const setProgress = (value: number) => bar?.style.setProperty('--intro-progress', String(value));
   const track = () => {
-    setProgress(Math.min(1, video.currentTime / (video.duration || 6.2)));
+    setProgress(Math.min(1, video.currentTime / (video.duration || 7.5)));
     if (playing()) frame = requestAnimationFrame(track);
   };
 
@@ -100,7 +100,7 @@ export function initHeroIntro() {
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(track);
     clearTimeout(timer);
-    const left = (video.duration || 6.2) - video.currentTime;
+    const left = (video.duration || 7.5) - video.currentTime;
     timer = window.setTimeout(finish, (left + 2) * 1000);
   });
   video.addEventListener('ended', finish);

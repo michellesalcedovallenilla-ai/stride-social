@@ -4,8 +4,9 @@
 // With `intro`, the page opens on that video first, every time: it covers the whole screen and
 // scrolling stays locked until it ends or is skipped, while the montage loads behind it; then it
 // fades away to the montage as the headline, copy and routes reveal
-// (src/scripts/system/hero-intro.ts). Phones play `intro.mobile` (portrait, shown whole on its
-// own navy); without it they go straight to the montage.
+// (src/scripts/system/hero-intro.ts). Phones play `intro.mobile` (portrait); without it they go
+// straight to the montage. Both cuts are logo animations on navy, so they are shown whole at any
+// screen shape: their navy matches the backdrop, so the bands around them don't show.
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 
@@ -240,11 +241,12 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
   .hero__intro-video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
   }
 
-  /* One grade over both cuts: blacks lifted to the brand navy (lighten keeps anything brighter,
-     so whites and the logo stay white), a soft vignette and a fine moving film grain. */
+  /* One finish over both cuts: anything darker than the brand navy is lifted to it (lighten keeps
+     anything brighter, so the logo stays white and the video's navy meets the backdrop exactly),
+     a soft vignette and a fine moving film grain. */
   .hero__intro-tint,
   .hero__intro-vignette,
   .hero__intro-grain {
@@ -367,11 +369,6 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     .hero:not(.hero--intro-mobile) .hero__intro,
     .hero:not(.hero--intro-mobile) .hero__intro-toggle {
       display: none;
-    }
-
-    /* The portrait cut is shown whole; its navy matches the backdrop, so the bands don't show. */
-    .hero__intro-video {
-      object-fit: contain;
     }
 
     .hero__content {
