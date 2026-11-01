@@ -52,7 +52,7 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
           }, 3000);
         })();
       </script>
-      <button class="hero__intro-toggle" type="button" data-intro-toggle>Play intro</button>
+      <button class="hero__intro-toggle" type="button" data-intro-toggle>Skip intro</button>
     </>
   )}
 
@@ -241,10 +241,16 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     opacity: 0;
   }
 
-  /* The interim label and the montage's pause button belong to the montage underneath. */
-  :global(.js) .hero.is-intro-playing :global(.hero__interim),
-  :global(.js) .hero.is-intro-playing :global(.media__toggle) {
+  /* The interim label belongs to the montage underneath. */
+  :global(.js) .hero.is-intro-playing :global(.hero__interim) {
     visibility: hidden;
+  }
+
+  /* The montage's pause button stays for keyboard users (WCAG 2.2.2: looping video needs a way to
+     pause) but is invisible until it has keyboard focus. */
+  .hero :global(.media__toggle:not(:focus-visible)) {
+    opacity: 0;
+    pointer-events: none;
   }
 
   /* Hold the load reveals until the intro ends; they play from the start when it does. */
@@ -253,12 +259,13 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     animation: none;
   }
 
-  /* Sits beside the montage's pause button; takes the screen's corner while the intro plays. */
+  /* "Skip intro": only while the intro plays (WCAG 2.2.2), in the screen's corner. */
   .hero__intro-toggle {
-    position: absolute;
-    right: calc(var(--space-4) + 44px + var(--space-2));
+    display: none;
+    position: fixed;
+    right: var(--space-4);
     bottom: var(--space-4);
-    z-index: 4;
+    z-index: 151;
     min-height: 44px;
     padding: 0 var(--space-4);
     border: 1px solid rgb(255 255 255 / 0.5);
@@ -276,9 +283,7 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
   }
 
   :global(.js) .hero.is-intro-playing .hero__intro-toggle {
-    position: fixed;
-    right: var(--space-4);
-    z-index: 151;
+    display: block;
   }
 
   @media (max-width: 1023px) {
