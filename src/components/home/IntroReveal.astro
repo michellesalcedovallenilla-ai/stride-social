@@ -1,0 +1,273 @@
+---
+// The homepage opening (inside HeroMontage's intro layer): the Stride lockup builds on navy, drawn by
+// the page, so it stays sharp and fits any screen. The four triangles of the mark come together at
+// the centre, the mark slides left as STRIDE wipes in, the divider grows, then each name in `words`
+// takes its turn and the last one holds. It uses the same pieces as core/StrideLogo.astro (the
+// INTERIM lockup), so it should follow that component when the official logo arrives.
+// Playback is driven by .is-intro-run on the hero (src/scripts/system/hero-intro.ts); the progress
+// line spans the whole timeline and its animationend ends the intro.
+export interface Props {
+  words: { label: string; division?: 'social' | 'talent' | 'education' }[];
+}
+
+const { words } = Astro.props;
+
+// Timeline in seconds: mark 0.1–0.95, wordmark 0.95–1.6, divider 1.55–1.9, then a word every
+// `step`; the last word holds for `hold`.
+const first = 1.9;
+const step = 1.25;
+const hold = 1.4;
+const timeline = words.map((w, i) => ({
+  ...w,
+  in: first + i * step,
+  out: i < words.length - 1 ? first + (i + 1) * step - 0.3 : null,
+}));
+const duration = first + (words.length - 1) * step + hold;
+---
+
+<div class="reveal" style={`--reveal-duration: ${duration}s`} aria-hidden="true">
+  <div class="reveal__lockup" data-reveal-lockup>
+    <svg class="reveal__mark" viewBox="0 0 106 106" data-reveal-mark>
+      <path class="reveal__tri reveal__tri--tl" d="M53 53H0L53 0v53Z"></path>
+      <path class="reveal__tri reveal__tri--bl" d="M53 106H0l53-53v53Z"></path>
+      <path class="reveal__tri reveal__tri--tr" d="M106 53H53l53-53v53Z"></path>
+      <path class="reveal__tri reveal__tri--br" d="M106 106H53l53-53v53Z"></path>
+    </svg>
+    <span class="reveal__word">Stride</span>
+    <span class="reveal__divider"></span>
+    <span class="reveal__slot">
+      {timeline.map((w) => (
+        <span
+          class:list={['reveal__label', w.division && `reveal__label--${w.division}`, { 'reveal__label--last': w.out === null }]}
+          style={`--in: ${w.in}s;${w.out === null ? '' : ` --out: ${w.out}s;`}`}
+        >
+          {w.label}
+        </span>
+      ))}
+    </span>
+  </div>
+  <div class="reveal__progress"><span class="reveal__progress-bar" data-reveal-progress></span></div>
+</div>
+
+<style>
+  .reveal {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--white);
+  }
+
+  /* Sized by the screen: about 70% of a phone's or tablet's width, easing to about half of a large
+     monitor, and kept short enough for landscape phones. Everything inside is in em, so it scales
+     as one piece. */
+  .reveal__lockup {
+    --mark-shift: 0px;
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: clamp(22px, min(8vw, 12vh, 4vw + 30px), 110px);
+    line-height: 1;
+  }
+
+  .reveal__mark {
+    width: 1.02em;
+    height: 1.02em;
+    flex: none;
+    overflow: visible;
+    fill: currentColor;
+  }
+
+  .reveal__tri {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .reveal__word {
+    font-family: var(--font-display);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .reveal__divider {
+    width: max(1px, 0.035em);
+    height: 0.9em;
+    margin-inline: 0.06em;
+    background: currentColor;
+    opacity: 0.75;
+    transform: scaleY(0);
+  }
+
+  /* Names share one cell and slide through it; the cell is as wide as the longest name. */
+  .reveal__slot {
+    display: grid;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 0.46em;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .reveal__label {
+    grid-area: 1 / 1;
+    transform: translateY(110%);
+  }
+
+  .reveal__label--social {
+    color: var(--ice);
+  }
+
+  .reveal__label--talent {
+    color: var(--peach);
+  }
+
+  .reveal__label--education {
+    color: var(--sun);
+  }
+
+  .reveal__progress {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: rgb(195 242 251 / 0.18);
+  }
+
+  .reveal__progress-bar {
+    display: block;
+    height: 100%;
+    background: var(--ice);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  /* ---------- Timeline (runs while the hero has .is-intro-run) ---------- */
+  :global(.is-intro-run) .reveal__tri {
+    animation: reveal-tri 0.85s var(--ease-out) both;
+  }
+
+  :global(.is-intro-run) .reveal__tri--tl {
+    --from: -260%, -260%;
+    animation-delay: 0.1s;
+  }
+
+  :global(.is-intro-run) .reveal__tri--tr {
+    --from: 260%, -260%;
+    animation-delay: 0.16s;
+  }
+
+  :global(.is-intro-run) .reveal__tri--bl {
+    --from: -260%, 260%;
+    animation-delay: 0.22s;
+  }
+
+  :global(.is-intro-run) .reveal__tri--br {
+    --from: 260%, 260%;
+    animation-delay: 0.28s;
+  }
+
+  :global(.is-intro-run) .reveal__mark {
+    animation: reveal-mark 0.65s var(--ease-out) 0.95s both;
+  }
+
+  :global(.is-intro-run) .reveal__word {
+    animation: reveal-word 0.65s var(--ease-out) 1s both;
+  }
+
+  :global(.is-intro-run) .reveal__divider {
+    animation: reveal-divider 0.35s var(--ease-out) 1.55s both;
+  }
+
+  :global(.is-intro-run) .reveal__label {
+    animation:
+      reveal-label-in 0.5s var(--ease-out) var(--in) both,
+      reveal-label-out 0.35s cubic-bezier(0.55, 0, 1, 0.45) var(--out, 999s) forwards;
+  }
+
+  :global(.is-intro-run) .reveal__label--last {
+    animation: reveal-label-in 0.5s var(--ease-out) var(--in) both;
+  }
+
+  :global(.is-intro-run) .reveal__progress-bar {
+    animation: reveal-progress var(--reveal-duration) linear both;
+  }
+
+  @keyframes reveal-tri {
+    from {
+      opacity: 0;
+      transform: translate(var(--from));
+    }
+
+    40% {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes reveal-mark {
+    from {
+      transform: translateX(var(--mark-shift));
+    }
+
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes reveal-word {
+    from {
+      clip-path: inset(0 100% 0 0);
+      transform: translateX(-0.25em);
+    }
+
+    to {
+      clip-path: inset(0 0 0 0);
+      transform: none;
+    }
+  }
+
+  @keyframes reveal-divider {
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes reveal-label-in {
+    from {
+      opacity: 0;
+      transform: translateY(110%);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes reveal-label-out {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(-110%);
+    }
+  }
+
+  @keyframes reveal-progress {
+    to {
+      transform: none;
+    }
+  }
+</style>
