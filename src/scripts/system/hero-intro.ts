@@ -6,8 +6,8 @@
 // the montage. While it plays it covers the whole screen and page scrolling stays locked (smooth
 // scroll paused too). The montage loads behind it from the start (.is-intro-buffered); `hero:intro`
 // tells it (src/scripts/system/media.ts) to wait, load or start.
-// The button skips the intro while it plays and replays it afterwards (WCAG 2.2.2). Keyboard focus
-// moving anywhere else also goes straight to the page.
+// "Skip intro" ends it early and is only shown while it plays (WCAG 2.2.2). Keyboard focus moving
+// anywhere else also goes straight to the page.
 
 type Lenis = { stop(): void; start(): void };
 const lenis = () => (window as unknown as { lenis?: Lenis }).lenis;
@@ -50,7 +50,6 @@ export function initHeroIntro() {
     clearTimeout(safety);
     hero.classList.remove('is-intro-playing');
     lockScroll(false);
-    button.textContent = 'Replay intro';
     announce();
   };
 
@@ -60,7 +59,6 @@ export function initHeroIntro() {
     hero.classList.add('is-intro-playing', 'is-intro-buffered');
     lockScroll(true);
     announce();
-    button.textContent = 'Skip intro';
     await fontsReady();
     if (id !== run || !playing()) return;
     centreMark();
@@ -75,7 +73,9 @@ export function initHeroIntro() {
   progress.addEventListener('animationend', () => {
     if (playing()) finish();
   });
-  button.addEventListener('click', () => (playing() ? finish() : play()));
+  button.addEventListener('click', () => {
+    if (playing()) finish();
+  });
   document.addEventListener('focusin', (e) => {
     if (playing() && e.target !== button) finish();
   });
