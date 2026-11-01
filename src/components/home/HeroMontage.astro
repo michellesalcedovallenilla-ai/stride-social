@@ -1,9 +1,9 @@
 ---
 // Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
 // bottom-left, description and division routes bottom-right.
-// With `intro`, desktop opens on that video instead: it plays once, then fades into the navy hero
-// as the headline, copy and routes reveal (src/scripts/system/hero-intro.ts). Phones keep the
-// montage (its mobile cut), and the interim label only shows where the montage does.
+// With `intro`, desktop opens on that video first: it plays once over the hero, then fades away to
+// the montage as the headline, copy and routes reveal (src/scripts/system/hero-intro.ts). The
+// montage waits until then, so it starts from the top. Phones go straight to the montage.
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 
@@ -19,11 +19,10 @@ export interface Props {
 }
 
 const { headline, description, routes, video, intro, interim = false } = Astro.props;
-const montage = intro && video.mobile ? { ...video.mobile, label: video.label } : video;
 ---
 
 <section class:list={['hero', { 'hero--intro': intro }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
-  <Media video={montage} priority={!intro} controlsPosition="bottom-right" class="hero__media" />
+  <Media video={video} priority={!intro} controlsPosition="bottom-right" class="hero__media" />
   {interim && <PlaceholderNotice label="Interim footage" class="hero__interim">— awaiting approved montage</PlaceholderNotice>}
   <div class="hero__scrim" aria-hidden="true"></div>
 
@@ -46,7 +45,9 @@ const montage = intro && video.mobile ? { ...video.mobile, label: video.label } 
           video.poster = video.dataset.poster;
           hero.classList.add('is-intro-playing');
           setTimeout(() => {
-            if (!hero.dataset.introReady) hero.classList.remove('is-intro-playing');
+            if (hero.dataset.introReady) return;
+            hero.classList.remove('is-intro-playing');
+            hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
           }, 3000);
         })();
       </script>
@@ -218,15 +219,22 @@ const montage = intro && video.mobile ? { ...video.mobile, label: video.label } 
     opacity: 0;
   }
 
+  /* The interim label and the montage's pause button belong to the montage underneath. */
+  :global(.js) .hero.is-intro-playing :global(.hero__interim),
+  :global(.js) .hero.is-intro-playing :global(.media__toggle) {
+    visibility: hidden;
+  }
+
   /* Hold the load reveals until the intro ends; they play from the start when it does. */
   :global(.js) .hero.is-intro-playing [data-reveal='load'],
   :global(.js) .hero.is-intro-playing .reveal-line__inner {
     animation: none;
   }
 
+  /* Sits beside the montage's pause button; takes the corner while the intro plays. */
   .hero__intro-toggle {
     position: absolute;
-    right: var(--space-4);
+    right: calc(var(--space-4) + 44px + var(--space-2));
     bottom: var(--space-4);
     z-index: 4;
     min-height: 44px;
@@ -245,11 +253,8 @@ const montage = intro && video.mobile ? { ...video.mobile, label: video.label } 
     background: rgb(6 20 43 / 0.6);
   }
 
-  @media (min-width: 768px) {
-    .hero--intro :global(.hero__media),
-    .hero--intro :global(.hero__interim) {
-      display: none;
-    }
+  :global(.js) .hero.is-intro-playing .hero__intro-toggle {
+    right: var(--space-4);
   }
 
   @media (max-width: 1023px) {
