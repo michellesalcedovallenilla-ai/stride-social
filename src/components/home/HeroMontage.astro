@@ -1,9 +1,10 @@
 ---
 // Homepage section A1 (docs/phase-2/05-wireframes.md): near full-screen montage, headline
 // bottom-left, description and division routes bottom-right.
-// With `intro`, desktop opens on that video first, every time: it plays over the hero, then fades away to
-// the montage as the headline, copy and routes reveal (src/scripts/system/hero-intro.ts). The
-// montage waits until then, so it starts from the top. Phones go straight to the montage.
+// With `intro`, desktop opens on that video first, every time: it covers the whole screen and
+// scrolling stays locked until it ends or is skipped, while the montage loads behind it; then it
+// fades away to the montage as the headline, copy and routes reveal
+// (src/scripts/system/hero-intro.ts). Phones go straight to the montage.
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 
@@ -32,17 +33,22 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
         <video class="hero__intro-video" data-intro-video data-mp4={intro.mp4} data-webm={intro.webm} data-poster={intro.poster} muted playsinline preload="none" aria-hidden="true"></video>
       </div>
       <script is:inline>
-        // Decide before the headline paints whether the desktop intro plays: desktop, with motion
-        // allowed. If the intro script never starts, show the hero.
+        // Decide before the page paints whether the desktop intro plays: desktop, with motion
+        // allowed. It starts at the top with scrolling locked. If the intro script never starts,
+        // show the page.
         (() => {
           const hero = document.querySelector('[data-hero-intro]');
           if (!matchMedia('(min-width: 768px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
           const video = hero.querySelector('[data-intro-video]');
           video.poster = video.dataset.poster;
           hero.classList.add('is-intro-playing');
+          document.documentElement.classList.add('intro-lock');
+          if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+          scrollTo(0, 0);
           setTimeout(() => {
             if (hero.dataset.introReady) return;
             hero.classList.remove('is-intro-playing');
+            document.documentElement.classList.remove('intro-lock');
             hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
           }, 3000);
         })();
@@ -184,12 +190,13 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     transform: translateX(4px);
   }
 
-  /* Desktop intro: covers the hero while it plays, then fades out as the content reveals.
-     Hidden states sit under .js so content can never stay invisible without scripts. */
+  /* Desktop intro: covers the whole screen, header included (the consent banner, z 200, stays
+     above), with page scrolling locked while it plays; then it fades out as the content reveals.
+     Hidden and locked states sit under .js so the page can never stay covered without scripts. */
   .hero__intro {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 3;
+    z-index: 150;
     background: var(--navy-900);
     opacity: 0;
     visibility: hidden;
@@ -199,10 +206,16 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
       visibility 0s linear 0.9s;
   }
 
+  /* While it plays it also catches clicks, so nothing hidden underneath can be clicked. */
   :global(.js) .hero.is-intro-playing .hero__intro {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
     transition: none;
+  }
+
+  :global(html.js.intro-lock) {
+    overflow: hidden;
   }
 
   .hero__intro-video {
@@ -227,7 +240,7 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
     animation: none;
   }
 
-  /* Sits beside the montage's pause button; takes the corner while the intro plays. */
+  /* Sits beside the montage's pause button; takes the screen's corner while the intro plays. */
   .hero__intro-toggle {
     position: absolute;
     right: calc(var(--space-4) + 44px + var(--space-2));
@@ -250,7 +263,9 @@ const { headline, description, routes, video, intro, interim = false } = Astro.p
   }
 
   :global(.js) .hero.is-intro-playing .hero__intro-toggle {
+    position: fixed;
     right: var(--space-4);
+    z-index: 151;
   }
 
   @media (max-width: 1023px) {
