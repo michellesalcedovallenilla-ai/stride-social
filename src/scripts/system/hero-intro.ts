@@ -6,6 +6,7 @@
 // (smooth scroll paused too). The intro doubles as a loading screen: once it can play to the
 // end, the montage loads behind it, so it starts the moment the intro ends. `hero:intro` tells
 // the montage (src/scripts/system/media.ts) to wait, load or start.
+// A thin ice line along the bottom shows how far through it is.
 // The button skips the intro while it plays and replays it afterwards (WCAG 2.2.2). Keyboard
 // focus moving anywhere else, a slow connection or a blocked autoplay all go straight to the page.
 
@@ -27,7 +28,16 @@ export function initHeroIntro() {
   if (!video || !button) return;
   const playing = () => hero.classList.contains('is-intro-playing');
   const announce = () => hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
+  const bar = hero.querySelector<HTMLElement>('[data-intro-progress]');
   let timer = 0;
+  let frame = 0;
+
+  // The progress line follows the video every frame while it plays.
+  const setProgress = (value: number) => bar?.style.setProperty('--intro-progress', String(value));
+  const track = () => {
+    setProgress(Math.min(1, video.currentTime / (video.duration || 6.2)));
+    if (playing()) frame = requestAnimationFrame(track);
+  };
 
   // Sources are added on play, for the cut that fits the screen, so nobody downloads both.
   const phone = window.matchMedia('(max-width: 767px)');
@@ -55,6 +65,7 @@ export function initHeroIntro() {
 
   const finish = () => {
     clearTimeout(timer);
+    cancelAnimationFrame(frame);
     video.pause();
     hero.classList.remove('is-intro-playing');
     lockScroll(false);
@@ -65,6 +76,7 @@ export function initHeroIntro() {
   const play = () => {
     load();
     video.currentTime = 0;
+    setProgress(0);
     hero.classList.add('is-intro-playing');
     lockScroll(true);
     announce();
@@ -85,6 +97,8 @@ export function initHeroIntro() {
   // Once it plays, end on time even if it stalls part-way.
   video.addEventListener('playing', () => {
     window.setTimeout(buffered, 1500); // in case canplaythrough never fires
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(track);
     clearTimeout(timer);
     const left = (video.duration || 6.2) - video.currentTime;
     timer = window.setTimeout(finish, (left + 2) * 1000);
