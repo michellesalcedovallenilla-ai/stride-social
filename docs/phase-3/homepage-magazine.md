@@ -51,6 +51,24 @@ already on the site, until Stride's approved montage arrives. Hover previews
 footage. Temu, Holafly and Papaya are proposed as homepage case studies because they have footage
 (`featuredOn: home`, marked as proposals in their files).
 
+## Stride Social: creator globe and content world
+
+Two sections after the Social intro (`src/pages/social/index.astro`):
+
+- **Creator globe** (`social/CreatorGlobe.astro`, `src/scripts/system/creator-globe.ts`): a stylised,
+  cut-away globe (the cap of a sphere sliced across, a layered cross-section under the rim) selects
+  a region; a phone shows that region's creator content as a reel. Drag or swipe the globe (a swipe
+  moves to the next region), scroll through the pinned section (one region per step), or use the
+  region tabs (arrow keys). Regions, west to east, and their creators: `src/config/creator-regions.ts`.
+  No creator has a recorded country yet and no case study links creators, so every region shows
+  either its case study's own footage labelled "Interim" (North America: Papaya, UK & Europe: Temu,
+  Asia: Holafly) or a labelled empty state (Latin America, Australia). A creator appears once Stride
+  names one per region with confirmed consent and a recorded country.
+- **Content world** (`social/ContentWorld.astro`): browser-style windows (a live campaign, reels, a
+  collab brief, the roster) that drift as the page scrolls. All real content; the reels are the
+  previous site's creator clips (labelled interim), cut to light loops (`preview-reel-*.mp4`).
+- The globe was built from the written brief; the hand-drawn sketch it refers to was not received.
+
 ## Team lineup and characters
 
 The lineup is built for full-body character renders: team entries take an optional `character`

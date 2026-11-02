@@ -12,6 +12,7 @@ import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 import { routes } from '@/lib/routes';
 import { isPreview } from '@/lib/env';
 import { logoFit } from '@/lib/logo-fit';
+import { workPreviews } from '@/lib/previews';
 
 export interface Props {
   work: { eyebrow?: string; headline?: string; cta?: { label: string; href: string }; awaiting?: string[] };
@@ -19,13 +20,6 @@ export interface Props {
 }
 
 const { work, logos } = Astro.props;
-
-// Light six-second hover previews cut from each campaign's own footage (public/assets/video).
-const previews: Record<string, string> = {
-  'temu-scaling-paid-social-with-500-ugc-videos': '/assets/video/preview-temu.mp4',
-  'holafly-app---driving-app-downloads-with-travel-influencers': '/assets/video/preview-holafly.mp4',
-  'papaya-gaming': '/assets/video/preview-papaya.mp4',
-};
 
 const featured = (await getCollection('work', (w) => w.data.visible && w.data.featuredOn.includes('home'))).sort(
   (a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99),
@@ -42,7 +36,7 @@ const tiles = await Promise.all(
       meta: services.map((s) => s.data.name).join(' · '),
       result: verified ? `${verified.value} ${verified.label.toLowerCase()}` : undefined,
       still,
-      preview: previews[w.id],
+      preview: workPreviews[w.id],
     };
   }),
 );
