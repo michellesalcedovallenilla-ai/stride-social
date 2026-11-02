@@ -60,11 +60,19 @@ const jsonLd = [
   <HeroMontage
     headline={s.hero.lines ?? []}
     description={s.hero.body ?? ''}
-    routes={[
-      { label: 'Stride Social', href: '/social', division: 'social' },
-      { label: 'Stride Talent', href: '/talent', division: 'talent' },
-      { label: 'Stride Education', href: '/education', division: 'education' },
-    ]}
+    routes={(s.sides.items ?? []).map((item) => {
+      // Each tab brings in the same footage as its "Three sides" panel below.
+      const media = sideMedia[item.key as DivisionKey];
+      return {
+        label: `Stride ${item.label}`,
+        href: item.href ?? '/',
+        division: item.key as DivisionKey,
+        audience: item.audience ?? '',
+        copy: item.copy ?? '',
+        image: media.image,
+        video: 'video' in media ? media.video : undefined,
+      };
+    })}
     video={{
       label: 'Montage of Stride creator campaigns',
       mp4: '/assets/video/1236e597-1029-transcode.mp4',
