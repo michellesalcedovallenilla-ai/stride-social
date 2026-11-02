@@ -36,6 +36,7 @@ quote:
   status: unverified
 # Proposed for the Stride Social page (Stage 4). Confirm or swap.
 featuredOn:
+  - home
   - social
 featuredOrder: 2
 contentStatus: needs-rewrite

@@ -1,0 +1,478 @@
+---
+// Homepage section 3 "Our work": the case studies featured on the home page (work entries with
+// featuredOn: home, in featuredOrder) as tiles that come alive on hover: campaigns with footage
+// play a short, light preview; the rest lean in. Below, the client logos run as a slow marquee
+// that stops on hover or focus. Result figures render only when verified; logos only when
+// approved (preview also shows the previous site's, labelled). Left out only when both are empty.
+import { getCollection, getEntries } from 'astro:content';
+import Media from '../core/Media.astro';
+import Eyebrow from '../core/Eyebrow.astro';
+import Button from '../core/Button.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { routes } from '@/lib/routes';
+import { isPreview } from '@/lib/env';
+import { logoFit } from '@/lib/logo-fit';
+
+export interface Props {
+  work: { eyebrow?: string; headline?: string; cta?: { label: string; href: string }; awaiting?: string[] };
+  logos: { eyebrow?: string; awaiting?: string[] };
+}
+
+const { work, logos } = Astro.props;
+
+// Light six-second hover previews cut from each campaign's own footage (public/assets/video).
+const previews: Record<string, string> = {
+  'temu-scaling-paid-social-with-500-ugc-videos': '/assets/video/preview-temu.mp4',
+  'holafly-app---driving-app-downloads-with-travel-influencers': '/assets/video/preview-holafly.mp4',
+  'papaya-gaming': '/assets/video/preview-papaya.mp4',
+};
+
+const featured = (await getCollection('work', (w) => w.data.visible && w.data.featuredOn.includes('home'))).sort(
+  (a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99),
+);
+const tiles = await Promise.all(
+  featured.map(async (w) => {
+    const services = await getEntries(w.data.services);
+    const verified = w.data.results.find((r) => r.status === 'verified');
+    const still = w.data.homeTile?.front ?? w.data.hero ?? w.data.card;
+    return {
+      id: w.id,
+      href: routes.caseStudy(w.id),
+      title: w.data.title,
+      meta: services.map((s) => s.data.name).join(' · '),
+      result: verified ? `${verified.value} ${verified.label.toLowerCase()}` : undefined,
+      still,
+      preview: previews[w.id],
+    };
+  }),
+);
+const awaiting = isPreview ? (work.awaiting ?? []) : [];
+
+const brands = (await getCollection('brands', (b) => !!b.data.logo && (b.data.approval.status === 'confirmed' || (isPreview && b.data.approval.status === 'legacy'))))
+  .filter((b) => !/^unidentified/i.test(b.data.name))
+  .sort((a, b) => a.data.name.localeCompare(b.data.name))
+  .slice(0, 12);
+const interimLogos = brands.some((b) => b.data.approval.status !== 'confirmed');
+const marks = await Promise.all(
+  brands.map(async (b) => ({ name: b.data.name, src: b.data.logo as string, fit: await logoFit(b.data.logo as string) })),
+);
+---
+
+{(tiles.length > 0 || marks.length > 0) && (
+  <section class="proof" aria-labelledby="proof-title">
+    <div class="proof__inner container-wide">
+      <header class="proof__head">
+        <div class="proof__running">
+          <Eyebrow tone="dark">{work.eyebrow}</Eyebrow>
+          <h2 class="proof__title" id="proof-title" data-reveal="from-right">{work.headline}</h2>
+          {awaiting.length > 0 && <PlaceholderNotice variant="inline" label="Awaiting case studies">— {awaiting.join(', ')}</PlaceholderNotice>}
+        </div>
+        {work.cta && <Button href={work.cta.href} variant="text" tone="dark">{work.cta.label}</Button>}
+      </header>
+
+      {tiles.length > 0 && (
+        <ul class="proof__grid" role="list" data-count={tiles.length}>
+          {tiles.map((t, i) => (
+            <li class="tile" data-media-hover data-reveal="tilt" style={`--reveal-delay: ${(i % 3) * 0.08}s`}>
+              <div class="tile__frame">
+                {t.preview ? (
+                  <Media video={{ mp4: t.preview, poster: t.still.src, label: `${t.title}: campaign footage` }} play="hover" />
+                ) : (
+                  <Media image={{ src: t.still.src, alt: t.still.alt }} />
+                )}
+                <span class="tile__shade" aria-hidden="true"></span>
+                {t.preview && <span class="tile__pill" aria-hidden="true"><span class="tile__dot"></span>Hover to play</span>}
+              </div>
+              <div class="tile__caption">
+                {t.result && <p class="tile__result">{t.result}</p>}
+                <h3 class="tile__name"><a href={t.href}>{t.title}</a></h3>
+                {t.meta && <p class="tile__meta">{t.meta}</p>}
+              </div>
+            </li>
+          ))}
+          {work.cta && (
+            <li class="tile tile--cta" data-reveal="tilt">
+              <a class="tile__cta" href={work.cta.href} data-magnetic="0.15">
+                <span>{work.cta.label}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg>
+              </a>
+            </li>
+          )}
+        </ul>
+      )}
+
+      {marks.length > 0 && (
+        <div class="proof__logos">
+          <div class="proof__logos-head">
+            {logos.eyebrow && <Eyebrow as="div" tone="dark"><h3 class="proof__logos-title">{logos.eyebrow}</h3></Eyebrow>}
+            {interimLogos && <PlaceholderNotice variant="inline" label="Interim logos">— from the previous site, awaiting approval (Q5)</PlaceholderNotice>}
+          </div>
+          {/* Two copies make the loop seamless; the second is hidden from assistive tech. */}
+          <div class="marquee" tabindex="0" aria-label={`${logos.eyebrow ?? 'Client logos'} (scrolling; hover or focus to pause)`}>
+            <div class="marquee__track">
+              {[0, 1].map((copy) => (
+                <ul class="marquee__set" role="list" aria-hidden={copy === 1 ? 'true' : undefined}>
+                  {marks.map((m) => (
+                    <li class="proof__mark">
+                      <span class="proof__logo" role="img" aria-label={m.name} style={`--logo: url('${m.src}'); ${m.fit}`}></span>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+
+<style>
+  .proof {
+    padding-block: clamp(72px, 9vw, 160px);
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  /* ---------- Running head ---------- */
+  .proof__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-bottom: var(--space-8);
+  }
+
+  .proof__running {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .proof__title {
+    font-family: var(--font-display);
+    font-size: var(--type-h2);
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Tiles: 8+4, then 4+4+4, then 6 + the CTA ---------- */
+  .proof__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-7) var(--gutter);
+  }
+
+  .tile {
+    position: relative;
+    grid-column: span 4;
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+
+  .tile:nth-child(1) {
+    grid-column: span 8;
+  }
+
+  .tile:nth-child(6),
+  .tile--cta {
+    grid-column: span 6;
+  }
+
+  .tile__frame {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--navy-700);
+  }
+
+  /* 8:5 over eight columns is as tall as 4:5 over four, so the first row lines up. */
+  .tile:nth-child(1) .tile__frame {
+    aspect-ratio: 8 / 5;
+  }
+
+  .tile:nth-child(6) .tile__frame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .tile__frame :global(.media__el) {
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .tile__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(6 20 43 / 0.4), transparent 40%);
+    pointer-events: none;
+  }
+
+  .tile__pill {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgb(6 20 43 / 0.6);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+  }
+
+  .tile__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ice);
+  }
+
+  .tile__caption {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .tile__result {
+    font-family: var(--font-display);
+    font-size: var(--type-h2);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .tile__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.9vw, 1.75rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  /* The whole tile answers to the title's link. */
+  .tile__name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .tile__meta {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.6);
+  }
+
+  .tile:has(a:focus-visible) .tile__frame {
+    outline: 2px solid var(--ice);
+    outline-offset: 3px;
+  }
+
+  .tile__name a:focus-visible {
+    outline: none;
+  }
+
+  /* The CTA tile: an outlined block, as tall as its row, that floods cyan on hover. */
+  .tile--cta {
+    display: block;
+  }
+
+  .tile__cta {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    height: 100%;
+    min-height: 220px;
+    padding: var(--space-6);
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
+    font-family: var(--font-display);
+    font-size: var(--type-h2);
+    font-weight: 800;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.95;
+    text-transform: uppercase;
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out),
+      translate 350ms var(--ease-out);
+  }
+
+  .tile__cta svg {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .tile__cta:hover,
+  .tile__cta:focus-visible {
+    background: var(--ice);
+    color: var(--navy-900);
+  }
+
+  .tile__cta:hover svg {
+    transform: translateX(6px);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tile:hover .tile__frame :global(.media__el) {
+      transform: scale(1.04);
+    }
+
+    .tile:hover .tile__pill {
+      opacity: 0;
+    }
+  }
+
+  /* ---------- Logo marquee ---------- */
+  .proof__logos {
+    margin-top: var(--space-9);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--line-dark);
+  }
+
+  .proof__logos-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+
+  .proof__logos-title {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  .marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .marquee:focus-visible {
+    outline: 2px solid var(--ice);
+    outline-offset: 4px;
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 50s linear infinite;
+  }
+
+  .marquee:hover .marquee__track,
+  .marquee:focus-within .marquee__track,
+  .marquee:focus .marquee__track {
+    animation-play-state: paused;
+  }
+
+  .marquee__set {
+    display: flex;
+    gap: var(--space-8);
+    padding-right: var(--space-8);
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* logo-fit's mask values are in cqi, so each item is the container they measure against. */
+  .proof__mark {
+    flex: none;
+    width: 140px;
+    container-type: inline-size;
+  }
+
+  /* Each source file is masked so every logo renders in white; src/lib/logo-fit.ts sizes the mark. */
+  .proof__logo {
+    display: block;
+    aspect-ratio: 5 / 2;
+    background: var(--white);
+    mask: var(--logo) var(--logo-pos) / var(--logo-size) no-repeat;
+    opacity: 0.8;
+  }
+
+  /* ---------- Tablet ---------- */
+  @media (max-width: 1023px) {
+    .tile,
+    .tile:nth-child(1),
+    .tile:nth-child(6),
+    .tile--cta {
+      grid-column: span 6;
+    }
+
+    .tile:nth-child(1) {
+      grid-column: 1 / -1;
+    }
+
+    .tile:nth-child(1) .tile__frame {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* ---------- Phones ---------- */
+  @media (max-width: 767px) {
+    .proof__head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-4);
+      margin-bottom: var(--space-7);
+    }
+
+    .proof__grid {
+      row-gap: var(--space-6);
+    }
+
+    .tile,
+    .tile:nth-child(1),
+    .tile:nth-child(6),
+    .tile--cta {
+      grid-column: 1 / -1;
+    }
+
+    .tile__pill {
+      display: none;
+    }
+
+    .proof__mark {
+      width: 104px;
+    }
+  }
+
+  /* Reduced motion: the logos sit still as a wrapped row. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      mask-image: none;
+    }
+
+    .marquee__track {
+      animation: none;
+      width: auto;
+    }
+
+    .marquee__set {
+      flex-wrap: wrap;
+    }
+
+    .marquee__set[aria-hidden] {
+      display: none;
+    }
+
+    .tile__frame :global(.media__el) {
+      transition: none;
+    }
+  }
+</style>

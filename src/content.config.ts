@@ -106,6 +106,8 @@ const team = defineCollection({
     department: z.enum(['leadership', 'talent', 'campaigns', 'social', 'sales', 'operations']),
     photo: media,
     photoAlt: media.optional(),
+    /** Full-body character render for the homepage lineup (transparent PNG/WebP, feet at the bottom). Headshot used until supplied. */
+    character: media.optional(),
     bio: z.string().optional(),
     linkedin: z.string().url().optional(),
     order: z.number(),

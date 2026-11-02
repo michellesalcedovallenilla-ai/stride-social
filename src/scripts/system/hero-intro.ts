@@ -1,10 +1,10 @@
-// Opening for the homepage hero (components/home/HeroMontage.astro, IntroReveal.astro). The inline
+// Opening for the homepage hero (components/home/CoverHero.astro, IntroReveal.astro). The inline
 // script in the hero adds .is-intro-playing (and html.intro-lock) before first paint whenever
 // motion is allowed, on every visit and every device. This module waits for the lockup's fonts (at
 // most 1.5s, so the wordmark never swaps font mid-animation), centres the mark for its entrance and
-// starts the animation (.is-intro-run); when the progress line completes, the hero reveals over
-// the montage. While it plays it covers the whole screen and page scrolling stays locked (smooth
-// scroll paused too). The montage loads behind it from the start (.is-intro-buffered); `hero:intro`
+// starts the animation (.is-intro-run); when the progress line completes, it fades to the hero and
+// its showreel. While it plays it covers the whole screen and page scrolling stays locked (smooth
+// scroll paused too). The reel loads behind it from the start (.is-intro-buffered); `hero:intro`
 // tells it (src/scripts/system/media.ts) to wait, load or start.
 // "Skip intro" ends it early and is only shown while it plays (WCAG 2.2.2). Keyboard focus moving
 // anywhere else also goes straight to the page.
@@ -27,12 +27,13 @@ const fontsReady = () =>
 export function initHeroIntro() {
   const hero = document.querySelector<HTMLElement>('[data-hero-intro]');
   if (!hero || hero.dataset.introReady) return;
-  hero.dataset.introReady = 'true';
   const lockup = hero.querySelector<HTMLElement>('[data-reveal-lockup]');
   const mark = hero.querySelector<SVGElement>('[data-reveal-mark]');
   const progress = hero.querySelector<HTMLElement>('[data-reveal-progress]');
   const button = hero.querySelector<HTMLButtonElement>('[data-intro-toggle]');
+  // Claim the hero only when every part is there; otherwise the inline fallback reveals the page.
   if (!lockup || !mark || !progress || !button) return;
+  hero.dataset.introReady = 'true';
   const playing = () => hero.classList.contains('is-intro-playing');
   const announce = () => hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
   let run = 0; // each play gets a number, so a late font promise can't start an old one

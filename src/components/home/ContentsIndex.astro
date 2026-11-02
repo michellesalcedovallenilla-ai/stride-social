@@ -1,0 +1,327 @@
+---
+// Homepage section 2: the three Stride businesses as destinations, not cards. Each row is one
+// big name ("01 — Stride Social", "For brands"); hovering it widens the name along Archivo's
+// width axis, reveals the one-line descriptor, turns the arrow and brings the business's footage
+// or image up behind the row. On touch screens the descriptor simply shows. The name is the link;
+// the rest of the row extends its hit area. Missing imagery gets a labelled placeholder.
+import Media from '../core/Media.astro';
+import Eyebrow from '../core/Eyebrow.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+
+type Division = 'social' | 'talent' | 'education';
+
+export interface Props {
+  eyebrow: string;
+  headline: string;
+  items: {
+    key: Division;
+    audience: string;
+    name: string;
+    copy: string;
+    cta: string;
+    href: string;
+    thumb?: { src: string; alt: string; interim?: boolean }; // image behind the row on hover
+    video?: { mp4: string; poster: string; label: string }; // footage behind the row on hover (wins over thumb)
+    thumbMissing?: string; // placeholder label when there is no image yet
+  }[];
+}
+
+const { eyebrow, headline, items } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="dest" aria-labelledby="dest-title">
+  <div class="dest__inner container-wide">
+    <header class="dest__head">
+      <Eyebrow tone="dark">{eyebrow}</Eyebrow>
+      <h2 class="dest__title" id="dest-title" data-reveal="from-left">{headline}</h2>
+    </header>
+
+    <ol class="dest__list" role="list">
+      {items.map((item, i) => (
+        <li class={`dest__row dest__row--${item.key}`} data-media-hover data-reveal="wipe" style={`--reveal-delay: ${i * 0.12}s`}>
+          <div class="dest__media" aria-hidden="true">
+            {item.video ? (
+              <Media video={item.video} play="hover" />
+            ) : item.thumb ? (
+              <Media image={{ src: item.thumb.src, alt: '' }} />
+            ) : (
+              <PlaceholderNotice variant="block" label={item.thumbMissing ?? 'Image needed'} class="dest__empty" />
+            )}
+            {item.thumb?.interim && !item.video && <PlaceholderNotice label="Interim image" />}
+          </div>
+
+          <span class="dest__num" aria-hidden="true">{pad(i + 1)} —</span>
+          <h3 class="dest__name"><a href={item.href}>{item.name}</a></h3>
+          <p class="dest__audience">{item.audience}</p>
+          <p class="dest__desc">{item.copy}</p>
+          <span class="dest__cta" aria-hidden="true">
+            <span class="dest__cta-label">{item.cta}</span>
+            <span class="dest__arrow"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M8 6h10v10" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg></span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .dest {
+    padding-block: clamp(72px, 9vw, 160px);
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .dest__head {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .dest__title {
+    max-width: 14ch;
+    font-family: var(--font-display);
+    font-size: var(--type-h2);
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  .dest__list {
+    border-top: 1px solid var(--line-dark);
+  }
+
+  /* ---------- Row ---------- */
+  .dest__row {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr) minmax(0, 26rem) 56px;
+    grid-template-areas:
+      'num name name arrow'
+      '. audience desc .';
+    align-items: center;
+    gap: var(--space-4) var(--gutter);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--line-dark);
+    overflow: hidden;
+  }
+
+  /* The whole row answers to the name's link. */
+  .dest__name a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .dest__num {
+    grid-area: num;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    color: rgb(255 255 255 / 0.55);
+    transition: color var(--dur-base) var(--ease-out);
+  }
+
+  /* The name widens along Archivo's width axis on hover: playful but still typographic. Its line
+     spans the row, so even the widest name has room to grow. */
+  .dest__name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5.6vw, 5.75rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-normal);
+    line-height: 0.9;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition:
+      font-stretch 600ms var(--ease-out),
+      transform 600ms var(--ease-out);
+  }
+
+  .dest__audience {
+    grid-area: audience;
+    align-self: start;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .dest__desc {
+    grid-area: desc;
+    align-self: start;
+    max-width: 34ch;
+    font-size: var(--type-body);
+    line-height: 1.45;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  .dest__cta {
+    grid-area: arrow;
+    justify-self: end;
+  }
+
+  .dest__cta-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .dest__arrow {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out),
+      transform 500ms var(--ease-out);
+  }
+
+  .dest__arrow svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 500ms var(--ease-out);
+  }
+
+  /* ---------- Footage behind the row ---------- */
+  .dest__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    scale: 1.08;
+    filter: blur(10px) saturate(1.1);
+    transition:
+      opacity 500ms var(--ease-out),
+      scale 900ms var(--ease-out),
+      filter 600ms var(--ease-out);
+  }
+
+  /* A navy veil keeps the white type readable over any footage. */
+  .dest__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(6 20 43 / 0.82), rgb(6 20 43 / 0.35) 60%, rgb(6 20 43 / 0.6));
+  }
+
+  .dest :global(.dest__empty) {
+    position: absolute;
+    inset: 0;
+    border: 0;
+  }
+
+  /* ---------- Hover and focus (desktop): the destination wakes up ---------- */
+  @media (hover: hover) and (pointer: fine) {
+    .dest__desc {
+      opacity: 0;
+      transform: translateY(12px);
+      transition:
+        opacity 400ms var(--ease-out),
+        transform 500ms var(--ease-out);
+    }
+
+    .dest__row:hover .dest__name,
+    .dest__row:focus-within .dest__name {
+      font-stretch: var(--stretch-wide);
+      transform: translateX(0.04em);
+    }
+
+    .dest__row:hover .dest__desc,
+    .dest__row:focus-within .dest__desc {
+      opacity: 1;
+      transform: none;
+    }
+
+    .dest__row:hover .dest__media,
+    .dest__row:focus-within .dest__media {
+      opacity: 1;
+      scale: 1;
+      filter: none;
+    }
+
+    .dest__row:hover .dest__num,
+    .dest__row:focus-within .dest__num {
+      color: var(--ice);
+    }
+
+    .dest__row:hover .dest__arrow,
+    .dest__row:focus-within .dest__arrow {
+      background: var(--ice);
+      color: var(--navy-900);
+      transform: scale(1.08);
+    }
+
+    .dest__row:hover .dest__arrow svg,
+    .dest__row:focus-within .dest__arrow svg {
+      transform: rotate(45deg);
+    }
+  }
+
+  .dest__name a:focus-visible {
+    outline: none;
+  }
+
+  .dest__row:has(a:focus-visible) {
+    outline: 2px solid var(--ice);
+    outline-offset: -2px;
+  }
+
+  /* ---------- Tablet ---------- */
+  @media (max-width: 1023px) {
+    .dest__row {
+      grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 1fr) 48px;
+    }
+
+    .dest__arrow {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  /* ---------- Phones: name first, everything readable without hover ---------- */
+  @media (max-width: 767px) {
+    .dest__row {
+      grid-template-columns: minmax(0, 1fr) 44px;
+      grid-template-areas:
+        'num arrow'
+        'name name'
+        'audience audience'
+        'desc desc';
+      row-gap: var(--space-3);
+      padding-block: var(--space-5);
+    }
+
+    .dest__name {
+      font-size: clamp(2.25rem, 11.5vw, 3.5rem);
+      white-space: normal;
+    }
+
+    .dest__arrow {
+      width: 44px;
+      height: 44px;
+    }
+
+    .dest__desc {
+      font-size: var(--type-small);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dest__name,
+    .dest__media,
+    .dest__arrow,
+    .dest__arrow svg {
+      transition: none;
+    }
+  }
+</style>

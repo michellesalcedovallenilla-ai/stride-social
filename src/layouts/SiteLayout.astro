@@ -59,10 +59,13 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') |
       import { initSmoothScroll } from '@/scripts/system/smooth-scroll';
       import { initReveal } from '@/scripts/system/reveal';
       import { initRevealLines } from '@/scripts/system/reveal-lines';
+      import { initParallax, initMagnetic } from '@/scripts/system/motion';
       document.documentElement.classList.add('motion-ready');
       initSmoothScroll();
       initReveal();
       initRevealLines();
+      initParallax();
+      initMagnetic();
     </script>
   </body>
 </html>

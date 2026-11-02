@@ -19,7 +19,7 @@ All content lives in this repository as text files. You (or Claude Code, working
 | A creator profile | `src/content/roster/<slug>.md` |
 | An article | `src/content/insights/<slug>.md` |
 | A service | `src/content/services/<slug>.md` |
-| A team member | `src/content/team/<id>.yaml` |
+| A team member | `src/content/team/<id>.yaml` (optional `character`: a full-body render for the homepage lineup, transparent background, feet at the bottom) |
 | A testimonial | `src/content/testimonials/<id>.yaml` |
 | A brand / logo | `src/content/brands/brands.yaml` |
 | A history milestone | `src/content/history/milestones.yaml` |
