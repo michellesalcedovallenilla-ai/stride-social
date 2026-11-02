@@ -57,8 +57,8 @@ let dotCache: Float32Array | null = null;
 const landDots = () => {
   if (dotCache) return dotCache;
   const out: number[] = [];
-  for (let lat = -56; lat <= 82; lat += 2.4) {
-    const step = 2.4 / Math.max(0.2, Math.cos(lat * D));
+  for (let lat = -56; lat <= 82; lat += 2) {
+    const step = 2 / Math.max(0.2, Math.cos(lat * D));
     for (let lon = -180; lon < 180; lon += step) if (LAND.some((p) => inside(lon, lat, p))) out.push(lon, lat);
   }
   return (dotCache = new Float32Array(out));
@@ -108,16 +108,17 @@ function initGlobe(root: HTMLElement) {
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const top = H * 0.08;
-    cutY = H * 0.8;
+    // A round planet: nearly its whole upper half shows, about three quarters of the screen wide.
+    const top = H * 0.1;
+    cutY = H * 0.82;
     const capH = cutY - top;
-    const halfWidth = Math.min(W * 0.46, 760);
+    const halfWidth = Math.min(W * 0.36, 640);
     R = Math.max(capH, (halfWidth ** 2 + capH ** 2) / (2 * capH));
     cx = W / 2;
     cy = top + R;
     rimA = Math.sqrt(Math.max(0, R ** 2 - (cy - cutY) ** 2));
-    // The marker (where the selected region sits) is low on the cap, just clear of the phone above it.
-    markerY = top + capH * 0.66;
+    // The marker (where the selected region sits) is low on the planet, just clear of the phone above it.
+    markerY = top + capH * 0.76;
     tilt = Math.asin(Math.min(0.97, (cy - markerY) / R)) / D;
     tLat = regions[index].lat - tilt;
     if (!raf) lat = tLat;
@@ -147,6 +148,22 @@ function initGlobe(root: HTMLElement) {
     ctx.clearRect(0, 0, W, H);
     const rimB = rimA * 0.085;
 
+    // A soft halo of atmosphere around the planet, behind everything else, fading out towards
+    // the cut so it never ends in a hard line.
+    const halo = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.25);
+    halo.addColorStop(0, 'rgba(120, 190, 255, 0.35)');
+    halo.addColorStop(0.35, 'rgba(195, 242, 251, 0.12)');
+    halo.addColorStop(1, 'rgba(195, 242, 251, 0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, W, H);
+    const fade = ctx.createLinearGradient(0, cutY - H * 0.25, 0, cutY);
+    fade.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    fade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+
     // The cross-section: a layered slab under the rim, as if the globe were cut through.
     const depth = H - cutY;
     ctx.save();
@@ -156,15 +173,23 @@ function initGlobe(root: HTMLElement) {
     ctx.ellipse(cx, cutY + depth, rimA * 0.96, rimB, 0, Math.PI, 0, true);
     ctx.closePath();
     const slab = ctx.createLinearGradient(0, cutY, 0, H);
-    slab.addColorStop(0, '#0d1f3d');
+    slab.addColorStop(0, '#1d4580');
+    slab.addColorStop(0.55, '#0e2850');
     slab.addColorStop(1, 'rgba(6, 20, 43, 0)');
     ctx.fillStyle = slab;
     ctx.fill();
     ctx.clip();
+    // The core, glowing through the cut.
+    const core = ctx.createRadialGradient(cx, cutY + depth * 0.25, 0, cx, cutY + depth * 0.25, rimA * 0.55);
+    core.addColorStop(0, 'rgba(195, 242, 251, 0.55)');
+    core.addColorStop(0.4, 'rgba(120, 190, 255, 0.18)');
+    core.addColorStop(1, 'rgba(195, 242, 251, 0)');
+    ctx.fillStyle = core;
+    ctx.fillRect(cx - rimA, cutY, rimA * 2, depth + rimB);
     for (let k = 1; k <= 6; k++) {
       ctx.beginPath();
       ctx.ellipse(cx, cutY + (depth * k) / 7, rimA * (1 - k * 0.006), rimB, 0, 0, Math.PI);
-      ctx.strokeStyle = `rgba(195, 242, 251, ${0.22 - k * 0.03})`;
+      ctx.strokeStyle = `rgba(195, 242, 251, ${0.45 - k * 0.06})`;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
@@ -185,15 +210,22 @@ function initGlobe(root: HTMLElement) {
     ctx.closePath();
     ctx.clip();
 
-    const sheen = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.95, 0, cx, cy - R * 0.6, R);
-    sheen.addColorStop(0, '#173462');
-    sheen.addColorStop(0.45, '#0a1c3b');
-    sheen.addColorStop(1, '#040c1b');
+    const sheen = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.85, 0, cx, cy - R * 0.4, R * 1.05);
+    sheen.addColorStop(0, '#3a78c9');
+    sheen.addColorStop(0.35, '#1a4787');
+    sheen.addColorStop(0.75, '#0c2650');
+    sheen.addColorStop(1, '#071834');
     ctx.fillStyle = sheen;
+    ctx.fillRect(0, 0, W, H);
+    // Light catching the upper left of the planet.
+    const shine = ctx.createRadialGradient(cx - R * 0.45, cy - R * 0.8, 0, cx - R * 0.45, cy - R * 0.8, R * 0.7);
+    shine.addColorStop(0, 'rgba(195, 242, 251, 0.28)');
+    shine.addColorStop(1, 'rgba(195, 242, 251, 0)');
+    ctx.fillStyle = shine;
     ctx.fillRect(0, 0, W, H);
 
     // Graticule.
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+    ctx.strokeStyle = 'rgba(195, 242, 251, 0.16)';
     ctx.lineWidth = 1;
     const line = (pts: number[][]) => {
       ctx.beginPath();
@@ -215,9 +247,9 @@ function initGlobe(root: HTMLElement) {
 
     // Land dots, brighter towards the viewer, batched into three tones.
     const bins: [string, number][] = [
-      ['rgba(255, 255, 255, 0.32)', 1.2],
-      ['rgba(255, 255, 255, 0.6)', 1.5],
-      ['rgba(255, 255, 255, 0.88)', 1.8],
+      ['rgba(195, 242, 251, 0.45)', 1.3],
+      ['rgba(195, 242, 251, 0.8)', 1.7],
+      ['rgba(255, 255, 255, 0.98)', 2],
     ];
     bins.forEach(([fill, size], bin) => {
       ctx.beginPath();
@@ -234,24 +266,28 @@ function initGlobe(root: HTMLElement) {
 
     // Region markers and names; the selected one in cyan.
     const active = nearest();
-    ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
+    ctx.font = '500 11px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
     regions.forEach((r, i) => {
       const [x, y, z] = project(r.lon, r.lat);
       if (z <= 0.05) return;
       const on = i === active;
       ctx.beginPath();
-      ctx.arc(x, y, on ? 5 : 3, 0, Math.PI * 2);
-      ctx.fillStyle = on ? '#c3f2fb' : `rgba(255, 255, 255, ${0.4 + z * 0.4})`;
+      ctx.arc(x, y, on ? 6 : 4, 0, Math.PI * 2);
+      ctx.fillStyle = on ? '#ffffff' : `rgba(255, 255, 255, ${0.5 + z * 0.4})`;
+      ctx.shadowColor = 'rgba(195, 242, 251, 0.9)';
+      ctx.shadowBlur = on ? 18 : 8;
       ctx.fill();
+      ctx.shadowBlur = 0;
       if (on) {
         ctx.beginPath();
-        ctx.arc(x, y, 11, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(195, 242, 251, 0.5)';
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(195, 242, 251, 0.8)';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
-      ctx.fillStyle = on ? '#c3f2fb' : `rgba(255, 255, 255, ${0.3 + z * 0.4})`;
-      ctx.fillText(r.label.toUpperCase(), x + 16, y);
+      ctx.fillStyle = on ? '#ffffff' : `rgba(255, 255, 255, ${0.45 + z * 0.4})`;
+      ctx.fillText(r.label.toUpperCase(), x + 20, y);
     });
     ctx.restore();
 
@@ -262,24 +298,28 @@ function initGlobe(root: HTMLElement) {
     ctx.clip();
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(195, 242, 251, 0.35)';
-    ctx.lineWidth = 1.2;
-    ctx.shadowColor = 'rgba(195, 242, 251, 0.45)';
-    ctx.shadowBlur = 24;
+    ctx.strokeStyle = 'rgba(195, 242, 251, 0.75)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(195, 242, 251, 0.8)';
+    ctx.shadowBlur = 36;
     ctx.stroke();
     ctx.restore();
+    ctx.save();
     ctx.beginPath();
     ctx.ellipse(cx, cutY, rimA, rimB, 0, 0, Math.PI);
-    ctx.strokeStyle = 'rgba(195, 242, 251, 0.55)';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(195, 242, 251, 0.95)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(195, 242, 251, 0.8)';
+    ctx.shadowBlur = 20;
     ctx.stroke();
+    ctx.restore();
 
     // The beam from the marker up towards the phone.
     const beam = ctx.createLinearGradient(0, markerY, 0, 0);
-    beam.addColorStop(0, 'rgba(195, 242, 251, 0.7)');
+    beam.addColorStop(0, 'rgba(195, 242, 251, 0.95)');
     beam.addColorStop(1, 'rgba(195, 242, 251, 0)');
     ctx.fillStyle = beam;
-    ctx.fillRect(cx - 0.75, 0, 1.5, markerY);
+    ctx.fillRect(cx - 1, 0, 2, markerY);
   };
 
   /* ---------- Motion ---------- */
