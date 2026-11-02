@@ -29,6 +29,20 @@ sections:
 
       Strong creator relationships make that possible. We handle outreach, content approvals and reporting, so you deal with one team from brief to results.
 
+  # Creator globe (CreatorGlobe.astro): copy written by us. Regions and creators: src/config/creator-regions.ts.
+  creators:
+    status: draft
+    eyebrow: Creators worldwide
+    headline: Creators where your audience lives.
+    body: Turn the globe. Each region brings up a creator and the content they make.
+
+  # Creator content world (ContentWorld.astro): copy written by us.
+  world:
+    status: draft
+    eyebrow: Inside a campaign
+    headline: Brands and creators, in one room.
+    body: Briefs, collabs, reels and results, run by one team from first idea to final post.
+
   services:
     status: approved
     eyebrow: What we do
