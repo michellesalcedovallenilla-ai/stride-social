@@ -116,6 +116,35 @@ export const primaryNav: PrimaryItem[] = [
 
 export const contactLink: NavLink = { label: 'Contact', href: '/contact' };
 
+/**
+ * The camera mode dial (global/ModeDial.astro): the six modes it turns between, in dial order.
+ * `links` are the pages the menu shows for the selected mode (reusing the lists above).
+ */
+export type ModeKey = 'group' | 'social' | 'talent' | 'education' | 'work' | 'about';
+export type Mode = { key: ModeKey; label: string; href: string; links: NavLink[] };
+
+const menuLinks = (label: string) => primaryNav.find((i) => i.label === label)?.menu?.columns.flatMap((c) => c.links) ?? [];
+
+export const modes: Mode[] = [
+  { key: 'group', label: 'Group', href: '/', links: [{ label: 'Home', href: '/' }, { label: 'Insights', href: '/insights' }, contactLink] },
+  { key: 'social', label: 'Social', href: '/social', links: menuLinks('Stride Social') },
+  { key: 'talent', label: 'Talent', href: '/talent', links: menuLinks('Stride Talent') },
+  { key: 'education', label: 'Education', href: '/education', links: menuLinks('Stride Education') },
+  { key: 'work', label: 'Work', href: '/work', links: [{ label: 'Our Work', href: '/work' }, { label: 'Start a campaign', href: '/social/enquire' }] },
+  { key: 'about', label: 'About', href: '/about', links: menuLinks('Our Group') },
+];
+
+/** Which mode a page belongs to, from its path (the home page and anything unlisted is Group). */
+export function modeOf(path: string): ModeKey {
+  const p = path.replace(/\/$/, '') || '/';
+  if (p.startsWith('/work')) return 'work';
+  if (p.startsWith('/social')) return 'social';
+  if (p.startsWith('/talent')) return 'talent';
+  if (p.startsWith('/education')) return 'education';
+  if (['/about', '/history', '/team', '/sponsorships', '/careers'].some((s) => p.startsWith(s))) return 'about';
+  return 'group';
+}
+
 /** Second row shown inside a division: where you are, its key pages and its main action. */
 export const divisionBars: Record<Exclude<DivisionKey, 'group'>, { name: string; links: NavLink[]; cta: NavLink }> = {
   social: {

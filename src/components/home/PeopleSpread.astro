@@ -1,0 +1,388 @@
+---
+// Homepage section 4 "THE PEOPLE BEHIND STRIDE.": roster creators run past as a slow strip, then
+// the team stands in a lineup like a cast-selection screen: tall slots on a lit floor, an index,
+// name and role under each; hovering (or focusing) one steps them forward and dims the rest.
+// Each slot is built for a full-body character render (team `character` field: transparent image,
+// feet at the bottom); until one is supplied the member's headshot fills the slot. Creators come
+// in consent-gated from the page; the strip needs at least three of them.
+import { getCollection } from 'astro:content';
+import Eyebrow from '../core/Eyebrow.astro';
+import Button from '../core/Button.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+
+export interface Props {
+  copy: { eyebrow?: string; headline?: string; cta?: { label: string; href: string } };
+  roster: { eyebrow: string; cta?: { label: string; href: string } };
+  creators: { href: string; src: string; alt: string; name: string }[];
+  interim: boolean;
+  teamNote?: boolean;
+}
+
+const { copy, roster, creators, interim, teamNote = false } = Astro.props;
+const deptOrder = ['leadership', 'campaigns', 'social', 'sales', 'talent', 'operations'];
+const team = (await getCollection('team', (m) => m.data.visible))
+  .sort((a, b) => deptOrder.indexOf(a.data.department) - deptOrder.indexOf(b.data.department) || a.data.order - b.data.order)
+  .slice(0, 6);
+const pendingCharacters = team.some((m) => !m.data.character);
+const showCreators = creators.length >= 3;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="people" aria-labelledby="people-title">
+  <div class="people__inner container-wide">
+    <h2 class="people__title" id="people-title" data-reveal="from-left">{copy.headline}</h2>
+  </div>
+
+  {showCreators && (
+    <div class="people__creators">
+      <div class="people__running container-wide">
+        <Eyebrow as="div" tone="dark"><h3 class="people__sub">{roster.eyebrow}</h3></Eyebrow>
+        {interim && <PlaceholderNotice variant="inline" label="Interim portraits">— roster photos, consent to be re-confirmed</PlaceholderNotice>}
+        {roster.cta && <Button href={roster.cta.href} variant="text" tone="dark">{roster.cta.label}</Button>}
+      </div>
+      {/* Two copies make the loop seamless; the second is hidden from assistive tech and the tab order. */}
+      <div class="marquee" data-reveal="wipe">
+        <div class="marquee__track">
+          {[0, 1].map((copyIndex) => (
+            <ul class="marquee__set" role="list" aria-hidden={copyIndex === 1 ? 'true' : undefined}>
+              {creators.map((c, i) => (
+                <li class="creator" style={`--tilt: ${i % 2 ? 2 : -2}deg`}>
+                  <a href={c.href} tabindex={copyIndex === 1 ? -1 : undefined} aria-label={`${c.name}, creator profile`}>
+                    <img src={c.src} alt={c.alt} sizes="(max-width: 767px) 46vw, 260px" loading="lazy" decoding="async" />
+                    <span class="creator__name">{c.name}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  <div class="lineup container-wide">
+    <div class="people__running">
+      <Eyebrow as="div" tone="dark"><h3 class="people__sub">{copy.eyebrow}</h3></Eyebrow>
+      {teamNote && pendingCharacters && <PlaceholderNotice variant="inline" label="Character art">— full-body characters to come; headshots for now</PlaceholderNotice>}
+      {copy.cta && <Button href={copy.cta.href} variant="text" tone="dark">{copy.cta.label}</Button>}
+    </div>
+
+    <ol class="lineup__stage" role="list" tabindex="0" aria-label={`${copy.eyebrow ?? 'The team'}: scroll sideways on small screens`}>
+      {team.map((m, i) => (
+        <li class="member" data-reveal="tilt" style={`--reveal-delay: ${i * 0.06}s`}>
+          <figure class="member__figure">
+            {/* The slot a full-body render will fill (data-character-slot), standing on the floor. */}
+            <div class:list={['member__slot', { 'member__slot--character': m.data.character }]} data-character-slot>
+              {m.data.character ? (
+                <img class="member__character" src={m.data.character.src} alt={m.data.character.alt} sizes="(max-width: 767px) 44vw, 220px" loading="lazy" decoding="async" />
+              ) : (
+                <img class="member__photo" src={m.data.photo.src} alt={m.data.photo.alt} sizes="(max-width: 767px) 44vw, 220px" loading="lazy" decoding="async" />
+              )}
+            </div>
+            <span class="member__floor" aria-hidden="true"></span>
+            <figcaption class="member__caption">
+              <span class="member__index" aria-hidden="true">{pad(i + 1)}</span>
+              <span class="member__name">{m.data.name}</span>
+              <span class="member__role">{m.data.role}</span>
+            </figcaption>
+          </figure>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .people {
+    padding-block: clamp(72px, 9vw, 160px);
+    background: var(--navy-900);
+    color: var(--white);
+  }
+
+  .people__title {
+    max-width: 12ch;
+    margin-bottom: var(--space-8);
+    font-family: var(--font-display);
+    font-size: var(--type-h1);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .people__running {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+
+  .people__running :global(.btn) {
+    margin-left: auto;
+  }
+
+  .people__sub {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  /* ---------- Creators strip ---------- */
+  .people__creators {
+    margin-bottom: var(--space-9);
+  }
+
+  .marquee {
+    overflow: hidden;
+    padding-block: var(--space-4);
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 60s linear infinite;
+  }
+
+  .marquee:hover .marquee__track,
+  .marquee:focus-within .marquee__track {
+    animation-play-state: paused;
+  }
+
+  .marquee__set {
+    display: flex;
+    gap: var(--space-5);
+    padding-right: var(--space-5);
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .creator {
+    flex: none;
+    width: clamp(180px, 18vw, 260px);
+  }
+
+  .creator a {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--navy-700);
+    rotate: var(--tilt);
+    transition:
+      rotate var(--dur-slow) var(--ease-out),
+      scale var(--dur-slow) var(--ease-out);
+  }
+
+  .creator img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 20%;
+  }
+
+  .creator__name {
+    position: absolute;
+    left: var(--space-3);
+    bottom: var(--space-3);
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--navy-900);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .creator a:hover,
+  .creator a:focus-visible {
+    rotate: 0deg;
+    scale: 1.03;
+  }
+
+  .creator a:focus-visible {
+    outline: 2px solid var(--ice);
+    outline-offset: 3px;
+  }
+
+  .creator a:hover .creator__name,
+  .creator a:focus-visible .creator__name {
+    background: var(--ice);
+  }
+
+  /* ---------- Team lineup (cast selection) ---------- */
+  .lineup__stage {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--gutter);
+    padding-top: var(--space-5);
+  }
+
+  .lineup__stage:focus-visible {
+    outline: 2px solid var(--ice);
+    outline-offset: 6px;
+  }
+
+  .member__figure {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    transition:
+      opacity var(--dur-slow) var(--ease-out),
+      filter var(--dur-slow) var(--ease-out);
+  }
+
+  /* A tall slot under a soft spotlight: the space a standing character will occupy. */
+  .member__slot {
+    position: relative;
+    aspect-ratio: 3 / 5;
+    overflow: hidden;
+    border-radius: 999px 999px 18px 18px;
+    background:
+      radial-gradient(80% 55% at 50% 18%, rgb(195 242 251 / 0.16), transparent 70%),
+      linear-gradient(var(--navy-700), var(--navy-900));
+    transition: transform 500ms var(--ease-out);
+  }
+
+  .member__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 15%;
+  }
+
+  /* A render stands on the floor at its natural proportions. */
+  .member__character {
+    position: absolute;
+    inset: auto 0 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+  }
+
+  .member__slot--character {
+    overflow: visible;
+    border-radius: 0;
+    background: radial-gradient(70% 45% at 50% 30%, rgb(195 242 251 / 0.14), transparent 70%);
+  }
+
+  /* The lit floor spot under each slot. */
+  .member__floor {
+    justify-self: center;
+    width: 80%;
+    height: 14px;
+    margin-top: calc(var(--space-4) * -1 - 7px);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(195 242 251 / 0.28), transparent);
+    transition: background var(--dur-slow) var(--ease-out);
+  }
+
+  .member__caption {
+    display: grid;
+    gap: 2px;
+  }
+
+  .member__index {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    color: var(--ice);
+  }
+
+  .member__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .member__role {
+    font-size: var(--type-small);
+    line-height: 1.35;
+    color: rgb(255 255 255 / 0.7);
+  }
+
+  /* Selecting a member: they step forward, the floor lights up, everyone else steps back. */
+  @media (hover: hover) and (pointer: fine) {
+    .member:hover .member__slot {
+      transform: translateY(-10px) scale(1.02);
+    }
+
+    .member:hover .member__floor {
+      background: radial-gradient(closest-side, rgb(195 242 251 / 0.7), transparent);
+    }
+
+    .lineup__stage:has(.member:hover) .member:not(:hover) .member__figure {
+      opacity: 0.4;
+      filter: saturate(0.4);
+    }
+  }
+
+  /* ---------- Tablet ---------- */
+  @media (max-width: 1023px) {
+    .lineup__stage {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: var(--space-7);
+    }
+  }
+
+  /* ---------- Phones: the lineup scrolls sideways and snaps to each member ---------- */
+  @media (max-width: 767px) {
+    .people__title {
+      font-size: min(11vw, 3.5rem);
+      font-stretch: var(--stretch-normal);
+    }
+
+    .people__running :global(.btn) {
+      margin-left: 0;
+    }
+
+    .lineup__stage {
+      display: flex;
+      gap: var(--space-4);
+      margin-inline: calc(var(--margin) * -1);
+      padding-inline: var(--margin);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--margin);
+      scrollbar-width: none;
+    }
+
+    .member {
+      flex: none;
+      width: 44vw;
+      scroll-snap-align: start;
+    }
+
+    .creator {
+      width: 46vw;
+    }
+  }
+
+  /* Reduced motion: the creators sit still as a row you can scroll, nothing tilts. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      overflow-x: auto;
+    }
+
+    .marquee__track {
+      animation: none;
+    }
+
+    .marquee__set[aria-hidden] {
+      display: none;
+    }
+
+    .creator a {
+      rotate: 0deg;
+    }
+  }
+</style>

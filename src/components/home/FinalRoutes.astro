@@ -1,16 +1,36 @@
 ---
-// Homepage A10 "LET'S MAKE SOMETHING HAPPEN.": bold closing section with one route per division,
-// directly above the navy footer.
+// Homepage back page "LET'S MAKE SOMETHING HAPPEN.": the closing spread on navy, one route per
+// division, directly above the footer; rows turn cyan on hover. The headline carries the page's
+// only Instrument Serif word.
 export interface Props {
   copy: { headline?: string; items?: { key?: string; label: string; href?: string }[] };
 }
 
 const { copy } = Astro.props;
+
+// The one serif word. reveal-lines.ts rebuilds a heading from bare words and would drop an inline
+// <em>, so the headline is authored as lines (as the hero does): before / "something" / after.
+// The 14ch cap wraps it there anyway. Headlines without the word render plain and split themselves.
+const match = copy.headline?.match(/\bsomething\b/i);
+const at = match?.index ?? 0;
+const lines = match
+  ? [
+      { text: copy.headline!.slice(0, at).trim() },
+      { text: match[0], serif: true },
+      { text: copy.headline!.slice(at + match[0].length).trim() },
+    ].filter((l) => l.text)
+  : null;
 ---
 
 <section class="final" aria-labelledby="final-title">
   <div class="final__inner">
-    <h2 class="final__title" id="final-title" data-reveal-lines>{copy.headline}</h2>
+    <h2 class="final__title" id="final-title" data-reveal-lines>
+      {lines
+        ? lines.map((l, i) => (
+            <span class:list={['reveal-line', { 'final__line--serif': l.serif }]} style={`--line: ${i}`}><span class="reveal-line__inner">{l.serif ? <em class="final__accent">{l.text}</em> : l.text}</span></span>
+          ))
+        : copy.headline}
+    </h2>
     <ul class="final__routes" role="list">
       {(copy.items ?? []).map((r, i) => (
         <li data-reveal="rise" style={`--reveal-delay: ${i * 0.08}s`}>
@@ -29,37 +49,55 @@ const { copy } = Astro.props;
   .final {
     position: relative;
     z-index: 1;
-    background: var(--ice);
-    color: var(--navy-900);
+    background: var(--navy-900);
+    color: var(--white);
   }
 
+  /* Natural height: the section rhythm, not a viewport-tall block. */
   .final__inner {
     display: grid;
     gap: var(--space-8);
     max-width: calc(var(--container-wide) + 2 * var(--margin));
-    min-height: min(100vh, 900px);
-    align-content: center;
     margin-inline: auto;
-    padding: var(--section-pad) var(--margin);
+    padding: clamp(56px, 7vw, 128px) var(--margin);
   }
 
   .final__inner > * {
     min-width: 0;
   }
 
+  /* ---------- Headline ---------- */
   .final__title {
     max-width: 14ch;
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 9vw, 9rem);
+    font-size: var(--type-display);
     font-weight: 850;
     font-stretch: var(--stretch-wide);
-    line-height: 0.86;
-    letter-spacing: -0.025em;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
     text-transform: uppercase;
   }
 
+  .final__accent {
+    font-family: var(--font-serif);
+    font-size: 1.1em;
+    font-style: italic;
+    font-weight: 400;
+    font-stretch: var(--stretch-normal);
+    line-height: 0.9;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Base .reveal-line clips at 0.06em; the serif ascenders and the "g" descender need more. */
+  .final__line--serif {
+    padding-block: 0.14em;
+    margin-block: -0.14em;
+  }
+
+  /* ---------- Routes ---------- */
   .final__routes {
-    border-top: 1px solid var(--navy-900);
+    border-top: 1px solid var(--line-dark);
   }
 
   .final__route {
@@ -67,19 +105,21 @@ const { copy } = Astro.props;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: var(--space-5);
-    padding: var(--space-5) 0;
-    border-bottom: 1px solid var(--navy-900);
-    transition: padding var(--dur-slow) var(--ease-out);
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--line-dark);
+    transition:
+      padding var(--dur-slow) var(--ease-out),
+      color var(--dur-base) var(--ease-out);
   }
 
   .final__swatch {
     width: 18px;
     height: 18px;
-    border: 1px solid var(--navy-900);
+    border: 1px solid rgb(255 255 255 / 0.4);
   }
 
   .final__route--social .final__swatch {
-    background: var(--navy-900);
+    background: var(--ice);
   }
 
   .final__route--talent .final__swatch {
@@ -92,31 +132,35 @@ const { copy } = Astro.props;
 
   .final__label {
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3.4vw, 3.25rem);
-    font-weight: 800;
-    font-stretch: 112%;
+    font-size: clamp(1.5rem, 2.8vw, 2.75rem);
+    font-weight: 750;
+    font-stretch: var(--stretch-normal);
     line-height: 1;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
     text-transform: uppercase;
   }
 
   .final__arrow {
     width: clamp(22px, 2.4vw, 36px);
-    transition: transform var(--dur-base) var(--ease-out);
+    transition: transform var(--dur-slow) var(--ease-out);
   }
 
-  .final__route:hover {
-    padding-left: var(--space-4);
+  /* Row hover: the row steps in and the arrow leads (fine pointers only). */
+  @media (hover: hover) and (pointer: fine) {
+    .final__route:hover {
+      padding-left: var(--space-4);
+      color: var(--ice);
+    }
+
+    .final__route:hover .final__arrow {
+      transform: translateX(6px);
+    }
   }
 
-  .final__route:hover .final__arrow {
-    transform: translateX(6px);
-  }
-
-  @media (max-width: 599px) {
+  /* ---------- Phone ---------- */
+  @media (max-width: 767px) {
     .final__title {
-      font-size: 10.5vw;
-      font-stretch: 112%;
+      font-size: min(11vw, 3.5rem);
     }
 
     .final__route {
@@ -127,6 +171,10 @@ const { copy } = Astro.props;
   @media (prefers-reduced-motion: reduce) {
     .final__route:hover {
       padding-left: 0;
+    }
+
+    .final__route:hover .final__arrow {
+      transform: none;
     }
   }
 </style>

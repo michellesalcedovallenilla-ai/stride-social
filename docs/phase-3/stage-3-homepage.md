@@ -1,5 +1,7 @@
 # Stage 3 — Group homepage
 
+**Superseded on 2026-11-02:** the homepage was rebuilt; see `homepage-magazine.md`. This gate record is historical.
+
 Branch: `feature/stage-3-homepage`. Review gate: **Gate 3**, homepage review at desktop, tablet and mobile (docs/phase-2/08-roadmap.md).
 
 **Gate 3 approved by the owner on 2026-10-31.** The open items below stay open for Stride; the homepage ships with labelled placeholders until they are answered.

@@ -29,8 +29,10 @@ creators: []
 quote:
   text: We’ve worked with Stride for 2 years. The experience has been amazing. Great supply of creators, huge capabilities for negotiating budgets. Super happy with their service!
   status: unverified
-featuredOn: []
-featuredOrder: null
+# Proposed for the homepage work tiles (has campaign video). Confirm or swap.
+featuredOn:
+  - home
+featuredOrder: 6
 contentStatus: needs-rewrite
 order: 3
 seo:

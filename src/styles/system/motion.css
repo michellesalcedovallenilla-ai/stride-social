@@ -1,0 +1,136 @@
+/*
+ * Stride motion language (loaded after base.css). Controlled and editorial: things are masked in,
+ * arrive from an unexpected side, settle with a slight turn, and react to the pointer a little.
+ * Nothing loops by itself. Everything here switches off under prefers-reduced-motion.
+ *
+ * Reveal variants (one-shot, set by src/scripts/system/reveal.ts adding .is-revealed):
+ *   data-reveal="wipe"        a mask opens left to right
+ *   data-reveal="from-left"   arrives from the left, slightly turned and blurred
+ *   data-reveal="from-right"  arrives from the right, slightly turned and blurred
+ *   data-reveal="tilt"        rises while straightening from a small tilt
+ * Pointer motion (src/scripts/system/motion.ts, fine pointers only):
+ *   data-parallax="12"        drifts up to 12px against the pointer
+ *   data-magnetic             leans towards the pointer while hovered
+ */
+
+/* Oversized type and side entrances may poke past the edges; never make the page scroll sideways. */
+main {
+  overflow-x: clip;
+}
+
+/* ---------- Reveal variants ---------- */
+.js [data-reveal='wipe'] {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 900ms var(--ease-out);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.js [data-reveal='from-left'],
+.js [data-reveal='from-right'],
+.js [data-reveal='tilt'] {
+  opacity: 0;
+  filter: blur(6px);
+  transition:
+    opacity 600ms var(--ease-out),
+    filter 600ms var(--ease-out),
+    transform 900ms var(--ease-out);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.js [data-reveal='from-left'] {
+  transform: translateX(-10vw) rotate(-2deg);
+}
+
+.js [data-reveal='from-right'] {
+  transform: translateX(10vw) rotate(2deg);
+}
+
+.js [data-reveal='tilt'] {
+  transform: translateY(48px) rotate(-3deg);
+  transform-origin: 0 100%;
+}
+
+.js [data-reveal='wipe'].is-revealed {
+  clip-path: inset(0);
+}
+
+.js [data-reveal='from-left'].is-revealed,
+.js [data-reveal='from-right'].is-revealed,
+.js [data-reveal='tilt'].is-revealed {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+/* ---------- Pointer motion ---------- */
+[data-magnetic] {
+  transition: translate 350ms var(--ease-out);
+}
+
+/* ---------- Page transitions ----------
+ * Same-site navigation (Chrome, Edge, Safari): the old page drifts and blurs away while the new
+ * one is wiped in from the right. The header and the dial keep their own layers, so they stay put.
+ * Leaving through the dial also blurs the page first (`html.is-leaving`, every browser).
+ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: page-out 260ms var(--ease-in-out) both;
+}
+
+::view-transition-new(root) {
+  animation: page-in 520ms var(--ease-out) both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0.25;
+    filter: blur(8px);
+    transform: translateX(-2%);
+  }
+}
+
+@keyframes page-in {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+html.is-leaving main {
+  opacity: 0.35;
+  filter: blur(8px);
+  transform: translateX(-1.5%);
+  transition:
+    opacity 200ms var(--ease-in-out),
+    filter 200ms var(--ease-in-out),
+    transform 200ms var(--ease-in-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal='wipe'],
+  .js [data-reveal='from-left'],
+  .js [data-reveal='from-right'],
+  .js [data-reveal='tilt'] {
+    clip-path: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  html.is-leaving main {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}

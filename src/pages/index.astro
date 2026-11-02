@@ -1,40 +1,64 @@
 ---
-// Group homepage: the ten sections from the client brief (PDF §3; docs/phase-2/05-wireframes.md §A).
-// Copy lives in src/content/pages/home.yaml; collections supply work, team, insights, divisions,
-// sponsorships and markets. Media marked interim is labelled on screen until approved assets arrive.
-import { getEntry } from 'astro:content';
+// Group homepage (docs/phase-3/homepage-magazine.md): the editorial video hero, then five navy
+// sections that respond to the pointer. Copy lives in src/content/pages/home.yaml (plus the roster and
+// logos running heads from talent.yaml and social.yaml); collections supply creators, work, brands,
+// team and insights through their status rules. Missing images get labelled placeholders.
+import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import HeroMontage from '@/components/home/HeroMontage.astro';
-import ThreeSides from '@/components/home/ThreeSides.astro';
-import GroupIntro from '@/components/home/GroupIntro.astro';
-import DivisionIndex from '@/components/home/DivisionIndex.astro';
-import WorkMosaic from '@/components/home/WorkMosaic.astro';
-import PeopleMosaic from '@/components/home/PeopleMosaic.astro';
-import BeyondBusiness from '@/components/home/BeyondBusiness.astro';
-import InsightsTrio from '@/components/home/InsightsTrio.astro';
-import MarketsDisplay from '@/components/home/MarketsDisplay.astro';
+import CoverHero from '@/components/home/CoverHero.astro';
+import ContentsIndex from '@/components/home/ContentsIndex.astro';
+import ProofSpread from '@/components/home/ProofSpread.astro';
+import PeopleSpread from '@/components/home/PeopleSpread.astro';
+import InsightsIndex from '@/components/home/InsightsIndex.astro';
 import FinalRoutes from '@/components/home/FinalRoutes.astro';
+import { getRoster } from '@/lib/roster';
+import { routes } from '@/lib/routes';
+import { isPreview } from '@/lib/env';
 import { site, socials } from '@/config/site';
 
 const page = await getEntry('pages', 'home');
-if (!page) throw new Error('Missing src/content/pages/home.yaml');
+const talent = await getEntry('pages', 'talent');
+const social = await getEntry('pages', 'social');
+if (!page || !talent || !social) throw new Error('Missing src/content/pages/{home,talent,social}.yaml');
 const s = page.data.sections;
 
-// Interim panel media for Three Sides (labelled on screen). Keyed by division.
-const sideMedia = {
-  social: {
-    image: { src: '/assets/site/f2fc912c-video1-poster-00001.jpg', alt: 'A creator filming a product campaign in her kitchen', position: '50% 30%' },
-    video: {
-      label: 'A creator filming a product campaign in her kitchen',
-      mp4: '/assets/video/f2fc912c-video1-transcode.mp4',
-      webm: '/assets/video/f2fc912c-video1-transcode.webm',
-      poster: '/assets/site/f2fc912c-video1-poster-00001.jpg',
-    },
-  },
-  talent: { image: { src: '/assets/cms/7a2c07a0-aq.jpg', alt: 'Black and white portrait of a Stride Talent creator', position: '50% 25%' } },
-  education: { image: { src: '/assets/site/b9208d92-stride-social.webp', alt: 'Creators and the Stride team at an industry event', position: '50% 50%' } },
-} as const;
-type DivisionKey = keyof typeof sideMedia;
+type DivisionKey = 'social' | 'talent' | 'education';
+
+// Creators come through getRoster() (the consent rule), so production shows confirmed consent only.
+const roster = await getRoster();
+const portraitOf = (c: (typeof roster)[number]) => ({
+  name: c.data.name,
+  href: routes.creator(c.id),
+  src: c.data.portrait!.src,
+  alt: c.data.portrait!.alt,
+});
+const notConfirmed = (c: (typeof roster)[number]) => c.data.consent.status !== 'confirmed';
+
+// People strip: the roster minus portraits that don't suit a uniform 4:5 strip. Hand-checked list
+// (aqsaxiqbal black and white; alchemistlyy, alementary, hamajineo, tiffanydaviesfx square;
+// spencer-sebastian-yang landscape): re-check it when roster portraits or their order change.
+const unsuited = new Set(['aqsaxiqbal', 'alchemistlyy', 'alementary', 'hamajineo', 'tiffanydaviesfx', 'spencer-sebastian-yang']);
+const stripCreators = roster.filter((c) => c.data.portrait && !unsuited.has(c.id)).slice(0, 6);
+if (stripCreators.length % 2) stripCreators.pop();
+
+// Business rows: footage or an image comes up behind each on hover: a light cut of the showreel for
+// Social, a roster portrait for Talent, and a labelled placeholder wherever there is no image yet
+// (education imagery is open, Q11).
+const featuredWork = (await getCollection('work', (w) => w.data.visible && w.data.featuredOn.includes('home'))).sort(
+  (a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99),
+);
+const socialImage = featuredWork[0]?.data.hero ?? featuredWork[0]?.data.card;
+const talentCreator = stripCreators[0];
+type RowMedia = { thumb?: { src: string; alt: string; interim?: boolean }; video?: { mp4: string; poster: string; label: string }; thumbMissing?: string };
+const thumbs: Record<DivisionKey, RowMedia> = {
+  social: socialImage
+    ? { thumb: { src: socialImage.src, alt: socialImage.alt }, video: { mp4: '/assets/video/preview-social.mp4', poster: socialImage.src, label: 'Stride Social campaign footage' } }
+    : { thumbMissing: 'Campaign image needed' },
+  talent: talentCreator
+    ? { thumb: { src: talentCreator.data.portrait!.src, alt: talentCreator.data.portrait!.alt, interim: notConfirmed(talentCreator) } }
+    : { thumbMissing: 'Creator portrait — awaiting consent' },
+  education: { thumbMissing: 'Education imagery needed (Q11)' },
+};
 
 // Organization + WebSite structured data: real company facts only (no address until Q3).
 const jsonLd = [
@@ -57,25 +81,23 @@ const jsonLd = [
   headerOverlay
   jsonLd={jsonLd}
 >
-  <HeroMontage
+  <CoverHero
     headline={s.hero.lines ?? []}
     description={s.hero.body ?? ''}
-    routes={[
-      { label: 'Stride Social', href: '/social', division: 'social' },
-      { label: 'Stride Talent', href: '/talent', division: 'talent' },
-      { label: 'Stride Education', href: '/education', division: 'education' },
-    ]}
-    video={{
-      label: 'Montage of Stride creator campaigns',
-      mp4: '/assets/video/1236e597-1029-transcode.mp4',
-      webm: '/assets/video/1236e597-1029-transcode.webm',
-      poster: '/assets/site/1236e597-1029-poster-00001.jpg',
+    reel={{
+      // Showreel cut from the campaign footage already on the site (scratchpad make-reel.py),
+      // until Stride's approved montage arrives.
+      label: 'Showreel of Stride creator campaigns',
+      mp4: '/assets/video/stride-reel-desktop.mp4',
+      webm: '/assets/video/stride-reel-desktop.webm',
+      poster: '/assets/site/stride-reel-desktop-poster.jpg',
       mobile: {
-        mp4: '/assets/video/926f3517-1029-1-transcode.mp4',
-        webm: '/assets/video/926f3517-1029-1-transcode.webm',
-        poster: '/assets/site/926f3517-1029-1-poster-00001.jpg',
+        mp4: '/assets/video/stride-reel-mobile.mp4',
+        webm: '/assets/video/stride-reel-mobile.webm',
+        poster: '/assets/site/stride-reel-mobile-poster.jpg',
       },
     }}
+    routes={(s.sides.items ?? []).map((item) => ({ audience: item.audience ?? '', name: item.label, href: item.href ?? '/', division: item.key as DivisionKey }))}
     intro={{
       // The divisions take turns after STRIDE; the last name holds as the opening ends.
       words: [
@@ -87,31 +109,31 @@ const jsonLd = [
     }}
   />
 
-  <ThreeSides
+  <ContentsIndex
     eyebrow={s.sides.eyebrow ?? ''}
     headline={s.sides.headline ?? ''}
-    panels={(s.sides.items ?? []).map((item) => ({
-      division: item.key as DivisionKey,
+    items={(s.sides.items ?? []).map((item) => ({
+      key: item.key as DivisionKey,
       audience: item.audience ?? '',
-      name: item.label,
+      name: `Stride ${item.label}`,
       copy: item.copy ?? '',
       cta: item.cta ?? '',
       href: item.href ?? '/',
-      ...sideMedia[item.key as DivisionKey],
-      interim: true,
+      ...thumbs[item.key as DivisionKey],
     }))}
   />
 
-  <GroupIntro
-    copy={s.group}
-    image={{ src: '/assets/site/d0919a45-stride-social.webp', alt: 'Stride team members at an industry technology event', position: '45% 50%' }}
-    interim
+  <ProofSpread work={s.work} logos={social.data.sections.logos} />
+
+  <PeopleSpread
+    copy={s.people}
+    roster={{ eyebrow: talent.data.sections.roster.eyebrow ?? '', cta: talent.data.sections.roster.cta }}
+    creators={stripCreators.map(portraitOf)}
+    interim={stripCreators.some(notConfirmed)}
+    teamNote={isPreview}
   />
-  <DivisionIndex copy={s.divisions} />
-  <WorkMosaic copy={s.work} />
-  <PeopleMosaic copy={s.people} candid={{ src: '/assets/site/81d2e389-screenshot-2025-10-13-at-10.59.51.jpg', alt: 'A Stride team member at an industry event with a Stride Social floor sign', interim: true }} />
-  <BeyondBusiness copy={s.beyond} />
-  <InsightsTrio copy={s.insights} />
-  <MarketsDisplay copy={s.presence} />
+
+  <InsightsIndex copy={s.insights} />
+
   <FinalRoutes copy={s.final} />
 </SiteLayout>
