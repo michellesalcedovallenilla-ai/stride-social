@@ -19,6 +19,12 @@ export async function getArticles() {
 
 export const realAside = (a: Article) => (a.data.aside && !a.data.aside.src.includes('website-files.com/plugins/Basic/assets/placeholder') ? a.data.aside : null);
 
+/** Minutes to read, from the article's own length (about 220 words a minute). */
+export const readingMinutes = (a: Article) => {
+  const words = (a.body ?? '').replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 220));
+};
+
 export const formatDate = (d: Date | null) => (d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
 
 /**

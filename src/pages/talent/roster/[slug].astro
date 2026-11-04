@@ -1,19 +1,19 @@
 ---
-// Creator profile (docs/phase-2/05-wireframes.md §E): portrait (4:5), name, main category,
-// country and platform links · biography · selected work · "Enquire about [name]" (brand form
-// with the creator preselected) · more creators in the category. Built only for published
-// creators (src/lib/roster.ts). No follower counts: the old figures are unverified.
+// Creator profile: the creator as a holographic card that leans towards the pointer, beside their
+// biography and platforms in glass (talent/HoloProfile). Then the shared menu: Selected Work, More
+// Creators. Built only for published creators (src/lib/roster.ts). No follower counts: the old figures
+// are unverified.
 import { getCollection } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
-import Button from '@/components/core/Button.astro';
+import HoloProfile from '@/components/talent/HoloProfile.astro';
+import Deck from '@/components/experience/Deck.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
-import RosterCard from '@/components/talent/RosterCard.astro';
-import WorkGrid from '@/components/social/WorkGrid.astro';
 import { cleanBio, getRoster, platformNames, platformsOf } from '@/lib/roster';
 import { routes } from '@/lib/routes';
 import { isPreview } from '@/lib/env';
 import { site } from '@/config/site';
+import type { Card } from '@/lib/experience';
+import Tray from '@/components/experience/Tray.astro';
 
 export async function getStaticPaths() {
   const roster = await getRoster();
@@ -21,15 +21,24 @@ export async function getStaticPaths() {
 }
 
 const { creator, roster } = Astro.props;
+const at = roster.findIndex((c) => c.id === creator.id);
+const neighbour = (by: number) => (roster.length > 1 ? routes.creator(roster[(at + by + roster.length) % roster.length].id) : undefined);
 const d = creator.data;
 const categories = Object.fromEntries((await getCollection('categories')).map((c) => [c.id, c.data.label]));
 const mainCategory = d.mainCategory ? categories[d.mainCategory.id] : null;
 const platforms = platformsOf(creator);
 const bio = cleanBio(creator.body);
 const work = (await getCollection('work', (w) => w.data.visible && w.data.creators.some((c) => c.id === creator.id))).sort((a, b) => a.data.order - b.data.order);
-const related = roster.filter((c) => c.id !== creator.id && d.mainCategory && c.data.mainCategory?.id === d.mainCategory.id && c.data.portrait).slice(0, 4);
+const related = roster.filter((c) => c.id !== creator.id && d.mainCategory && c.data.mainCategory?.id === d.mainCategory.id && c.data.portrait).slice(0, 8);
 const country = d.country ? new Intl.DisplayNames(['en'], { type: 'region' }).of(d.country) : null;
 const seoDescription = `${d.name}${mainCategory ? `, ${mainCategory.toLowerCase()} creator` : ''} represented by Stride Talent. Brands can enquire about collaborations.`;
+const enquire = `Enquire about ${d.name}`;
+
+const workCards: Card[] = work.map((w) => ({ name: w.data.title, text: w.data.summary, href: routes.caseStudy(w.id), image: w.data.card, direct: true }));
+const relatedCards: Card[] = [
+  ...related.map((c) => ({ name: c.data.name, text: mainCategory, href: routes.creator(c.id), image: c.data.portrait, direct: true })),
+  ...(d.mainCategory ? [{ name: 'See all', text: mainCategory, href: routes.rosterFiltered(d.mainCategory.id), direct: true }] : []),
+];
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -44,268 +53,35 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={`${d.name} | Stride Talent roster`} description={seoDescription} division="talent" ogImage={d.portrait?.src} ogType="profile" jsonLd={jsonLd}>
-  <article class="profile">
-    <div class="profile__inner container-wide">
-      <div class="profile__crumbs">
-        <Breadcrumbs items={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Roster', href: '/talent/roster' }, { label: d.name }]} tone="light" />
-      </div>
+<SiteLayout title={`${d.name} | Stride Talent roster`} description={seoDescription} division="talent" ogImage={d.portrait?.src} ogType="profile" jsonLd={jsonLd} look="deep" headerOverlay>
+  <HoloProfile
+    creatorId={creator.id}
+    prev={neighbour(-1)}
+    next={neighbour(1)}
+    name={d.name}
+    portrait={d.portrait}
+    label={[mainCategory ?? 'Creator', country].filter(Boolean).join(' · ')}
+    bio={bio || undefined}
+    fallback={`${d.name} is part of the Stride Talent roster.`}
+    platforms={platforms.map((p) => ({ label: platformNames[p.key], href: p.href }))}
+    enquire={{ label: enquire, href: routes.creatorEnquiry(creator.id) }}
+    crumbs={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Roster', href: '/talent/roster' }, { label: d.name }]}
+  >
+    {isPreview && d.consent.status !== 'confirmed' && <PlaceholderNotice label="Interim profile">— from the previous site; consent to be re-confirmed before launch</PlaceholderNotice>}
+  </HoloProfile>
 
-      <figure class="profile__portrait">
-        {d.portrait ? (
-          <img src={d.portrait.src} alt={d.portrait.alt} sizes="(max-width: 1023px) 420px, 40vw" fetchpriority="high" decoding="async" />
-        ) : (
-          <span class="profile__initial" aria-hidden="true">{d.name.replace(/[^a-z0-9]/gi, '').charAt(0)}</span>
-        )}
-      </figure>
-
-      <div class="profile__main">
-        {isPreview && d.consent.status !== 'confirmed' && (
-          <PlaceholderNotice variant="inline" label="Interim profile">— from the previous site; consent to be re-confirmed before launch</PlaceholderNotice>
-        )}
-        <p class="profile__eyebrow">
-          {mainCategory ?? 'Creator'}{country && <> · {country}</>}
-        </p>
-        <h1 class="profile__name">{d.name}</h1>
-
-        {platforms.length > 0 && (
-          <ul class="profile__platforms" role="list" aria-label="Platforms">
-            {platforms.map((p) => (
-              <li>
-                <a href={p.href} target="_blank" rel="noopener">
-                  {platformNames[p.key]}
-                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3h8v8M13 3 3 13" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-                  <span class="visually-hidden">(opens in a new tab)</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div class="profile__actions">
-          <Button href={routes.creatorEnquiry(creator.id)} tone="light" arrow>Enquire about {d.name}</Button>
-        </div>
-
-        <section class="profile__block" aria-labelledby="bio-title">
-          <h2 class="profile__label" id="bio-title">Biography</h2>
-          {bio ? (
-            <div class="profile__bio" set:html={bio} />
-          ) : isPreview ? (
-            <PlaceholderNotice variant="block" label="Biography needed">
-              <p>No biography on the previous site. Needs a short bio from the creator or the talent team.</p>
-            </PlaceholderNotice>
-          ) : (
-            <p class="profile__bio">{d.name} is part of the Stride Talent roster.</p>
-          )}
-        </section>
-
-        {isPreview && !d.country && (
-          <PlaceholderNotice variant="inline" label="Country needed">— not recorded on the previous site (Q10)</PlaceholderNotice>
-        )}
-      </div>
-    </div>
-
-    {(work.length > 0 || isPreview) && (
-      <section class="profile__work container-wide" aria-labelledby="work-title">
-        <h2 class="profile__label" id="work-title">Selected work</h2>
-        {work.length > 0 ? (
-          <WorkGrid items={work} />
-        ) : (
-          <PlaceholderNotice variant="block" label="Selected work needed">
-            <p>No case study lists this creator yet. Add them to a case study's creators, or supply a collaboration list (Q10).</p>
-          </PlaceholderNotice>
-        )}
-      </section>
-    )}
-
-    {related.length > 0 && mainCategory && (
-      <section class="profile__related container-wide" aria-labelledby="related-title">
-        <div class="profile__related-head">
-          <h2 class="profile__label" id="related-title">More {mainCategory.toLowerCase()} creators</h2>
-          <Button href={routes.rosterFiltered(d.mainCategory!.id)} variant="text" tone="light">See all</Button>
-        </div>
-        <ul class="profile__related-list" role="list">
-          {related.map((c) => <RosterCard creator={c} categoryLabels={categories} />)}
-        </ul>
-      </section>
-    )}
-  </article>
+  {(workCards.length > 0 || relatedCards.length > 0) && (
+    <Deck
+      id="creator-menu"
+      label={`More from ${d.name}`}
+      tone="talent"
+      look="deep"
+      tabs={[
+        { key: 'work', label: 'Selected Work', icon: 'play', cards: workCards },
+        { key: 'more', label: mainCategory ? `More ${mainCategory}` : 'More Creators', icon: 'people', cards: relatedCards },
+      ]}
+      link={{ label: enquire, href: routes.creatorEnquiry(creator.id) }}
+    />
+  )}
+  <Tray list="creators" side="left" />
 </SiteLayout>
-
-<style>
-  .profile {
-    position: relative;
-    z-index: 1;
-    padding-bottom: var(--section-pad);
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .profile__inner {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-6) var(--gutter);
-    padding-block: var(--space-7) var(--space-9);
-  }
-
-  .profile__crumbs {
-    grid-column: 1 / -1;
-  }
-
-  .profile__portrait {
-    grid-column: 1 / 6;
-    align-self: start;
-    position: sticky;
-    top: calc(var(--header-h) + var(--division-bar-h) + var(--space-5));
-    margin: 0;
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-    background: var(--peach);
-  }
-
-  .profile__portrait img {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-  }
-
-  .profile__initial {
-    display: grid;
-    place-items: center;
-    height: 100%;
-    font-family: var(--font-display);
-    font-size: 8rem;
-    font-weight: 850;
-    text-transform: uppercase;
-  }
-
-  .profile__main {
-    grid-column: 7 / -1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-5);
-    align-content: start;
-    justify-items: start;
-    min-width: 0;
-    container-type: inline-size;
-  }
-
-  /* The CTA carries the creator's handle, so it may need two lines on phones. */
-  .profile__actions :global(.btn) {
-    max-width: 100%;
-    white-space: normal;
-    text-align: left;
-  }
-
-  .profile__eyebrow {
-    font-family: var(--font-mono);
-    font-size: var(--type-small);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--accent-ink);
-  }
-
-  /* Handles can be long ("journeyof-maison"), so the name scales with its column and may break. */
-  .profile__name {
-    max-width: 100%;
-    font-family: var(--font-display);
-    font-size: min(11cqi, 6rem);
-    font-weight: 850;
-    font-stretch: 112%;
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    overflow-wrap: anywhere;
-  }
-
-  .profile__platforms {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .profile__platforms a {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: 44px;
-    padding: 0 var(--space-4);
-    border: 1px solid var(--navy-900);
-    border-radius: 999px;
-    font-size: var(--type-small);
-    font-weight: 600;
-    transition:
-      background-color var(--dur-base) var(--ease-out),
-      color var(--dur-base) var(--ease-out);
-  }
-
-  .profile__platforms a:hover {
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .profile__platforms svg {
-    width: 12px;
-  }
-
-  .profile__block {
-    display: grid;
-    gap: var(--space-4);
-    width: 100%;
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--line);
-  }
-
-  .profile__label {
-    font-family: var(--font-mono);
-    font-size: var(--type-small);
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent-ink);
-  }
-
-  .profile__bio {
-    display: grid;
-    gap: var(--space-4);
-    max-width: 60ch;
-    font-size: var(--type-lead);
-    line-height: 1.5;
-  }
-
-  .profile__work,
-  .profile__related {
-    display: grid;
-    gap: var(--space-6);
-    padding-top: var(--space-9);
-  }
-
-  .profile__related-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-
-  .profile__related-list {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--gutter);
-  }
-
-  @media (max-width: 1023px) {
-    .profile__portrait,
-    .profile__main {
-      grid-column: 1 / -1;
-    }
-
-    .profile__portrait {
-      position: static;
-      width: min(100%, 420px);
-    }
-
-    .profile__related-list {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-</style>

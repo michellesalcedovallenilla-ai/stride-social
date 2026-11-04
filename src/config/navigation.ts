@@ -117,10 +117,10 @@ export const primaryNav: PrimaryItem[] = [
 export const contactLink: NavLink = { label: 'Contact', href: '/contact' };
 
 /**
- * The camera mode dial (global/ModeDial.astro): the six modes it turns between, in dial order.
+ * The areas of the radial navigation (global/EdgeNav.astro), in arc order.
  * `links` are the pages the menu shows for the selected mode (reusing the lists above).
  */
-export type ModeKey = 'group' | 'social' | 'talent' | 'education' | 'work' | 'about';
+export type ModeKey = 'group' | 'social' | 'talent' | 'education' | 'work' | 'about' | 'contact' | 'sponsoring';
 export type Mode = { key: ModeKey; label: string; href: string; links: NavLink[] };
 
 const menuLinks = (label: string) => primaryNav.find((i) => i.label === label)?.menu?.columns.flatMap((c) => c.links) ?? [];
@@ -132,6 +132,8 @@ export const modes: Mode[] = [
   { key: 'education', label: 'Education', href: '/education', links: menuLinks('Stride Education') },
   { key: 'work', label: 'Work', href: '/work', links: [{ label: 'Our Work', href: '/work' }, { label: 'Start a campaign', href: '/social/enquire' }] },
   { key: 'about', label: 'About', href: '/about', links: menuLinks('Our Group') },
+  { key: 'contact', label: 'Contact', href: '/contact', links: [contactLink] },
+  { key: 'sponsoring', label: 'Our Sponsoring', href: '/sponsorships', links: [{ label: 'Our Sponsoring', href: '/sponsorships' }] },
 ];
 
 /** Which mode a page belongs to, from its path (the home page and anything unlisted is Group). */
@@ -141,7 +143,9 @@ export function modeOf(path: string): ModeKey {
   if (p.startsWith('/social')) return 'social';
   if (p.startsWith('/talent')) return 'talent';
   if (p.startsWith('/education')) return 'education';
-  if (['/about', '/history', '/team', '/sponsorships', '/careers'].some((s) => p.startsWith(s))) return 'about';
+  if (p.startsWith('/contact')) return 'contact';
+  if (p.startsWith('/sponsorships')) return 'sponsoring';
+  if (['/about', '/history', '/team', '/careers'].some((s) => p.startsWith(s))) return 'about';
   return 'group';
 }
 
@@ -170,7 +174,7 @@ export const divisionBars: Record<Exclude<DivisionKey, 'group'>, { name: string;
     links: [
       { label: "What you'll learn", href: '/education#learn' },
       { label: 'The experience', href: '/education#experience' },
-      { label: 'Stories', href: '/education#stories' },
+      { label: 'Stories', href: '/education#education-stories' },
     ],
     cta: { label: 'Enquire', href: '/education/enquire' },
   },

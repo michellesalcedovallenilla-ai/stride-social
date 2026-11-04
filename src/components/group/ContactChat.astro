@@ -1,0 +1,359 @@
+---
+// Contact: a conversation in a glass window. Stride asks who you are; tap your answer and it shows up as
+// your message, Stride types for a moment, then replies with what that team does and the way to reach
+// them. Change your answer whenever you like. Direct details sit beside it. Without the script the answers
+// are plain links. Behaviour: src/scripts/system/contact-chat.ts.
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  copy: { eyebrow?: string; headline?: string; body?: string };
+  routes: { key?: string; audience?: string; label: string; copy?: string; href?: string }[];
+  details: { label: string; links: { label: string; href: string; external?: boolean }[] }[];
+  crumbs: { label: string; href?: string }[];
+}
+
+const { copy, routes, details, crumbs } = Astro.props;
+const t = await interfaceCopy();
+const flow = JSON.stringify({ name: t('chat.name'), email: t('chat.email'), emailBad: t('chat.emailBad'), topic: t('chat.topic'), message: t('chat.message'), ready: t('chat.ready'), send: t('chat.send') });
+---
+
+<section class="chat" aria-labelledby="chat-title" data-chat data-flow={flow} data-tone="group" data-look="deep">
+  <div class="chat__inner container-wide">
+    <div class="chat__lead" data-reveal="from-left">
+      <Breadcrumbs items={crumbs} tone="dark" />
+      <h1 class="chat__title exp-title" id="chat-title">{copy.headline}</h1>
+      <dl class="chat__details">
+        {details.map((d) => (
+          <div>
+            <dt class="exp-label">{d.label}</dt>
+            <dd>
+              {d.links.map((l, i) => (
+                <>
+                  {i > 0 && ' · '}
+                  <a href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noopener' : undefined}>
+                    {l.label}{l.external && <span class="visually-hidden"> (opens in a new tab)</span>}
+                  </a>
+                </>
+              ))}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+
+    <div class="chat__window glass">
+      <header class="chat__top">
+        <span class="chat__avatar on-photo" aria-hidden="true">
+          <svg viewBox="0 0 106 106">
+            <path d="M53 53H0L53 0v53Z" fill="currentColor"></path>
+            <path d="M53 106H0l53-53v53Z" fill="currentColor"></path>
+            <path d="M106 53H53l53-53v53Z" fill="currentColor"></path>
+            <path d="M106 106H53l53-53v53Z" fill="currentColor"></path>
+          </svg>
+        </span>
+        <p class="chat__who">Stride</p>
+      </header>
+
+      <div class="chat__log" role="log" aria-live="polite" data-chat-log data-lenis-prevent>
+        <p class="bubble bubble--them">{copy.body}</p>
+      </div>
+
+      <div class="chat__answers" data-chat-answers>
+        {routes.map((r) => (
+          <a class="chat__answer" href={r.href} data-route={r.key} data-audience={r.audience} data-reply={r.copy} data-label={r.label}>{r.audience}</a>
+        ))}
+      </div>
+
+      <form class="chat__composer" hidden data-chat-composer>
+        <input type="text" placeholder={t('chat.placeholder')} aria-label={t('chat.placeholder')} maxlength="254" autocomplete="off" />
+        <textarea placeholder={t('chat.placeholder')} aria-label={t('chat.placeholder')} rows="2" maxlength="2000" hidden data-lenis-prevent></textarea>
+        <button class="exp-round" type="submit" aria-label={t('chat.submit')}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5.5M6.5 11 12 5.5 17.5 11"></path></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  .chat {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-6);
+    overflow: clip;
+    color: rgb(var(--ink));
+  }
+
+  .chat__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: var(--space-6) var(--gutter);
+    align-items: center;
+    width: 100%;
+  }
+
+  .chat__lead {
+    display: grid;
+    gap: var(--space-5);
+    container-type: inline-size;
+  }
+
+  .chat__title {
+    font-size: clamp(3rem, 19cqi, 8rem);
+  }
+
+  .chat__details {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .chat__details dd {
+    margin-top: 3px;
+  }
+
+  .chat__details a {
+    text-decoration: underline;
+    text-decoration-color: rgb(var(--tone-lit) / 0.6);
+    text-underline-offset: 3px;
+  }
+
+  /* ---------- The window ---------- */
+  .chat__window {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: min(76svh, 42rem);
+    overflow: hidden;
+  }
+
+  .chat__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid rgb(var(--hair) / 0.14);
+  }
+
+  .chat__avatar {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--navy-900);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.3);
+  }
+
+  .chat__avatar svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .chat__who {
+    font-weight: 700;
+  }
+
+  .chat__log {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: var(--space-5);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .bubble,
+  .chat__log :global(.bubble) {
+    align-self: flex-start;
+    max-width: 82%;
+    padding: 11px 15px;
+    border-radius: 20px 20px 20px 6px;
+    background: rgb(255 255 255 / calc(0.13 * var(--fill-k)));
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.12);
+    line-height: 1.34;
+    animation: chat-in 420ms cubic-bezier(0.2, 1.4, 0.35, 1);
+  }
+
+  .chat__log :global(.bubble--me) {
+    align-self: flex-end;
+    border-radius: 20px 20px 6px 20px;
+    background: rgb(var(--tone-lit));
+    box-shadow: none;
+    color: rgb(var(--tone-on));
+    font-weight: 600;
+  }
+
+  @keyframes chat-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.94);
+    }
+  }
+
+  .chat__log :global(.bubble--typing) {
+    display: flex;
+    gap: 5px;
+    padding-block: 15px;
+  }
+
+  .chat__log :global(.bubble--typing span) {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / calc(0.7 * var(--fill-k)));
+    animation: chat-dot 1s ease-in-out infinite;
+  }
+
+  .chat__log :global(.bubble--typing span:nth-child(2)) {
+    animation-delay: 140ms;
+  }
+
+  .chat__log :global(.bubble--typing span:nth-child(3)) {
+    animation-delay: 280ms;
+  }
+
+  @keyframes chat-dot {
+    50% {
+      opacity: 0.35;
+      transform: translateY(-4px);
+    }
+  }
+
+  .chat__log :global(.chat__go) {
+    align-self: flex-start;
+    margin-top: 4px;
+    animation: chat-in 420ms cubic-bezier(0.2, 1.4, 0.35, 1);
+  }
+
+  .chat__answers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid rgb(var(--hair) / 0.14);
+  }
+
+  .chat__answer {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding-inline: var(--space-4);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgb(var(--tone-lit) / 0.7);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(var(--ink));
+    transition:
+      background-color 300ms var(--ease-out),
+      color 300ms var(--ease-out),
+      translate 300ms var(--ease-out);
+  }
+
+  .chat__answer:hover {
+    translate: 0 -2px;
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  .chat__answer:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 1023px) {
+    .chat__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .chat__window {
+      height: 66svh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chat__log :global(.bubble),
+    .chat__log :global(.chat__go),
+    .chat__log :global(.bubble--typing span) {
+      animation: none;
+    }
+  }
+
+  .chat__answers[hidden] {
+    display: none;
+  }
+
+  /* While the chat is asking: tap an answer, or type one. */
+  .chat__window :global(.chat__choices) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid rgb(var(--hair) / 0.14);
+  }
+
+  .chat__window :global(.chat__choices .chat__answer) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding-inline: var(--space-4);
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgb(var(--tone-lit) / 0.7);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(var(--ink));
+    transition:
+      background-color 300ms var(--ease-out),
+      color 300ms var(--ease-out);
+  }
+
+  .chat__window :global(.chat__choices .chat__answer:hover) {
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  .chat__composer {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid rgb(var(--hair) / 0.14);
+  }
+
+  .chat__composer[hidden] {
+    display: none;
+  }
+
+  .chat__composer input,
+  .chat__composer textarea {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 20px;
+    background: rgb(var(--panel) / 0.5);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.24);
+    font: inherit;
+    color: rgb(var(--ink));
+    resize: none;
+  }
+
+  .chat__composer input::placeholder,
+  .chat__composer textarea::placeholder {
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .chat__composer input:focus-visible,
+  .chat__composer textarea:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 1px;
+  }
+</style>
+
+<script>
+  import { initContactChats } from '@/scripts/system/contact-chat';
+  initContactChats();
+</script>

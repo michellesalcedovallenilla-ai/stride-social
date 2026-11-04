@@ -1,34 +1,46 @@
 ---
-// Service page template, one per Stride Social service (docs/phase-2/05-wireframes.md §E):
-// hero (name, the brief's one-line promise, image) · what it is · what's included · related work ·
-// FAQs · enquiry CTA with the service prefilled. Content not yet supplied by Stride shows a
-// labelled placeholder in preview and is left out in production.
-import { getCollection, getEntry, render } from 'astro:content';
+// Service page, one per Stride Social service: the service's own picture behind a stack of glass cards you
+// throw away, one for each thing it includes, ending on the way to talk to Stride (social/ServiceStack).
+// Then the shared menu: Related Work, Questions, More Services. Content not yet supplied by Stride is
+// labelled in preview and left out in production.
+import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
-import Button from '@/components/core/Button.astro';
+import ServiceStack from '@/components/social/ServiceStack.astro';
+import Deck from '@/components/experience/Deck.astro';
 import DraftTag from '@/components/core/DraftTag.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
-import WorkGrid from '@/components/social/WorkGrid.astro';
-import EnquiryCta from '@/components/social/EnquiryCta.astro';
 import { routes } from '@/lib/routes';
 import { isPreview } from '@/lib/env';
+import { chunks, paragraphs } from '@/lib/experience';
+import type { Card } from '@/lib/experience';
+import Tray from '@/components/experience/Tray.astro';
 
 export async function getStaticPaths() {
   const services = (await getCollection('services')).sort((a, b) => a.data.number - b.data.number);
-  return services.map((service, i) => ({ params: { slug: service.id }, props: { service, next: services[(i + 1) % services.length] } }));
+  return services.map((service) => ({ params: { slug: service.id }, props: { service, services } }));
 }
 
-const { service, next } = Astro.props;
+const { service, services } = Astro.props;
 const d = service.data;
-const { Content } = await render(service);
-const hasBody = d.copyStatus !== 'needed' && (service.body ?? '').replace(/<!--[\s\S]*?-->/g, '').trim() !== '';
+const body = d.copyStatus !== 'needed' ? paragraphs(service.body).flatMap((p) => chunks(p, 320)) : [];
 const related = (await getCollection('work', (w) => w.data.visible && w.data.services.some((s) => s.id === service.id))).sort((a, b) => a.data.order - b.data.order);
-const page = await getEntry('pages', 'social');
-const final = page?.data.sections.final;
-const pad = (n: number) => String(n).padStart(2, '0');
-const total = (await getCollection('services')).length;
+const clients = await Promise.all(related.map(async (w) => (await getEntry(w.data.client))?.data.name ?? w.data.title));
+const final = (await getEntry('pages', 'social'))?.data.sections.final;
+const enquire = `/social/enquire?service=${service.id}`;
+const talk = `Talk to us about ${d.name}`;
+
+const relatedCards: Card[] = related.slice(0, 8).map((w, i) => ({
+  name: clients[i],
+  text: w.data.summary,
+  href: routes.caseStudy(w.id),
+  image: w.data.card,
+  stats: w.data.results.filter((r) => r.status === 'verified').slice(0, 3),
+  action: { label: 'View case study', href: routes.caseStudy(w.id) },
+}));
+const faqCards: Card[] = d.faqs.map((f) => ({ name: f.q, text: f.a, href: enquire }));
+const others: Card[] = services
+  .filter((x) => x.id !== service.id)
+  .map((x) => ({ name: x.data.name, text: x.data.descriptor, href: routes.service(x.id), image: x.data.hero, direct: true }));
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -41,379 +53,32 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={d.seo?.title ?? `${d.name} | Stride Social`} description={d.seo?.description ?? d.descriptor} division="social" ogImage={d.hero?.src} jsonLd={jsonLd}>
-  <header class="sv-hero">
-    <div class="sv-hero__inner container-wide">
-      <div class="sv-hero__text">
-        <Breadcrumbs items={[{ label: 'Stride Social', href: '/social' }, { label: 'Services', href: '/social/services' }, { label: d.name }]} tone="dark" />
-        <Eyebrow tone="dark">Service {pad(d.number)} / {pad(total)}</Eyebrow>
-        <h1 class="sv-hero__title" data-reveal-lines="load">
-          <span class="reveal-line"><span class="reveal-line__inner">{d.name}</span></span>
-        </h1>
-        <p class="sv-hero__promise" data-reveal="load" style="--reveal-delay: 0.3s">{d.descriptor}</p>
-        <div data-reveal="load" style="--reveal-delay: 0.45s">
-          <Button href={`/social/enquire?service=${service.id}`} tone="dark">Talk to us about {d.name}</Button>
-        </div>
-      </div>
-      {d.hero && (
-        <figure class="sv-hero__media" data-reveal="load" style="--reveal-delay: 0.2s">
-          <img src={d.hero.src} alt={d.hero.alt} fetchpriority="high" decoding="async" />
-        </figure>
-      )}
-    </div>
-  </header>
+<SiteLayout title={d.seo?.title ?? `${d.name} | Stride Social`} description={d.seo?.description ?? d.descriptor} division="social" ogImage={d.hero?.src} jsonLd={jsonLd} headerOverlay>
+  <ServiceStack
+    name={d.name}
+    descriptor={d.descriptor}
+    body={body}
+    items={d.deliverables}
+    image={d.hero ?? related[0]?.data.card}
+    crumbs={[{ label: 'Stride Social', href: '/social' }, { label: 'Services', href: '/social/services' }, { label: d.name }]}
+    talk={{ label: talk, href: enquire }}
+    serviceId={service.id}
+  >
+    <DraftTag status={d.copyStatus === 'approved' ? 'approved' : 'draft'} />
+    {isPreview && !body.length && <PlaceholderNotice label="Copy needed">— no description exists for this service yet</PlaceholderNotice>}
+  </ServiceStack>
 
-  {(hasBody || isPreview) && (
-    <section class="sv-block" aria-labelledby="sv-what">
-      <div class="sv-block__inner container-wide">
-        <h2 class="sv-block__label" id="sv-what">What it is</h2>
-        <div class="sv-block__body">
-          <DraftTag status={d.copyStatus === 'approved' ? 'approved' : 'draft'} />
-          {hasBody ? (
-            <div class="sv-prose"><Content /></div>
-          ) : (
-            <PlaceholderNotice variant="block" label="Copy needed">
-              <p>No description exists for this service yet. Needs writing from Stride's input.</p>
-            </PlaceholderNotice>
-          )}
-        </div>
-      </div>
-    </section>
-  )}
-
-  {(d.deliverables.length > 0 || isPreview) && (
-    <section class="sv-block sv-block--included" aria-labelledby="sv-included">
-      <div class="sv-block__inner container-wide">
-        <h2 class="sv-block__label" id="sv-included">What's included</h2>
-        <div class="sv-block__body">
-          {d.deliverables.length > 0 ? (
-            <ol class="sv-list" role="list">
-              {d.deliverables.map((item, i) => (
-                <li data-reveal="rise" style={`--reveal-delay: ${i * 0.05}s`}>
-                  <span class="sv-list__n">{pad(i + 1)}</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <PlaceholderNotice variant="block" label="Deliverables needed">
-              <p>What this service includes, from Stride.</p>
-            </PlaceholderNotice>
-          )}
-        </div>
-      </div>
-    </section>
-  )}
-
-  {(related.length > 0 || isPreview) && (
-    <section class="sv-work" aria-labelledby="sv-work-title">
-      <div class="container-wide">
-        <header class="sv-work__head">
-          <h2 class="sv-block__label" id="sv-work-title">Related work</h2>
-          {related.length > 0 && (
-            <Button href={routes.workFiltered({ service: service.id })} variant="text" tone="dark">All {d.name} work</Button>
-          )}
-        </header>
-        {related.length > 0 ? (
-          <WorkGrid items={related.slice(0, 6)} />
-        ) : (
-          <PlaceholderNotice variant="block" label="No case study yet">
-            <p>No case study is tagged with this service yet (tags are proposed, see the Gate 2 mapping).</p>
-          </PlaceholderNotice>
-        )}
-      </div>
-    </section>
-  )}
-
-  {(d.faqs.length > 0 || isPreview) && (
-    <section class="sv-block" aria-labelledby="sv-faq">
-      <div class="sv-block__inner container-wide">
-        <h2 class="sv-block__label" id="sv-faq">Questions</h2>
-        <div class="sv-block__body">
-          {d.faqs.length > 0 ? (
-            <div class="sv-faqs">
-              {d.faqs.map((f) => (
-                <details class="sv-faq">
-                  <summary>{f.q}</summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
-            </div>
-          ) : (
-            <PlaceholderNotice variant="block" label="FAQs needed">
-              <p>Three to five real questions brands ask about this service, with Stride's answers.</p>
-            </PlaceholderNotice>
-          )}
-        </div>
-      </div>
-    </section>
-  )}
-
-  <nav class="sv-next" aria-label="Next service">
-    <a class="sv-next__link container-wide" href={routes.service(next.id)}>
-      <span class="sv-next__label">Next service</span>
-      <span class="sv-next__name">{next.data.name}</span>
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-    </a>
-  </nav>
-
-  <EnquiryCta headline={final?.headline ?? ''} label={final?.cta?.label ?? ''} service={service.id} />
+  <Deck
+    id="service-menu"
+    label={`More about ${d.name}`}
+    tone="social"
+    look="ice"
+    tabs={[
+      { key: 'work', label: 'Related Work', icon: 'play', cards: relatedCards },
+      { key: 'questions', label: 'Questions', icon: 'chat', numbered: true, cards: faqCards },
+      { key: 'more', label: 'More Services', icon: 'layers', cards: others },
+    ]}
+    link={{ label: final?.cta?.label ?? 'Talk To Stride Social', href: enquire }}
+  />
+  <Tray list="brief" />
 </SiteLayout>
-
-<style>
-  .sv-hero {
-    position: relative;
-    z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .sv-hero__inner {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-7) var(--gutter);
-    align-items: end;
-    padding-block: var(--space-7) var(--space-9);
-  }
-
-  .sv-hero__text {
-    grid-column: 1 / 8;
-    container-type: inline-size;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-5);
-    justify-items: start;
-  }
-
-  /* The CTA names the service, so it may need two lines on phones. */
-  .sv-hero__text :global(.btn) {
-    max-width: 100%;
-    white-space: normal;
-    text-align: left;
-  }
-
-  .sv-hero__text > :global(.crumbs) {
-    margin-bottom: var(--space-6);
-  }
-
-  /* Sized to its column so the longest word ("LIVESTREAMS", "INFLUENCER") fits. */
-  .sv-hero__title {
-    font-family: var(--font-display);
-    font-size: min(10.6cqi, 8rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.86;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-    overflow-wrap: break-word;
-  }
-
-  .sv-hero__promise {
-    max-width: 30ch;
-    font-family: var(--font-serif);
-    font-size: clamp(1.5rem, 2.4vw, 2.25rem);
-    font-style: italic;
-    line-height: 1.15;
-    color: var(--accent);
-  }
-
-  .sv-hero__media {
-    grid-column: 8 / -1;
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-    background: var(--navy-700);
-  }
-
-  .sv-hero__media img {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-  }
-
-  .sv-hero__inner:not(:has(.sv-hero__media)) .sv-hero__text {
-    grid-column: 1 / -1;
-  }
-
-  /* Label left (c1–c4), content right (c5–c12) for each editorial block. */
-  .sv-block {
-    position: relative;
-    z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .sv-block__inner {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-5) var(--gutter);
-    padding-block: var(--space-9);
-    border-top: 1px solid var(--line-dark);
-  }
-
-  .sv-block__label {
-    grid-column: 1 / 5;
-    font-family: var(--font-mono);
-    font-size: var(--type-small);
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .sv-block__body {
-    grid-column: 5 / -1;
-    display: grid;
-    gap: var(--space-5);
-    justify-items: start;
-  }
-
-  .sv-prose {
-    max-width: 62ch;
-    font-size: var(--type-lead);
-    line-height: 1.5;
-    color: rgb(255 255 255 / 0.88);
-  }
-
-  .sv-prose :global(strong) {
-    color: var(--white);
-    font-weight: 600;
-  }
-
-  .sv-list {
-    width: 100%;
-    border-top: 1px solid var(--line-dark);
-  }
-
-  .sv-list li {
-    display: grid;
-    grid-template-columns: 3.5rem minmax(0, 1fr);
-    gap: var(--space-4);
-    padding: var(--space-5) 0;
-    border-bottom: 1px solid var(--line-dark);
-    font-family: var(--font-display);
-    font-size: clamp(1.25rem, 2vw, 1.875rem);
-    font-weight: 700;
-    font-stretch: 110%;
-    line-height: 1.15;
-  }
-
-  .sv-list__n {
-    font-family: var(--font-mono);
-    font-size: var(--type-small);
-    font-weight: 400;
-    line-height: 2;
-    color: var(--accent);
-  }
-
-  .sv-work {
-    position: relative;
-    z-index: 1;
-    padding-block: var(--space-9);
-    background: var(--navy-900);
-    color: var(--white);
-    border-top: 1px solid var(--line-dark);
-  }
-
-  .sv-work__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-bottom: var(--space-7);
-  }
-
-  .sv-faqs {
-    width: 100%;
-    border-top: 1px solid var(--line-dark);
-  }
-
-  .sv-faq {
-    border-bottom: 1px solid var(--line-dark);
-  }
-
-  .sv-faq summary {
-    padding: var(--space-5) 0;
-    font-size: var(--type-h3);
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .sv-faq p {
-    max-width: 62ch;
-    padding-bottom: var(--space-5);
-    color: rgb(255 255 255 / 0.82);
-  }
-
-  .sv-next {
-    position: relative;
-    z-index: 1;
-    background: var(--navy-700);
-    color: var(--white);
-  }
-
-  .sv-next__link {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--space-5);
-    padding-block: var(--space-7);
-  }
-
-  .sv-next__label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .sv-next__name {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3.4vw, 3.25rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .sv-next__link svg {
-    width: clamp(22px, 2.4vw, 34px);
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .sv-next__link:hover svg {
-    transform: translateX(6px);
-  }
-
-  @media (max-width: 1023px) {
-    .sv-hero__text,
-    .sv-hero__media,
-    .sv-block__label,
-    .sv-block__body {
-      grid-column: 1 / -1;
-    }
-
-    .sv-hero__media {
-      max-width: 520px;
-      aspect-ratio: 4 / 3;
-    }
-  }
-
-  @media (max-width: 599px) {
-    .sv-next__link {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    .sv-next__label {
-      grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 479px) {
-    .sv-hero__title {
-      font-stretch: 100%;
-    }
-  }
-</style>

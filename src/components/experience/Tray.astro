@@ -1,0 +1,161 @@
+---
+// What the visitor has picked so far, in glass at the corner of the screen, leading to the enquiry form
+// (which starts from it). It stays out of sight until there's something in it. The list itself and its
+// rules: src/scripts/system/shortlist.ts. Desktop for now.
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  list: 'brief' | 'creators';
+  tone?: 'social' | 'talent' | 'education' | 'group';
+  /** Which corner, to stay clear of the page's own controls. */
+  side?: 'left' | 'right';
+}
+
+const { list, tone = list === 'brief' ? 'social' : 'talent', side = 'right' } = Astro.props;
+const t = await interfaceCopy();
+---
+
+<aside class:list={['tray', 'desk-only', `tray--${side}`]} aria-label={t(`tray.${list}.title`)} data-tray={list} data-remove={t('tray.remove')} data-tone={tone} hidden>
+  <p class="tray__head">
+    <span class="exp-label">{t(`tray.${list}.title`)}</span>
+    <span class="tray__count" data-tray-count>0</span>
+  </p>
+  <ul class="tray__items" role="list" data-tray-items data-lenis-prevent></ul>
+  <div class="tray__actions">
+    <a class="exp-pill" href="/social/enquire" data-keep-cta={list} data-keep-base="/social/enquire">
+      {t(`tray.${list}.action`)}
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+    </a>
+    {list === 'creators' && <button class="exp-pill exp-pill--ghost" type="button" data-tray-share data-done={t('tray.shared')}>{t('tray.share')}</button>}
+  </div>
+</aside>
+
+<style>
+  .tray {
+    position: fixed;
+    bottom: var(--space-4);
+    z-index: 95;
+    display: grid;
+    gap: var(--space-2);
+    width: min(30rem, calc(100vw - 2 * var(--space-5)));
+    padding: 16px 18px;
+    border-radius: 24px;
+    background: rgb(var(--panel) / 0.8);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.2),
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 30px 60px -24px rgb(var(--shade) / 0.8);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    color: rgb(var(--ink));
+    animation: tray-in 480ms cubic-bezier(0.2, 1.4, 0.35, 1);
+  }
+
+  .tray--right {
+    right: var(--space-4);
+  }
+
+  .tray--left {
+    left: var(--space-4);
+  }
+
+  .tray[hidden] {
+    display: none;
+  }
+
+  /* Over a deck, whose tabs sit at the foot of the screen (deck-lineup.ts). */
+  .tray.is-up {
+    top: calc(var(--header-h) + var(--space-2));
+    bottom: auto;
+  }
+
+  @keyframes tray-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.96);
+    }
+  }
+
+  .tray__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tray__count {
+    display: grid;
+    place-items: center;
+    min-width: 26px;
+    height: 26px;
+    padding-inline: 6px;
+    border-radius: 999px;
+    background: rgb(var(--tone-lit));
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: rgb(var(--tone-on));
+  }
+
+  .tray__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 72px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .tray__items :global(.tray__chip) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 6px 4px 12px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.26);
+    font-size: 0.8125rem;
+  }
+
+  .tray__items :global(.tray__chip span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tray__items :global(.tray__chip button) {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    line-height: 1;
+    color: inherit;
+  }
+
+  .tray__items :global(.tray__chip button:hover) {
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
+  }
+
+  .tray__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tray__actions :global(.exp-pill) {
+    min-height: 38px;
+    padding: 6px 14px;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tray {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initShortlists } from '@/scripts/system/shortlist';
+  initShortlists();
+</script>

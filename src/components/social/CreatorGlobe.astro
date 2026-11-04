@@ -1,13 +1,16 @@
 ---
-// Stride Social: the creator globe. A stylised, cut-away globe (the top of a sphere sliced across,
+// Stride Social's opening: the creator globe. A stylised, cut-away globe (the top of a sphere sliced across,
 // its cross-section showing below the rim) acts as a region selector; a phone shows the selected
 // region's creator content as a reel. Drag or swipe the globe, scroll through the section (the
 // stage stays pinned while each region takes a turn), or use the region list. Behaviour:
 // src/scripts/system/creator-globe.ts. Regions and creators: src/config/creator-regions.ts.
 // A creator appears only with confirmed consent and a recorded country; until then a region shows
 // its case study's own footage, labelled "Interim", or a labelled empty state. Nothing is invented.
+// On desktop with motion the brand ticker runs along the top of the screen, with no header over it; it
+// stays through the regions and leaves with the stage.
+// `embedded` (inside another page): an h2, not the page's h1.
 import { getEntry, getEntries } from 'astro:content';
-import Eyebrow from '../core/Eyebrow.astro';
+import BrandTicker from '../core/BrandTicker.astro';
 import DraftTag from '../core/DraftTag.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 import { creatorRegions } from '@/config/creator-regions';
@@ -16,10 +19,14 @@ import { workPreviews } from '@/lib/previews';
 import { routes } from '@/lib/routes';
 
 export interface Props {
-  copy: { status: 'approved' | 'draft'; eyebrow?: string; headline?: string; body?: string };
+  copy: { status: 'approved' | 'draft'; items?: { label: string; copy?: string }[] };
+  brands?: { name: string; logo: string }[];
+  embedded?: boolean;
 }
 
-const { copy } = Astro.props;
+const { copy, brands = [], embedded = false } = Astro.props;
+const Title = embedded ? 'h2' : 'h1';
+const messages = copy.items ?? [];
 const roster = await getRoster();
 const byId = new Map(roster.map((c) => [c.id, c]));
 const countryName = new Intl.DisplayNames(['en'], { type: 'region' });
@@ -46,6 +53,7 @@ const regions = await Promise.all(
     const services = w ? await getEntries(w.data.services) : [];
     const work = w
       ? {
+          id: w.id,
           title: w.data.title,
           href: routes.caseStudy(w.id),
           brand: brand?.data.name ?? w.data.title,
@@ -61,15 +69,17 @@ const globeData = JSON.stringify(regions.map(({ key, label, lat, lon }) => ({ ke
 const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
-<section class="globe" aria-labelledby="globe-title" data-creator-globe data-regions={globeData} style={`--steps: ${regions.length}`}>
+<section class="globe" aria-labelledby="globe-title" data-tone="social" data-look="ice" data-creator-globe data-regions={globeData} style={`--steps: ${regions.length}`}>
   <div class="globe__stage">
     <canvas class="globe__canvas" data-globe-canvas aria-hidden="true"></canvas>
 
-    <div class="globe__intro">
-      <Eyebrow tone="dark">{copy.eyebrow}</Eyebrow>
-      <h2 class="globe__title" id="globe-title" data-reveal="from-left">{copy.headline}</h2>
-      {copy.body && <p class="globe__body">{copy.body}</p>}
-      <DraftTag status={copy.status} />
+    <div class="globe__intro" data-reveal="from-left">
+      {/* The selected region, editorial-size. */}
+      <div class="globe__readout" aria-hidden="true">
+        {regions.map((r, i) => (
+          <p class:list={['globe__now', { 'is-active': i === 0 }]} data-globe-now={i}>{r.label}</p>
+        ))}
+      </div>
       <div class="globe__regions" role="tablist" aria-label="Regions" data-globe-tabs>
         {regions.map((r, i) => (
           <button
@@ -89,11 +99,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
     </div>
 
     {/* The phone: one screen per region, the selected one in front. */}
-    <div class="phone" id="globe-phone" role="tabpanel" aria-labelledby={`globe-tab-${regions[0].key}`} data-globe-phone>
+    <div class="phone on-photo" id="globe-phone" role="tabpanel" aria-labelledby={`globe-tab-${regions[0].key}`} data-globe-phone>
       <div class="phone__body">
         <span class="phone__island" aria-hidden="true"></span>
         {regions.map((r, i) => (
-          <div class:list={['phone__screen', { 'is-active': i === 0 }]} data-globe-screen={i} aria-hidden={i === 0 ? undefined : 'true'}>
+          <div class:list={['phone__screen', { 'is-active': i === 0 }]} data-globe-screen={i} data-work={r.work?.id} aria-hidden={i === 0 ? undefined : 'true'}>
             {r.work?.video ? (
               <video class="phone__media" muted loop playsinline preload="none" poster={r.work.poster} aria-label={`${r.work.brand} campaign footage`} data-globe-video>
                 <source src={r.work.video} type="video/mp4" />
@@ -106,15 +116,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
             <div class="phone__ui">
               <p class="phone__top" aria-hidden="true"><span>Reels</span><span class="phone__cam"></span></p>
-              <ul class="phone__actions" role="list" aria-hidden="true">
+              {(r.work?.video || r.creator?.portrait) && <ul class="phone__actions" role="list" aria-hidden="true">
                 <li><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg></li>
                 <li><svg viewBox="0 0 24 24"><path d="M5 18.5V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8.5L5 18.5Z" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg></li>
                 <li><svg viewBox="0 0 24 24"><path d="M4 12 20 4l-6 16-2.5-6.5L4 12Z" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg></li>
-              </ul>
+              </ul>}
               <div class="phone__meta">
                 {r.creator ? (
                   <a class="phone__handle" href={r.creator.href}>@{r.creator.name}</a>
-                ) : (
+                ) : r.work && (
                   <p class="phone__handle phone__handle--pending">Creator to be confirmed</p>
                 )}
                 {r.work && <a class="phone__caption" href={r.work.href}>{r.work.brand}{r.work.service && ` · ${r.work.service}`}</a>}
@@ -128,6 +138,36 @@ const pad = (n: number) => String(n).padStart(2, '0');
             {!r.creator && r.work && <PlaceholderNotice label="Interim" class="phone__interim"><span class="phone__interim-text">— case study footage; creator and location to be confirmed</span></PlaceholderNotice>}
           </div>
         ))}
+        {/* Notifications on the phone, each dropped in once (the script): how to use it, on arrival;
+            then, at the second reel, the way on to the work. */}
+        <div class="phone__notice" aria-hidden="true" data-globe-notice>
+          <span class="phone__notice-icon">
+            <svg viewBox="0 0 106 106">
+              <path d="M53 53H0L53 0v53Z" fill="currentColor"></path>
+              <path d="M53 106H0l53-53v53Z" fill="currentColor"></path>
+              <path d="M106 53H53l53-53v53Z" fill="currentColor"></path>
+              <path d="M106 106H53l53-53v53Z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="phone__notice-text">
+            <span class="phone__notice-head"><strong>Stride</strong><span>now</span></span>
+            Drag the globe · scroll to explore across different regions
+          </span>
+        </div>
+        <a class="phone__notice phone__notice--link" href={regions[0].work ? `/work?spotlight=${regions[0].work.id}` : '/work'} data-globe-notice-work>
+          <span class="phone__notice-icon">
+            <svg viewBox="0 0 106 106">
+              <path d="M53 53H0L53 0v53Z" fill="currentColor"></path>
+              <path d="M53 106H0l53-53v53Z" fill="currentColor"></path>
+              <path d="M106 53H53l53-53v53Z" fill="currentColor"></path>
+              <path d="M106 106H53l53-53v53Z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="phone__notice-text">
+            <span class="phone__notice-head"><strong>Stride</strong><span>now</span></span>
+            Explore Our Work
+          </span>
+        </a>
         <button class="phone__toggle" type="button" data-globe-toggle aria-label="Pause video">
           <svg class="phone__icon phone__icon--pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h3v12H4zM9 2h3v12H9z" fill="currentColor"></path></svg>
           <svg class="phone__icon phone__icon--play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6z" fill="currentColor"></path></svg>
@@ -135,19 +175,23 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </div>
     </div>
 
-    {/* The selected region, editorial-size, with its index and campaign. */}
-    <div class="globe__readout" aria-hidden="true">
-      {regions.map((r, i) => (
-        <div class:list={['globe__now', { 'is-active': i === 0 }]} data-globe-now={i}>
-          <p class="globe__index">{pad(i + 1)} / {pad(regions.length)}</p>
-          <p class="globe__name">{r.label}</p>
-          {r.work && <p class="globe__campaign">Campaign · {r.work.brand}</p>}
-        </div>
-      ))}
-      <p class="globe__hint">Drag the globe · scroll to explore</p>
+    {/* The message: a new one with each scroll step (the script). */}
+    <div class="globe__messages" data-reveal="from-right">
+      {messages.map((m, i) => {
+        const Heading = i === 0 ? Title : 'p';
+        return (
+          <div class:list={['globe__message', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-globe-message={i}>
+            <Heading class="globe__title" id={i === 0 ? 'globe-title' : undefined}>{m.label}</Heading>
+            {m.copy && <p class="globe__body">{m.copy}</p>}
+          </div>
+        );
+      })}
+      <DraftTag status={copy.status} />
     </div>
 
     <p class="globe__status" aria-live="polite" data-globe-status></p>
+
+    <div class="globe__ticker"><BrandTicker brands={brands} /></div>
   </div>
 </section>
 
@@ -156,8 +200,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   .globe {
     position: relative;
     height: calc(100svh + (var(--steps) - 1) * 55svh);
-    background: var(--navy-900);
-    color: var(--white);
+    color: rgb(var(--ink));
   }
 
   .globe__stage {
@@ -190,29 +233,61 @@ const pad = (n: number) => String(n).padStart(2, '0');
     cursor: grabbing;
   }
 
-  /* ---------- Intro and region list ---------- */
+  /* ---------- Left: the region and the list ---------- */
   .globe__intro {
     position: relative;
     align-self: start;
     display: grid;
     gap: var(--space-4);
-    max-width: 30rem;
-    padding-top: var(--space-6);
+    padding-top: clamp(8px, 4vh, 40px);
+    container-type: inline-size;
+  }
+
+  /* ---------- Right: the message ---------- */
+  .globe__messages {
+    position: relative;
+    align-self: start;
+    justify-self: end;
+    display: grid;
+    max-width: 28rem;
+    padding-top: clamp(0px, 2vh, 24px);
+    text-align: right;
+  }
+
+  .globe__message {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+    pointer-events: none;
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 600ms var(--ease-out),
+      filter 500ms var(--ease-out);
+  }
+
+  .globe__message.is-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    pointer-events: auto;
   }
 
   .globe__title {
     font-family: var(--font-display);
-    font-size: var(--type-h1);
+    font-size: clamp(1.75rem, 2.7vw, 3rem);
     font-weight: 850;
     font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
+    line-height: 0.95;
+    letter-spacing: -0.015em;
     text-transform: uppercase;
   }
 
   .globe__body {
-    max-width: 32ch;
-    color: rgb(255 255 255 / 0.8);
+    color: rgb(var(--ink) / 0.8);
   }
 
   .globe__regions {
@@ -233,7 +308,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     font-size: var(--type-label);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgb(255 255 255 / 0.55);
+    color: rgb(var(--ink) / 0.74);
     transition:
       background-color var(--dur-base) var(--ease-out),
       color var(--dur-base) var(--ease-out);
@@ -244,16 +319,16 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .globe__region:hover {
-    color: var(--white);
+    color: rgb(var(--ink));
   }
 
   .globe__region[aria-selected='true'] {
-    background: var(--white);
-    color: var(--navy-900);
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
   }
 
   .globe__region[aria-selected='true'] .globe__region-num {
-    color: var(--navy-900);
+    color: rgb(var(--tone-on));
   }
 
   .globe__region:focus-visible {
@@ -266,21 +341,21 @@ const pad = (n: number) => String(n).padStart(2, '0');
     position: relative;
     z-index: 2;
     align-self: start;
-    margin-top: clamp(var(--space-2), 2vh, var(--space-6));
+    margin-top: clamp(8px, 4vh, 40px);
   }
 
   .phone__body {
     position: relative;
-    height: min(56svh, 560px);
+    height: min(60svh, 600px);
     aspect-ratio: 9 / 19;
     overflow: hidden;
     border-radius: 44px;
     background: #000;
     box-shadow:
-      0 0 0 2px #2a2f38,
-      0 0 0 9px #0b0d12,
-      0 0 0 10px #3a404b,
-      0 40px 80px rgb(0 0 0 / 0.55);
+      0 0 0 2px var(--navy-500),
+      0 0 0 9px var(--navy-900),
+      0 0 0 10px var(--navy-500),
+      0 40px 80px rgb(var(--shade) / 0.55);
     isolation: isolate;
   }
 
@@ -337,11 +412,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
     border: 0;
     border-radius: 0;
     background:
-      radial-gradient(90% 60% at 50% 40%, rgb(195 242 251 / 0.16), transparent 70%),
+      radial-gradient(90% 60% at 50% 40%, rgb(207 237 248 / 0.16), transparent 70%),
       var(--navy-700);
     text-align: center;
     font-size: var(--type-small);
-    color: rgb(255 255 255 / 0.75);
+    color: rgb(var(--ink) / 0.75);
   }
 
   .globe :global(.phone__interim) {
@@ -404,12 +479,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .phone__handle--pending {
-    color: rgb(255 255 255 / 0.7);
+    color: rgb(var(--ink) / 0.7);
     font-weight: 500;
   }
 
   .phone__caption {
-    color: rgb(255 255 255 / 0.9);
+    color: rgb(var(--ink) / 0.9);
     text-decoration: underline;
     text-decoration-color: rgb(255 255 255 / 0.4);
     text-underline-offset: 3px;
@@ -427,7 +502,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     gap: 4px;
     padding: 3px 8px;
     border-radius: 999px;
-    background: rgb(255 255 255 / 0.16);
+    background: rgb(255 255 255 / calc(0.16 * var(--fill-k)));
     font-size: 0.6875rem;
     backdrop-filter: blur(4px);
   }
@@ -435,6 +510,92 @@ const pad = (n: number) => String(n).padStart(2, '0');
   .phone__chip svg {
     width: 12px;
     height: 12px;
+  }
+
+  /* The notification: a frosted banner that springs down from behind the island, as on an iPhone. */
+  .phone__notice {
+    position: absolute;
+    top: 42px;
+    left: 8px;
+    right: 8px;
+    z-index: 4;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 11px;
+    border-radius: 20px;
+    background: rgb(245 252 255 / 0.8);
+    box-shadow: 0 10px 28px -8px rgb(var(--shade) / 0.5);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', var(--font-text);
+    font-size: 0.71875rem;
+    line-height: 1.28;
+    color: rgb(var(--tone-on));
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-140%) scale(0.94);
+    pointer-events: none;
+    transition:
+      transform 420ms cubic-bezier(0.4, 0, 0.8, 0.4),
+      opacity 280ms ease-in 100ms,
+      visibility 0s linear 420ms;
+  }
+
+  .phone__notice.is-shown {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      transform 640ms cubic-bezier(0.2, 1.25, 0.35, 1),
+      opacity 180ms ease-out,
+      visibility 0s;
+  }
+
+  .phone__notice--link.is-shown {
+    pointer-events: auto;
+  }
+
+  .phone__notice--link:focus-visible {
+    outline: 2px solid var(--ice);
+    outline-offset: 2px;
+  }
+
+  .phone__notice-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--navy-900);
+    color: rgb(var(--ink));
+  }
+
+  .phone__notice-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .phone__notice-text {
+    flex: 1;
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .phone__notice-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .phone__notice-head strong {
+    font-weight: 600;
+  }
+
+  .phone__notice-head span {
+    color: rgb(6 20 43 / 0.6);
   }
 
   .phone__toggle {
@@ -448,7 +609,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     height: 36px;
     border-radius: 50%;
     background: rgb(0 0 0 / 0.35);
-    color: var(--white);
+    color: rgb(var(--ink));
   }
 
   .phone__toggle:focus-visible {
@@ -473,19 +634,23 @@ const pad = (n: number) => String(n).padStart(2, '0');
     display: none;
   }
 
-  /* ---------- Readout ---------- */
+  /* ---------- The region's name ---------- */
   .globe__readout {
-    position: relative;
-    align-self: start;
-    justify-self: end;
     display: grid;
     min-width: 0;
-    padding-top: var(--space-6);
-    text-align: right;
   }
 
+  /* One-line names sit at the foot of the room two-line ones need, right above the list. */
   .globe__now {
     grid-area: 1 / 1;
+    align-self: end;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 12.4cqi, 4rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
     opacity: 0;
     transform: translateY(16px);
     filter: blur(6px);
@@ -501,38 +666,27 @@ const pad = (n: number) => String(n).padStart(2, '0');
     filter: none;
   }
 
-  .globe__index,
-  .globe__campaign,
-  .globe__hint {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(255 255 255 / 0.6);
-  }
-
-  .globe__name {
-    margin-block: var(--space-2);
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 4vw, 4rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .globe__hint {
-    margin-top: var(--space-6);
-    color: rgb(255 255 255 / 0.45);
-  }
-
   .globe__status {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
+  }
+
+  /* ---------- The logo stripe: at the top of the first screen ---------- */
+  .globe__ticker {
+    display: none;
+  }
+
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .globe__ticker {
+      position: absolute;
+      inset: 0 0 auto;
+      z-index: 3;
+      display: grid;
+    }
+
   }
 
   /* ---------- Tablet ---------- */
@@ -544,6 +698,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
     .globe__readout {
       display: none;
     }
+
+    .globe__messages {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      justify-self: stretch;
+      max-width: none;
+      padding-top: 0;
+      text-align: left;
+    }
   }
 
   /* ---------- Phones: heading, region pills, the phone, the globe below ---------- */
@@ -554,7 +717,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     .globe__stage {
       grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto auto 1fr;
+      grid-template-rows: auto auto auto 1fr;
       justify-items: center;
       align-items: start;
       gap: var(--space-4);
@@ -587,7 +750,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     .globe__region {
       flex: none;
-      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
+      box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.2);
     }
 
     .phone {
@@ -611,7 +774,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   @media (prefers-reduced-motion: reduce) {
     .phone__screen,
-    .globe__now {
+    .globe__now,
+    .globe__message,
+    .phone__notice,
+    .phone__notice.is-shown {
       transition: none;
     }
   }

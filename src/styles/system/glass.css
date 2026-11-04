@@ -1,0 +1,216 @@
+/* The shared language of the redesigned pages: frosted glass over deep navy, wide uppercase headlines,
+   mono labels, pills. Each page brings its own interaction; these keep them one family. The colours come
+   from [data-tone] (tokens.css). */
+.glass {
+  border-radius: 26px;
+  background: linear-gradient(165deg, rgb(255 255 255 / calc(0.13 * var(--fill-k))), rgb(255 255 255 / calc(0.05 * var(--fill-k))) 42%, rgb(255 255 255 / calc(0.025 * var(--fill-k))) 62%, rgb(255 255 255 / calc(0.07 * var(--fill-k))));
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--hair) / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    0 30px 60px -34px rgb(var(--shade) / 0.7);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.exp-label {
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--ink) / 0.8);
+}
+
+.exp-title {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-stretch: var(--stretch-wide);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.exp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 8px var(--space-5);
+  border-radius: 999px;
+  background: rgb(var(--press));
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(var(--press-on));
+  transition:
+    background-color 300ms var(--ease-out),
+    color 300ms var(--ease-out),
+    box-shadow 300ms var(--ease-out);
+}
+
+.exp-pill:hover {
+  background: rgb(var(--press-hover));
+}
+
+.exp-pill svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.exp-pill--ghost {
+  background: rgb(255 255 255 / calc(0.05 * var(--fill-k)));
+  box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.34);
+  color: rgb(var(--ink));
+}
+
+.exp-pill--ghost:hover {
+  background: rgb(var(--press));
+  color: rgb(var(--press-on));
+}
+
+.exp-round {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / calc(0.05 * var(--fill-k)));
+  box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.34);
+  color: rgb(var(--ink));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    background-color 400ms var(--ease-out),
+    color 400ms var(--ease-out);
+}
+
+.exp-round:hover {
+  background: rgb(var(--press));
+  color: rgb(var(--press-on));
+}
+
+.exp-round svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.exp-pill:focus-visible,
+.exp-round:focus-visible {
+  outline: 2px solid rgb(var(--tone-lit));
+  outline-offset: 3px;
+}
+
+/* The small filter pills. */
+.exp-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 3px 13px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.22);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--ink) / 0.82);
+  transition:
+    background-color 300ms var(--ease-out),
+    color 300ms var(--ease-out);
+}
+
+.exp-chip:hover {
+  color: rgb(var(--ink));
+  background: rgb(255 255 255 / calc(0.08 * var(--fill-k)));
+}
+
+.exp-chip[aria-pressed='true'] {
+  background: rgb(var(--press));
+  color: rgb(var(--press-on));
+}
+
+.exp-chip:focus-visible {
+  outline: 2px solid rgb(var(--tone-lit));
+  outline-offset: 2px;
+}
+
+.exp-pill[hidden] {
+  display: none;
+}
+
+/* Long text (core/Prose) on the dark pages. */
+.exp-prose.exp-prose.exp-prose {
+  max-width: 72ch;
+  color: rgb(var(--ink) / 0.88);
+}
+
+.exp-prose h2,
+.exp-prose h3,
+.exp-prose h4,
+.exp-prose strong {
+  color: rgb(var(--ink));
+}
+
+.exp-prose a {
+  color: rgb(var(--ink));
+  text-decoration-color: rgb(var(--tone-lit));
+}
+
+.exp-prose blockquote {
+  border-left-color: rgb(var(--tone-lit));
+}
+
+.exp-prose img {
+  border-radius: 18px;
+}
+
+.exp-prose th,
+.exp-prose td {
+  border-color: rgb(var(--hair) / 0.2);
+  background: transparent;
+  color: rgb(var(--ink) / 0.88);
+}
+
+/* On a photo or video: white text and dark-glass tokens, whatever colour the page is at (tokens.css). */
+.on-photo {
+  color: rgb(var(--ink));
+}
+
+/* Interactions built for desktop first: other screens keep the simple version until they're worked on. */
+@media (max-width: 1023px) {
+  .desk-only {
+    display: none !important;
+  }
+}
+
+/* A keep button says which state it's in. */
+[data-keep] .keep-on,
+[data-keep][aria-pressed='true'] .keep-off {
+  display: none;
+}
+
+[data-keep][aria-pressed='true'] .keep-on {
+  display: inline;
+}
+
+/* A play button: which icon shows. */
+[aria-pressed='false'] > .play-off,
+[aria-pressed='true'] > .play-on {
+  display: none;
+}
+
+.exp-pill--ghost[aria-pressed='true'] {
+  background: rgb(var(--press));
+  color: rgb(var(--press-on));
+}

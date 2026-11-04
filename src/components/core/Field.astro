@@ -109,7 +109,7 @@ const msg = { 'data-msg-required': messages?.required, 'data-msg-invalid': messa
   .field__control:focus-visible {
     outline: none;
     border-color: var(--navy-900);
-    box-shadow: 0 0 0 3px rgb(47 107 255 / 0.35);
+    box-shadow: 0 0 0 3px rgb(120 146 171 / 0.5);
   }
 
   .field--error .field__control {
@@ -143,20 +143,20 @@ const msg = { 'data-msg-required': messages?.required, 'data-msg-invalid': messa
   }
 
   .field--on-dark .field__label {
-    color: var(--white);
+    color: rgb(var(--ink));
   }
 
   .field--on-dark .field__hint,
   .field--on-dark .field__optional,
   .field--on-dark .field__count {
-    color: rgb(255 255 255 / 0.72);
+    color: rgb(var(--ink) / 0.76);
   }
 
   .field--on-dark .field__error {
-    color: #ffb4a9;
+    color: var(--error);
   }
 
   .field--on-dark.field--error .field__control {
-    border-color: #ffb4a9;
+    border-color: var(--error);
   }
 </style>

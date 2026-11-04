@@ -74,12 +74,12 @@ const Tag = href ? 'a' : 'button';
   }
 
   .btn--primary.btn--on-dark {
-    background: var(--accent);
-    color: var(--navy-900);
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
   }
 
   .btn--primary.btn--on-dark:hover {
-    background: var(--white);
+    background: rgb(var(--press-hover));
   }
 
   /* Secondary */
@@ -94,14 +94,14 @@ const Tag = href ? 'a' : 'button';
   }
 
   .btn--secondary.btn--on-dark {
-    border-color: rgb(255 255 255 / 0.7);
-    color: var(--white);
+    border-color: rgb(var(--ink) / 0.7);
+    color: rgb(var(--ink));
   }
 
   .btn--secondary.btn--on-dark:hover {
-    border-color: var(--white);
-    background: var(--white);
-    color: var(--navy-900);
+    border-color: rgb(var(--press));
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
   }
 
   /* Text link */
@@ -130,7 +130,7 @@ const Tag = href ? 'a' : 'button';
   }
 
   .btn--text.btn--on-dark {
-    color: var(--white);
+    color: rgb(var(--ink));
   }
 
   .btn[aria-disabled='true'] {

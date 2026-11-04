@@ -1,0 +1,558 @@
+---
+// Stride Talent's opening: the roster as a hand of glass creator cards, fanned across the screen. Scrolling
+// deals the next one to the front (on desktop twice, then the page moves on; the headline beside it changes
+// as you go); drag the hand, use the arrows
+// or click a card to bring it forward; click the front card to flip it over for its platforms and profile.
+// Pick a category and the hand is re-dealt with just those creators. The front card leans towards the
+// pointer, its sheen following. Behaviour: src/scripts/system/hand.ts. Creators only with consent
+// (src/lib/roster.ts); no audience figures, they're unverified. With none to show, it's just the headline.
+import type { StageMessage } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+import StageLamp from './StageLamp.astro';
+
+export interface Props {
+  creators: { id: string; name: string; category?: string; categories: string[]; portrait: { src: string; alt: string }; href: string; platforms: { label: string; href: string }[] }[];
+  categories: { id: string; label: string }[];
+  messages: StageMessage[];
+  level: 'h1' | 'h2';
+  filterLabel: string;
+}
+
+const { creators, categories, messages, level, filterLabel } = Astro.props;
+const t = await interfaceCopy();
+const Title = level;
+---
+
+<section class="hand" aria-labelledby="hand-title" data-hand data-tone="talent" data-look="deep" style={`--steps: ${Math.max(1, Math.min(10, creators.length))}`}>
+  <div class="hand__pin" data-portal-hero>
+
+    <div class="hand__copy" data-reveal="from-left">
+      <div class="hand__messages">
+        {messages.map((m, i) => {
+          const Heading = i === 0 ? Title : 'p';
+          return (
+            <div class:list={['hand__message', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-hand-message={i}>
+              {m.title && <Heading class="hand__title exp-title" id={i === 0 ? 'hand-title' : undefined}>{m.title}</Heading>}
+              {m.text && <p class="hand__body">{m.text}</p>}
+              {m.cta && (
+                <a class="exp-pill" href={m.cta.href}>
+                  {m.cta.label}
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+                </a>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {creators.length > 0 && (
+        <div class="hand__filters">
+          <p class="exp-label">{filterLabel}</p>
+          <div class="hand__chips" role="group" aria-label={filterLabel}>
+            <button class="exp-chip" type="button" aria-pressed="true" data-hand-filter="">All</button>
+            {categories.map((c) => <button class="exp-chip" type="button" aria-pressed="false" data-hand-filter={c.id}>{c.label}</button>)}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {creators.length > 0 && <StageLamp />}
+
+    {creators.length > 0 && (
+      <div class="hand__table">
+        <div class="hand__deck" data-hand-deck tabindex="0" role="group" aria-label="Creators: use the left and right arrow keys to move through them">
+          {creators.map((c) => (
+            <article class="ccard on-photo" aria-label={c.name} data-id={c.id} data-hand-card data-cats={c.categories.join(' ')}>
+              <div class="ccard__tilt">
+                <button class="ccard__keep exp-pill desk-only" type="button" aria-pressed="false" data-keep="creators" data-keep-id={c.id} data-keep-label={c.name}>
+                  <span class="keep-off">+ {t('hand.keep')}</span><span class="keep-on">{t('hand.kept')}</span>
+                </button>
+                <div class="ccard__inner">
+                  <button class="ccard__face ccard__front" type="button" aria-label={`Flip ${c.name}'s card`} data-hand-flip>
+                    <img src={c.portrait.src} alt={c.portrait.alt} sizes="340px" loading="lazy" decoding="async" draggable="false" />
+                    <span class="ccard__sheen" aria-hidden="true"></span>
+                    <span class="ccard__label">
+                      {c.category && <span class="exp-label">{c.category}</span>}
+                      <span class="ccard__name" style={`--len: ${Math.max(7, c.name.length)}`}>{c.name}</span>
+                    </span>
+                    <span class="ccard__corner" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.600L20 9"></path><path d="M20 4v5h-5"></path><path d="M20 12a8 8 0 0 1-13.7 5.600L4 15"></path><path d="M4 20v-5h5"></path></svg>
+                    </span>
+                  </button>
+                  <div class="ccard__face ccard__back">
+                    <p class="exp-label">{c.category ?? 'Creator'}</p>
+                    <p class="ccard__back-name" style={`--len: ${Math.max(7, c.name.length)}`}>{c.name}</p>
+                    {c.platforms.length > 0 && (
+                      <ul class="ccard__platforms" role="list">
+                        {c.platforms.map((p) => <li><a class="exp-chip" href={p.href} target="_blank" rel="noopener">{p.label}</a></li>)}
+                      </ul>
+                    )}
+                    <div class="ccard__actions">
+                      <a class="exp-pill" href={c.href}>
+                        View profile
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+                      </a>
+                      <button class="exp-round" type="button" aria-label="Flip back" data-hand-unflip>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.600L20 9"></path><path d="M20 4v5h-5"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="hand__controls">
+          <button class="exp-round" type="button" aria-label="Previous creator" data-hand-prev>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5.500M11 6.5 5.5 12l5.5 5.5"></path></svg>
+          </button>
+          <p class="exp-label" aria-live="polite" data-hand-count></p>
+          <button class="exp-round" type="button" aria-label="Next creator" data-hand-next>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.500M13 6.5 18.5 12 13 17.5"></path></svg>
+          </button>
+        </div>
+      </div>
+    )}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .hand {
+    position: relative;
+    height: calc(100svh + (var(--steps) - 1) * 42svh);
+    color: rgb(var(--ink));
+  }
+
+  /* Desktop: a short hold, two cards' worth (hand.ts), then on down the page. The words stay above the
+     spotlight's dark (StageLamp). */
+  @media (min-width: 1024px) {
+    .hand {
+      height: calc(100svh + 200px);
+    }
+
+    .hand .hand__copy {
+      z-index: 6;
+    }
+  }
+
+  .hand__pin {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    align-items: center;
+    gap: clamp(var(--space-5), 5vw, var(--space-8));
+    height: 100svh;
+    min-height: 620px;
+    padding: calc(var(--header-h) + var(--space-3)) var(--margin) var(--space-5);
+    overflow: clip;
+  }
+
+  /* ---------- The words ---------- */
+  .hand__copy {
+    position: relative;
+    z-index: 3;
+    align-self: center;
+    display: grid;
+    gap: var(--space-6);
+    container-type: inline-size;
+  }
+
+  .hand__messages {
+    display: grid;
+  }
+
+  .hand__message {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: end;
+    justify-items: start;
+    gap: var(--space-4);
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+    pointer-events: none;
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 600ms var(--ease-out),
+      filter 500ms var(--ease-out);
+  }
+
+  .hand__message.is-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    pointer-events: auto;
+  }
+
+  .hand__title {
+    font-size: clamp(2rem, 11.4cqi, 4.5rem);
+  }
+
+  .hand__body {
+    max-width: 30rem;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+    color: rgb(var(--ink) / 0.86);
+  }
+
+  .hand__filters {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .hand__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ---------- The table ---------- */
+  .hand__table {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    justify-items: center;
+    gap: var(--space-3);
+    height: 100%;
+    min-width: 0;
+  }
+
+  .hand__deck {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1500px;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+    outline: none;
+  }
+
+  .hand.is-dragging .hand__deck {
+    cursor: grabbing;
+  }
+
+  .hand__deck:focus-visible .ccard.is-active {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 6px;
+    border-radius: 24px;
+  }
+
+  .hand__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+
+  /* ---------- A card, fanned by its distance from the front (--d, --ad, from the script) ---------- */
+  .ccard {
+    --w: min(22vw, 42svh, 330px);
+    position: absolute;
+    top: 50%;
+    left: 44%;
+    width: var(--w);
+    aspect-ratio: 5 / 7;
+    margin: calc(var(--w) * -0.7) 0 0 calc(var(--w) * -0.5);
+    transform:
+      translateX(calc(var(--dx, 0) * min(6vw, 88px)))
+      translateY(calc(var(--ad, 0) * var(--ad, 0) * 7px + var(--ad, 0) * 7px))
+      rotate(calc(var(--dx, 0) * 7deg))
+      scale(calc(1 - var(--ad, 0) * 0.07));
+    z-index: calc(60 - var(--ad, 0));
+    transition:
+      transform 720ms cubic-bezier(0.2, 1.15, 0.3, 1),
+      opacity 400ms var(--ease-out);
+    will-change: transform;
+  }
+
+  .ccard[hidden] {
+    display: none;
+  }
+
+  .ccard.is-far {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ccard:not(.is-active):hover {
+    translate: 0 -14px;
+    transition:
+      transform 720ms cubic-bezier(0.2, 1.15, 0.3, 1),
+      translate 300ms var(--ease-out),
+      opacity 400ms var(--ease-out);
+  }
+
+  .ccard__tilt {
+    width: 100%;
+    height: 100%;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition: transform 240ms var(--ease-out);
+  }
+
+  .ccard__inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 800ms cubic-bezier(0.3, 1.2, 0.4, 1);
+  }
+
+  .ccard.is-flipped .ccard__inner {
+    transform: rotateY(180deg);
+  }
+
+  .ccard__face {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 24px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    color: rgb(var(--ink));
+    box-shadow: 0 30px 60px -26px rgb(var(--shade) / 0.85);
+  }
+
+  .ccard__front {
+    cursor: inherit;
+    background: var(--navy-700);
+    text-align: left;
+  }
+
+  .ccard.is-active .ccard__front {
+    cursor: pointer;
+  }
+
+  .ccard__front img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
+
+  .ccard__front::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to top, rgb(6 20 43 / 0.92), rgb(6 20 43 / 0) 48%);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.28),
+      inset 0 1px 0 rgb(255 255 255 / 0.4);
+    pointer-events: none;
+    transition: box-shadow 400ms var(--ease-out);
+  }
+
+  .ccard.is-active .ccard__front::after {
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.5);
+  }
+
+  /* The holographic light on the front card. */
+  .ccard__sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      radial-gradient(circle at var(--gx, 50%) var(--gy, 30%), rgb(255 255 255 / calc(0.34 * var(--fill-k))), transparent 42%),
+      linear-gradient(115deg, transparent 32%, rgb(var(--tone-lit) / 0.22) 47%, rgb(255 255 255 / calc(0.2 * var(--fill-k))) 52%, transparent 68%);
+    background-size: 100% 100%, 220% 220%;
+    background-position: 0 0, var(--gx, 50%) var(--gy, 50%);
+    mix-blend-mode: overlay;
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  .ccard.is-active .ccard__sheen {
+    opacity: 1;
+  }
+
+  .ccard__label {
+    position: absolute;
+    right: 18px;
+    bottom: 16px;
+    left: 18px;
+    z-index: 2;
+    display: grid;
+    gap: 6px;
+    container-type: inline-size;
+  }
+
+  .ccard__name,
+  .ccard__back-name {
+    font-family: var(--font-display);
+    font-size: min(1.75rem, calc(100cqi / (var(--len, 8) * 0.8)));
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  .ccard__corner {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgb(6 20 43 / 0.42);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out);
+  }
+
+  .ccard.is-active .ccard__corner {
+    opacity: 1;
+  }
+
+  .ccard__corner svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ccard__back {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(18px, 1.6vw, 26px);
+    transform: rotateY(180deg);
+    background:
+      radial-gradient(90% 70% at 20% 0%, rgb(var(--tone-wash) / 0.36), transparent 70%),
+      radial-gradient(90% 60% at 90% 100%, rgb(var(--tone-depth) / 0.6), transparent 70%),
+      var(--navy-700);
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.9),
+      0 30px 60px -26px rgb(var(--shade) / 0.85);
+    container-type: inline-size;
+  }
+
+  .ccard__platforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ccard__actions {
+    position: absolute;
+    right: clamp(18px, 1.6vw, 26px);
+    bottom: clamp(18px, 1.6vw, 26px);
+    left: clamp(18px, 1.6vw, 26px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .ccard__actions .exp-pill {
+    padding-inline: var(--space-4);
+    white-space: nowrap;
+  }
+
+  /* ---------- Below desktop: the words, then the hand ---------- */
+  @media (max-width: 1023px) {
+    .hand__pin {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-items: start;
+      padding-top: calc(var(--header-h) + var(--space-2));
+    }
+
+    .hand__copy {
+      gap: var(--space-3);
+    }
+
+    .hand__body {
+      font-size: var(--type-small);
+    }
+
+    .hand__chips {
+      flex-wrap: nowrap;
+      margin-inline: calc(-1 * var(--margin));
+      padding-inline: var(--margin);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .hand__chips > * {
+      flex: none;
+    }
+
+    .ccard {
+      --w: min(52vw, 34svh);
+      transform:
+        translateX(calc(var(--d, 0) * 15vw))
+        translateY(calc(var(--ad, 0) * var(--ad, 0) * 5px))
+        rotate(calc(var(--d, 0) * 6deg))
+        scale(calc(1 - var(--ad, 0) * 0.07));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hand__message,
+    .ccard,
+    .ccard__tilt,
+    .ccard__inner {
+      transition: none;
+    }
+  }
+
+  /* Shortlisting: the button, or pulling the front card down. */
+  .ccard__tilt {
+    translate: 0 var(--pull, 0);
+    transition:
+      transform 240ms var(--ease-out),
+      translate 340ms cubic-bezier(0.2, 1.3, 0.35, 1);
+  }
+
+  .ccard.is-pull .ccard__tilt {
+    transition: transform 240ms var(--ease-out);
+  }
+
+  .ccard.is-pull.is-pull-far .ccard__tilt {
+    filter: drop-shadow(0 0 22px rgb(var(--tone-glow) / 0.9));
+  }
+
+  .ccard__keep {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 3;
+    min-height: 32px;
+    padding: 3px 12px;
+    font-size: 0.625rem;
+    transform: translateZ(2px);
+  }
+
+  .ccard:not(.is-active) .ccard__keep {
+    visibility: hidden;
+  }
+</style>
+
+<script>
+  import { initHands } from '@/scripts/system/hand';
+  initHands();
+</script>

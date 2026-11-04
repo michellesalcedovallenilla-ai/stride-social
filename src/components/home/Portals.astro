@@ -1,0 +1,71 @@
+---
+// Homepage portals (inside the scene of home/HeroScene.astro): what the three glass cards of "Three
+// sides of Stride" open onto, in order: the real Social, Talent and Education pages (home/PagePortal).
+// On desktop with motion each is a layer held in place while it opens, the three sides held still
+// beneath; each starts invisible and clipped to its card, and src/scripts/system/home-portals.ts opens
+// them in turn (and sets the lengths, .is-live and the markers' places). Until then, or on phones,
+// tablets and with reduced motion, they are ordinary stretches of the page one after the other.
+const keys = ['social', 'talent', 'education'];
+---
+
+<div class="portals" data-portals>
+  {/* Where the navigation counts each chapter as reached (src/scripts/system/edge-nav.ts). */}
+  {keys.map((key) => <span class="portals__mark" data-nav-start={key} aria-hidden="true"></span>)}
+  {/* The backdrop taking on each chapter's colour behind the three sides (desktop transition). */}
+  {keys.map((key) => <div class="portals__tint" data-tint={key} data-backdrop aria-hidden="true"></div>)}
+  <slot />
+</div>
+
+<style>
+  .portals {
+    position: relative;
+    display: flow-root; /* its children's negative top margins must not pull it up with them */
+  }
+
+  .portals__mark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .portals__tint,
+  .portals :global(.chapter__edge) {
+    display: none;
+  }
+
+  /* The layers are pulled up a screen each, so they are in place when the sides stop. */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .portals.is-live .portals__tint {
+      display: block;
+      position: sticky;
+      top: 0;
+      z-index: 0;
+      height: 100vh;
+      margin-top: -100vh;
+      opacity: 0;
+      pointer-events: none;
+      background: rgb(var(--backdrop, var(--tone-surface)));
+    }
+
+    /* While a chapter fills the screen, the backdrops under it aren't drawn. */
+    :global(.scene.is-covered) .portals__tint {
+      visibility: hidden;
+    }
+
+    /* The card's lit edge, following the opening; each page sets --edge and --edge-glow. */
+    .portals.is-live :global(.chapter__edge) {
+      display: block;
+      position: absolute;
+      z-index: 3;
+      border-radius: 26px;
+      box-shadow:
+        inset 0 0 0 1px rgb(var(--edge) / 0.4),
+        inset 0 1px 0 rgb(255 255 255 / 0.5),
+        inset 0 0 50px -20px rgb(var(--edge-glow) / 0.5);
+      pointer-events: none;
+    }
+  }
+</style>

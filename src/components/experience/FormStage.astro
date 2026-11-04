@@ -1,0 +1,306 @@
+---
+// A page that's mostly a form: a wide headline and short points on the left, the form in a glass panel
+// on the right, slow light moving behind it and following the pointer. The form itself comes in the
+// slot, in its dark tone.
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import DraftTag from '../core/DraftTag.astro';
+import type { Tone, Look } from '@/lib/experience';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  crumbs?: { label: string; href?: string }[];
+  /** h2 where the page already has its h1. */
+  level?: 'h1' | 'h2';
+  eyebrow?: string;
+  headline: string;
+  body?: string;
+  status?: 'approved' | 'draft';
+  points?: { label: string; copy?: string }[];
+  email?: string;
+  tone?: Tone;
+  /** The palette colour it lives in. */
+  look?: Look;
+  /** One question at a time (desktop). */
+  steps?: boolean;
+}
+
+const { crumbs, level = 'h1', eyebrow, headline, body, status, points = [], email, tone = 'group', look = 'deep', steps = true } = Astro.props;
+const t = await interfaceCopy();
+const Title = level;
+---
+
+<section class="formstage" aria-labelledby="formstage-title" data-tone={tone} data-look={look}>
+  <div class="formstage__inner container-wide">
+    <div class="formstage__lead">
+      {crumbs && <Breadcrumbs items={crumbs} tone="dark" />}
+      {eyebrow && <p class="formstage__eyebrow">{eyebrow}</p>}
+      <Title class="formstage__title" id="formstage-title" data-reveal-lines={level === 'h1' ? 'load' : undefined}>{headline}</Title>
+      {body && <p class="formstage__body">{body}</p>}
+      {status && <DraftTag status={status} />}
+      {points.length > 0 && (
+        <ol class="formstage__points" role="list">
+          {points.map((p, i) => (
+            <li>
+              <span aria-hidden="true">{pad(i + 1)}</span>
+              <div>
+                <p class="formstage__point">{p.label}</p>
+                {p.copy && <p>{p.copy}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {email && <p class="formstage__direct">Prefer email? <a href={`mailto:${email}`}>{email}</a></p>}
+    </div>
+    <div class="formstage__panel" data-steps={steps ? '' : undefined} data-steps-count={t('steps.count')} data-steps-next={t('steps.next')} data-steps-back={t('steps.back')}>
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .formstage {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    padding-block: calc(var(--header-h) + var(--space-5)) var(--space-8);
+    color: rgb(var(--ink));
+  }
+
+  .formstage__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-7) var(--gutter);
+    align-items: start;
+  }
+
+  .formstage__lead {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-3));
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    container-type: inline-size;
+  }
+
+  .formstage__eyebrow {
+    margin-top: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.72);
+  }
+
+  .formstage__title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 11cqi, 5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .formstage__body {
+    max-width: 30rem;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+    color: rgb(var(--ink) / 0.88);
+    text-shadow: 0 1px 14px rgb(var(--halo) / 0.6);
+  }
+
+  .formstage__points {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 30rem;
+    margin-top: var(--space-2);
+  }
+
+  .formstage__points li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    text-shadow: 0 1px 14px rgb(var(--halo) / 0.7);
+  }
+
+  .formstage__points span {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    line-height: 1.8;
+    color: rgb(var(--tone-lit));
+  }
+
+  .formstage__point {
+    font-weight: 700;
+  }
+
+  .formstage__direct a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* The form in glass, its fields clear rather than white. */
+  .formstage__panel {
+    padding: clamp(22px, 2.6vw, 40px);
+    border-radius: 26px;
+    background: linear-gradient(165deg, rgb(255 255 255 / calc(0.13 * var(--fill-k))), rgb(255 255 255 / calc(0.05 * var(--fill-k))) 42%, rgb(255 255 255 / calc(0.03 * var(--fill-k))) 62%, rgb(255 255 255 / calc(0.07 * var(--fill-k))));
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.2),
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 30px 60px -30px rgb(var(--shade) / 0.8);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+  }
+
+  .formstage__panel :global(input:not([type='checkbox'], [type='radio'])),
+  .formstage__panel :global(select),
+  .formstage__panel :global(textarea) {
+    border-color: rgb(var(--hair) / 0.28);
+    border-radius: 14px;
+    background: rgb(var(--panel) / 0.5);
+    color: rgb(var(--ink));
+  }
+
+  .formstage__panel :global(input:not([type='checkbox'], [type='radio']):focus),
+  .formstage__panel :global(select:focus),
+  .formstage__panel :global(textarea:focus) {
+    border-color: rgb(var(--tone-lit));
+  }
+
+  .formstage__panel :global(select option) {
+    background: rgb(var(--panel));
+    color: rgb(var(--ink));
+  }
+
+  .formstage__panel :global(input::placeholder),
+  .formstage__panel :global(textarea::placeholder) {
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .formstage__panel :global(.checks__option) {
+    border-color: rgb(var(--hair) / 0.28);
+    background: rgb(var(--panel) / 0.5);
+    color: rgb(var(--ink));
+    transition:
+      background-color 300ms var(--ease-out),
+      color 300ms var(--ease-out);
+  }
+
+  .formstage__panel :global(.checks__option:hover) {
+    background: rgb(255 255 255 / calc(0.1 * var(--fill-k)));
+  }
+
+  .formstage__panel :global(.checks__option:has(input:checked)) {
+    border-color: rgb(var(--tone-lit));
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  .formstage__panel :global(.checks__option input) {
+    accent-color: rgb(var(--tone-on));
+  }
+
+  .formstage__panel :global(.btn) {
+    border-radius: 999px;
+  }
+
+  @media (max-width: 1023px) {
+    .formstage__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .formstage__lead {
+      position: static;
+    }
+  }
+
+  /* One question at a time. */
+  .formstage__panel.is-stepped {
+    display: grid;
+    align-content: start;
+    min-height: min(44svh, 24rem);
+  }
+
+  .formstage__panel.is-stepped :global([class*='__grid']) {
+    display: block;
+  }
+
+  .formstage__panel :global(.form-step) {
+    display: none;
+  }
+
+  .formstage__panel :global(.form-step.is-now) {
+    display: block;
+    animation: form-step-in 420ms var(--ease-out);
+  }
+
+  @keyframes form-step-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  .formstage__panel.is-stepped :global(.form-step > .field__label),
+  .formstage__panel.is-stepped :global(.form-step .checks__legend),
+  .formstage__panel.is-stepped :global(.form-step .field__label),
+  .formstage__panel.is-stepped :global(.form-step legend) {
+    margin-bottom: var(--space-3);
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.1vw, 2rem);
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .formstage__panel.is-stepped:not(.is-last) :global(.form__consent),
+  .formstage__panel.is-stepped:not(.is-last) :global(.form__actions) {
+    display: none;
+  }
+
+  .formstage__panel :global(.form-steps__bar) {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .formstage__panel :global(.form-steps__track) {
+    display: block;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgb(var(--ink) / 0.18);
+  }
+
+  .formstage__panel :global(.form-steps__track span) {
+    display: block;
+    height: 100%;
+    background: rgb(var(--tone-lit));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 420ms var(--ease-out);
+  }
+
+  .formstage__panel :global(.form-steps__nav) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .formstage__panel :global(.form-steps__nav .exp-pill:only-child) {
+    margin-left: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .formstage__panel :global(.form-step.is-now) {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initFormSteps } from '@/scripts/system/form-steps';
+  initFormSteps();
+</script>

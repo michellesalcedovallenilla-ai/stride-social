@@ -94,6 +94,11 @@
   logo: null
   approval:
     status: none
+- id: hellofresh
+  name: HelloFresh
+  logo: null
+  approval:
+    status: none
 - id: holafly
   name: Holafly
   logo: null

@@ -1,8 +1,7 @@
 ---
-// Legal pages: privacy, cookies, terms (docs/phase-2/05-wireframes.md §E): a plain, readable
-// document with a table of contents built from the text's headings. The text must come from
-// Stride (Q15). Until then each page says so, stays out of search results, and the labelled
-// notice blocks a production release.
+// Legal pages: privacy, cookies, terms. Kept plain and readable, as they should be: the text in glass, with
+// a table of contents that follows you and marks where you are. The text must come from Stride (Q15).
+// Until then each page says so, stays out of search results, and the labelled notice blocks a production release.
 import { getCollection, render } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
@@ -23,28 +22,30 @@ const toc = headings.filter((h) => h.depth === 2);
 const ready = d.status === 'approved' && (page.body ?? '').trim() !== '';
 ---
 
-<SiteLayout title={`${d.title} | Stride`} description={d.summary} noindex={!ready}>
-  <article class="legal">
-    <header class="legal__head container-wide">
-      <Breadcrumbs items={[{ label: d.title }]} tone="light" />
-      <h1 class="legal__title">{d.title}</h1>
-      {ready && d.updated && <p class="legal__updated">Last updated {formatDate(d.updated)}</p>}
-    </header>
-    <div class="legal__body container-wide">
+<SiteLayout title={`${d.title} | Stride`} description={d.summary} noindex={!ready} look="white" headerOverlay>
+  <article class="legal" data-legal data-tone="group" data-look="white">
+    <div class="legal__inner container-wide">
+      <header class="legal__head">
+        <Breadcrumbs items={[{ label: d.title }]} tone="dark" />
+        <h1 class="legal__title exp-title">{d.title}</h1>
+        {ready && d.updated && <p class="exp-label">Last updated {formatDate(d.updated)}</p>}
+      </header>
       {ready ? (
-        <>
+        <div class="legal__body">
           {toc.length > 1 && (
-            <nav class="legal__toc" aria-label="Contents">
-              <p class="legal__toc-label">Contents</p>
+            <nav class="legal__toc glass" aria-label="Contents">
+              <p class="exp-label">Contents</p>
               <ol role="list">
-                {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+                {toc.map((h) => <li><a href={`#${h.slug}`} data-legal-link={h.slug}>{h.text}</a></li>)}
               </ol>
             </nav>
           )}
-          <Prose class="legal__prose"><Content /></Prose>
-        </>
+          <div class="legal__text glass">
+            <Prose class="exp-prose"><Content /></Prose>
+          </div>
+        </div>
       ) : (
-        <div class="legal__pending">
+        <div class="legal__pending glass">
           <PlaceholderNotice variant="block" label="Legal text to be supplied by Stride (Q15)">
             <p>{d.summary} Add the approved text to src/content/legal/{page.id}.md and set status: approved.</p>
           </PlaceholderNotice>
@@ -58,73 +59,68 @@ const ready = d.status === 'approved' && (page.body ?? '').trim() !== '';
 <style>
   .legal {
     position: relative;
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-8);
+    overflow: clip;
+    color: rgb(var(--ink));
+  }
+
+  .legal__inner {
+    position: relative;
     z-index: 1;
-    background: var(--white);
-    color: var(--navy-900);
+    display: grid;
+    gap: var(--space-6);
   }
 
   .legal__head {
     display: grid;
-    gap: var(--space-5);
-    padding-block: var(--space-7) var(--space-8);
-    border-bottom: 1px solid var(--line);
+    gap: var(--space-3);
   }
 
   .legal__title {
-    font-family: var(--font-display);
-    font-size: var(--type-h1);
-    font-weight: 850;
-    font-stretch: 110%;
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .legal__updated,
-  .legal__toc-label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
+    font-size: clamp(2.5rem, 6vw, 6rem);
   }
 
   .legal__body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2.5fr);
-    gap: var(--space-8) var(--gutter);
-    padding-block: var(--space-9) var(--section-pad);
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: var(--space-5) var(--gutter);
+    align-items: start;
   }
 
   .legal__toc {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-3));
     display: grid;
     gap: var(--space-3);
-    align-content: start;
-    position: sticky;
-    top: calc(var(--header-h) + var(--space-6));
+    padding: clamp(18px, 1.8vw, 28px);
   }
 
   .legal__toc ol {
     display: grid;
     gap: var(--space-2);
-    font-size: var(--type-small);
   }
 
   .legal__toc a {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    font-size: 0.9375rem;
+    color: rgb(var(--ink) / 0.72);
+    transition: color 300ms var(--ease-out);
   }
 
-  .legal__body > :global(.legal__prose) {
-    grid-column: 2;
-    min-width: 0;
+  .legal__toc a:hover,
+  .legal__toc a.is-here {
+    color: rgb(var(--tone-lit));
+  }
+
+  .legal__text,
+  .legal__pending {
+    padding: clamp(22px, 2.6vw, 44px);
   }
 
   .legal__pending {
-    grid-column: 1 / -1;
     display: grid;
-    gap: var(--space-5);
-    max-width: 760px;
+    gap: var(--space-4);
+    max-width: 48rem;
   }
 
   .legal__pending a {
@@ -140,9 +136,23 @@ const ready = d.status === 'approved' && (page.body ?? '').trim() !== '';
     .legal__toc {
       position: static;
     }
-
-    .legal__body > :global(.legal__prose) {
-      grid-column: 1;
-    }
   }
 </style>
+
+<script>
+  // The contents mark the section you're reading.
+  document.querySelectorAll<HTMLElement>('[data-legal]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = 'true';
+    const links = [...root.querySelectorAll<HTMLElement>('[data-legal-link]')];
+    const sections = links.map((l) => document.getElementById(l.dataset.legalLink ?? '')).filter((s): s is HTMLElement => !!s);
+    if (!sections.length) return;
+    const update = () => {
+      let at = sections[0];
+      for (const s of sections) if (s.getBoundingClientRect().top < window.innerHeight * 0.35) at = s;
+      links.forEach((l) => l.classList.toggle('is-here', l.dataset.legalLink === at.id));
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  });
+</script>

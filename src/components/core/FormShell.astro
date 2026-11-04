@@ -159,8 +159,8 @@ const [consentBefore, consentAfter] = messages.consent.split('privacy policy');
   }
 
   .form--on-dark .form__alert {
-    border-color: #ffb4a9;
-    background: rgb(255 180 169 / 0.1);
+    border-color: var(--error);
+    background: color-mix(in srgb, var(--error) 10%, transparent);
   }
 
   .form.is-sending :global(.form__submit) {

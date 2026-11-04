@@ -1,82 +1,14 @@
 ---
-// Stride Talent landing: the seven sections from the client brief (PDF §5;
-// docs/phase-2/05-wireframes.md §C). Copy lives in src/content/pages/talent.yaml; roster,
-// testimonials, divisions and markets come from the Phase 3 collections.
-import { getCollection, getEntry } from 'astro:content';
+// Stride Talent landing; the page's content is shared with the homepage's Talent card
+// (components/talent/TalentPage.astro).
+import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import TalentHero from '@/components/talent/TalentHero.astro';
-import TalentIntro from '@/components/talent/TalentIntro.astro';
-import CareerServices from '@/components/talent/CareerServices.astro';
-import RosterGrid from '@/components/talent/RosterGrid.astro';
-import CreatorQuotes from '@/components/talent/CreatorQuotes.astro';
-import DivisionCards from '@/components/talent/DivisionCards.astro';
-import ApplySection from '@/components/talent/ApplySection.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
-import { getRoster } from '@/lib/roster';
+import TalentPage from '@/components/talent/TalentPage.astro';
 
 const page = await getEntry('pages', 'talent');
 if (!page) throw new Error('Missing src/content/pages/talent.yaml');
-const s = page.data.sections;
-
-const roster = await getRoster();
-const byId = new Map(roster.map((c) => [c.id, c]));
-// Hero portraits: the hand-picked ids that are published and have a photo, in the listed order.
-const heroCreators = (s.hero.featured ?? []).map((id) => byId.get(id)).filter((c) => c?.data.portrait);
-const categories = (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order).map((c) => ({ id: c.id, label: c.data.label }));
 ---
 
-<SiteLayout title="Stride Talent | Creator Management" description={s.hero.body} division="talent">
-  <TalentHero
-    eyebrow={s.hero.eyebrow}
-    lines={s.hero.lines ?? []}
-    body={s.hero.body ?? ''}
-    actions={(s.hero.items ?? []).map((i) => ({ label: i.label, href: i.href ?? '/' }))}
-    portraits={heroCreators.map((c) => ({ src: c!.data.portrait!.src }))}
-    interim={heroCreators.some((c) => c!.data.consent.status !== 'confirmed')}
-  />
-  <TalentIntro copy={s.intro} />
-  <CareerServices copy={s.services} />
-
-  {/* Left out when no creator may be published yet (production needs confirmed consent). */}
-  {roster.length > 0 && (
-    <section class="roster-preview" aria-labelledby="roster-title">
-      <div class="container-wide">
-        <header class="roster-preview__head">
-          <Eyebrow tone="light">{s.roster.eyebrow}</Eyebrow>
-          <h2 class="roster-preview__title" id="roster-title" data-reveal-lines>{s.roster.headline}</h2>
-        </header>
-        <RosterGrid creators={roster} categories={categories} mode="preview" limit={12} more={s.roster.cta} />
-      </div>
-    </section>
-  )}
-
-  <CreatorQuotes copy={s.experiences} />
-  <DivisionCards copy={s.divisions} />
-  <ApplySection copy={s.apply} />
+<SiteLayout title="Stride Talent | Creator Management" description={page.data.sections.hero.body} division="talent" look="deep" headerOverlay>
+  <TalentPage />
 </SiteLayout>
-
-<style>
-  .roster-preview {
-    position: relative;
-    z-index: 1;
-    padding: var(--section-pad) 0;
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .roster-preview__head {
-    display: grid;
-    gap: var(--space-4);
-    margin-bottom: var(--space-7);
-  }
-
-  .roster-preview__title {
-    font-family: var(--font-display);
-    font-size: var(--type-display);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-</style>

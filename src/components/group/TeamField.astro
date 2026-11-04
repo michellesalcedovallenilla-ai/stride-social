@@ -1,0 +1,324 @@
+---
+// Our Team: a field of faces. Moving across it, the faces near the pointer swell like a dock and show
+// their second photo, and a glass tag names whoever you're nearest. Click one and they grow into a big
+// card; filter by team or shuffle, and the faces fly to their new places. Behaviour:
+// src/scripts/system/team-field.ts, filters: archive-filter.ts. Names, roles and genuine photos only;
+// bios appear when supplied.
+import BigCard from '../experience/BigCard.astro';
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import type { Card } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  copy: { eyebrow?: string; headline?: string; body?: string };
+  people: { id: string; name: string; role: string; department: string; lead: boolean; photo: { src: string; alt: string }; photoAlt?: { src: string; alt: string }; card: Card }[];
+  departments: { id: string; label: string }[];
+  ui: { all: string; shuffle: string; hint: string };
+  crumbs: { label: string; href?: string }[];
+}
+
+const { copy, people, departments, ui, crumbs } = Astro.props;
+const t = await interfaceCopy();
+---
+
+<section class="tfield" aria-labelledby="tfield-title" data-tfield data-archive data-tone="group" data-look="frost">
+  <div class="tfield__inner container-wide">
+    <header class="tfield__head">
+      <div class="tfield__title-wrap">
+        <Breadcrumbs items={crumbs} tone="dark" />
+        <h1 class="tfield__title exp-title" id="tfield-title" data-reveal-lines="load">{copy.headline}</h1>
+      </div>
+      <div class="tfield__side">
+        {copy.body && <p class="tfield__body">{copy.body}</p>}
+        <div class="tfield__needs desk-only" role="group" aria-label={`${t('team.brand')} / ${t('team.creator')}`}>
+          <button class="exp-pill exp-pill--ghost" type="button" aria-pressed="false" data-tfield-need="campaigns sales social">{t('team.brand')}</button>
+          <button class="exp-pill exp-pill--ghost" type="button" aria-pressed="false" data-tfield-need="talent">{t('team.creator')}</button>
+        </div>
+        <div class="tfield__chips" role="group" aria-label="Filter by team" data-filter-group="department">
+          <button class="exp-chip" type="button" aria-pressed="true" data-value="all">{ui.all}</button>
+          {departments.map((d) => <button class="exp-chip" type="button" aria-pressed="false" data-value={d.id}>{d.label}</button>)}
+          <button class="exp-chip tfield__shuffle" type="button" data-tfield-shuffle>↻ {ui.shuffle}</button>
+        </div>
+        <p class="exp-label" role="status" aria-live="polite" data-filter-count data-noun="person|people">{people.length} people</p>
+      </div>
+    </header>
+
+    <ul class="tfield__grid" role="list" data-archive-grid data-tfield-grid data-grow-row>
+      {people.map((p) => (
+        <li class:list={['tface', { 'tface--lead': p.lead }]} data-filter-department={p.department} data-name={p.name} data-role={p.role}>
+          <a class="tface__link" href={`#${p.id}`} aria-label={`${p.name}, ${p.role}`} data-grow-card={p.id}>
+            <img class="tface__img" src={p.photo.src} alt={p.photo.alt} sizes="(max-width: 767px) 33vw, 240px" loading={p.lead ? 'eager' : 'lazy'} decoding="async" draggable="false" />
+            {p.photoAlt && <img class="tface__img tface__img--alt" src={p.photoAlt.src} alt="" sizes="240px" loading="lazy" decoding="async" draggable="false" />}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="tfield__hint exp-label" aria-hidden="true">{ui.hint}</p>
+  </div>
+
+  <div class="tfield__tag glass on-photo" aria-hidden="true" data-tfield-tag>
+    <span class="tfield__tag-name" data-tfield-tag-name></span>
+    <span class="tfield__tag-role" data-tfield-tag-role></span>
+  </div>
+
+  <div class="tfield__details">
+    {people.map((p) => <BigCard card={p.card} growKey={p.id} eyebrow={copy.eyebrow ?? ''} />)}
+  </div>
+</section>
+
+<style>
+  .tfield {
+    position: relative;
+    min-height: 100svh;
+    overflow: clip;
+    color: rgb(var(--ink));
+  }
+
+  .tfield__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    align-content: start;
+    gap: clamp(var(--space-4), 3vh, var(--space-6));
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-5);
+  }
+
+  .tfield__head {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: end;
+    gap: var(--space-4) var(--gutter);
+  }
+
+  .tfield__title-wrap {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .tfield__title {
+    font-size: clamp(2.25rem, min(5vw, 10vh), 5.5rem);
+  }
+
+  .tfield__side {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+
+  .tfield__body {
+    color: rgb(var(--ink) / 0.86);
+  }
+
+  .tfield__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tfield__shuffle {
+    color: rgb(var(--tone-lit));
+  }
+
+  /* ---------- The field ---------- */
+  .tfield__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(82px, 7.2vw, 116px), 1fr));
+    grid-auto-flow: dense;
+    gap: clamp(8px, 0.8vw, 12px);
+    padding-block: var(--space-3);
+  }
+
+  .tface {
+    position: relative;
+    aspect-ratio: 4 / 5;
+  }
+
+  .tface[hidden] {
+    display: none;
+  }
+
+  .tface--lead {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .tface__link {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--navy-700);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.22),
+      0 14px 30px -18px rgb(var(--shade) / 0.8);
+    transform: scale(var(--s, 1));
+    transition:
+      transform 200ms var(--ease-out),
+      box-shadow 300ms var(--ease-out);
+    -webkit-user-drag: none;
+  }
+
+  .tface__link:hover,
+  .tface__link:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 26px -2px rgb(var(--tone-glow) / 0.7),
+      0 14px 30px -18px rgb(var(--shade) / 0.8);
+  }
+
+  .tface__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    pointer-events: none;
+    transition: opacity 400ms var(--ease-out);
+  }
+
+  .tface__img--alt {
+    opacity: 0;
+  }
+
+  .tface__link:hover .tface__img--alt,
+  .tface__link:focus-visible .tface__img--alt {
+    opacity: 1;
+  }
+
+  .tfield__hint {
+    font-size: 0.625rem;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  /* The name, following the pointer. */
+  .tfield__tag {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    display: grid;
+    gap: 2px;
+    max-width: 280px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    background: rgb(6 20 43 / 0.72);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(var(--tx, 0), var(--ty, 0), 0);
+    transition: opacity 200ms var(--ease-out);
+  }
+
+  .tfield.is-over .tfield__tag {
+    opacity: 1;
+  }
+
+  .tfield__tag-name {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .tfield__tag-role {
+    font-size: 0.75rem;
+    color: rgb(var(--ink) / 0.8);
+  }
+
+  .tfield__details {
+    position: fixed;
+    inset: calc(50svh - min(17rem, 44svh)) max(calc((100vw - 60rem) / 2), var(--margin));
+    z-index: 120;
+    pointer-events: none;
+  }
+
+  .tfield__details :global(.bigcard) {
+    pointer-events: auto;
+  }
+
+  /* Their photograph, clear, on the card's right. */
+  .tfield__details :global(.bigcard__image) {
+    width: 50%;
+    height: 100%;
+    opacity: 1;
+    -webkit-mask-image: linear-gradient(to left, #000 62%, transparent);
+    mask-image: linear-gradient(to left, #000 62%, transparent);
+  }
+
+  .tfield__details :global(.bigcard__head),
+  .tfield__details :global(.bigcard__html) {
+    max-width: 54%;
+  }
+
+  .tfield__head,
+  .tfield__grid {
+    transition:
+      opacity 400ms var(--ease-out),
+      filter 400ms var(--ease-out);
+  }
+
+  .tfield.has-big-card .tfield__head,
+  .tfield.has-big-card .tfield__grid {
+    opacity: 0.22;
+    filter: blur(6px);
+  }
+
+  .tfield.has-big-card .tfield__tag {
+    opacity: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .tfield__head {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .tfield__hint,
+    .tfield__tag {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tface__link,
+    .tface__img {
+      transition: none;
+    }
+  }
+
+  /* Who you'd work with: they come forward, and the rest step back. */
+  .tfield__needs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tface__link {
+    transition:
+      transform 200ms var(--ease-out),
+      box-shadow 300ms var(--ease-out),
+      opacity 400ms var(--ease-out),
+      filter 400ms var(--ease-out);
+  }
+
+  .tface.is-dim .tface__link {
+    opacity: 0.2;
+    filter: grayscale(1);
+  }
+
+  .tface.is-lit .tface__link {
+    box-shadow:
+      0 0 0 2px rgb(var(--tone-lit)),
+      0 0 26px -2px rgb(var(--tone-glow) / 0.7);
+  }
+</style>
+
+<script>
+  import { initArchiveFilters } from '@/scripts/system/archive-filter';
+  import { initTeamFields } from '@/scripts/system/team-field';
+  initArchiveFilters();
+  initTeamFields();
+</script>

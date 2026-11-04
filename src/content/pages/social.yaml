@@ -29,25 +29,41 @@ sections:
 
       Strong creator relationships make that possible. We handle outreach, content approvals and reporting, so you deal with one team from brief to results.
 
-  # Creator globe (CreatorGlobe.astro): copy written by us. Regions and creators: src/config/creator-regions.ts.
+  # Creator globe (CreatorGlobe.astro): the messages that change with each scroll step, as written in the
+  # owner's mock-ups (2026-11-04); Stride to confirm. Regions and creators: src/config/creator-regions.ts.
   creators:
     status: draft
-    eyebrow: Creators worldwide
-    headline: Creators where your audience lives.
-    body: Turn the globe. Each region brings up a creator and the content they make.
-
-  # Creator content world (ContentWorld.astro): copy written by us.
-  world:
-    status: draft
-    eyebrow: Inside a campaign
-    headline: Brands and creators, in one room.
-    body: Briefs, collabs, reels and results, run by one team from first idea to final post.
+    items:
+      - label: Influence is more than a post.
+        copy: We plan and execute creator-led campaigns across TikTok, Instagram, YouTube, Twitch, and podcasts from product seeding and UGC to social commerce and livestreams.
+      - label: The right creators. The right audiences.
+        copy: Every campaign starts with a clear business objective. We select creators for audience fit, develop authentic content, and manage everything from execution to reporting.
+      - label: Creators where your audience lives.
+        copy: We connect brands with the right creators across platforms, formats, and markets to build campaigns that reach the audiences that matter.
 
   services:
     status: approved
     eyebrow: What we do
     headline: Our services.
     cta: { label: All services, href: /social/services }
+
+  # The menu that ends the page (SocialMenu.astro), What We Do: as written in the owner's mock-up
+  # (2026-11-04); Stride to confirm. Each key is the service its card opens.
+  menu:
+    status: draft
+    items:
+      - key: influencer-activations
+        label: Influencer Campaigns
+        copy: Authentic creator partnerships, product seeding and influencer activations.
+      - key: ugc-production
+        label: Content & UGC
+        copy: Creator-produced content for organic social media and paid advertising.
+      - key: tiktok-shop
+        label: Social Commerce
+        copy: TikTok Shop campaigns and livestream experiences that turn attention into action.
+      - key: influencer-events
+        label: Experiences & Audio
+        copy: Creator events, PR activations and podcast partnerships that bring brands into relevant conversations.
 
   # Intro for the services index page (/social/services).
   servicesPage:

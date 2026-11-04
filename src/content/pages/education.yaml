@@ -27,6 +27,23 @@ sections:
     eyebrow: What you'll learn
     headline: What creators can learn.
 
+  # The level map: interface copy written by us.
+  map:
+    status: draft
+    eyebrow: Your path
+    body: Scroll to climb, tap a level to go there, and add the ones you want. They go with your enquiry.
+    items:
+      - key: empty
+        label: Nothing yet. Add the levels you want.
+      - key: add
+        label: Add to my path
+      - key: added
+        label: On my path
+      - key: cta
+        label: Enquire with my path
+      - key: level
+        label: "Level {n} of {total}"
+
   experience:
     status: approved
     eyebrow: How it works

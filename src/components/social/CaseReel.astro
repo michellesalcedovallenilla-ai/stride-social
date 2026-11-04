@@ -1,0 +1,388 @@
+---
+// A case study's opening: the campaign's own reels in a carousel you can spin, the one in front playing,
+// and the whole screen washed in a blur of it. The story comes in a glass card beside them: scrolling turns
+// the chapters and the reels together; dragging or clicking turns just the reels.
+// Behaviour: src/scripts/system/case-reel.ts.
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import type { Media } from '@/lib/experience';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  name: string;
+  facts: string[];
+  frames: (Media & { caption?: string })[];
+  chapters: { label: string; title?: string; text: string; links?: { label: string; href: string }[]; stats?: { label: string; value: string }[] }[];
+  crumbs: { label: string; href?: string }[];
+}
+
+const { name, facts, frames, chapters, crumbs } = Astro.props;
+const t = await interfaceCopy();
+const posterOf = (f: Media) => f.poster ?? f.image?.src;
+---
+
+<section class="reel" aria-labelledby="reel-title" data-reel data-tone="social" data-look="ice" style={`--steps: ${chapters.length}`}>
+  <div class="reel__pin" data-portal-hero>
+    <div class="reel__wash" aria-hidden="true">
+      {frames.map((f, i) => posterOf(f) && <img class:list={['reel__wash-img', { 'is-active': i === 0 }]} src={posterOf(f)} alt="" sizes="40vw" loading="lazy" decoding="async" data-reel-wash={i} />)}
+    </div>
+
+    <div class="reel__copy" data-reveal="from-left">
+      <Breadcrumbs items={crumbs} tone="light" />
+      <h1 class="reel__name exp-title" id="reel-title" style={`--len: ${Math.max(5, ...name.split(/\s+/).map((w) => w.length))}`}>{name}</h1>
+      {facts.length > 0 && <p class="reel__facts">{facts.map((x) => <span class="exp-chip">{x}</span>)}</p>}
+
+      <div class="reel__chapters">
+        {chapters.map((c, i) => (
+          <article class:list={['reel__chapter glass', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-reel-chapter={i}>
+            <p class="reel__chapter-head"><span class="exp-label">{c.title ?? c.label}</span><span class="exp-label">{pad(i + 1)} / {pad(chapters.length)}</span></p>
+            {c.text && <p class="reel__text">{c.text}</p>}
+            {c.stats && c.stats.length > 0 && (
+              <dl class="reel__stats">
+                {c.stats.map((s) => <div><dd data-count={s.value}>{s.value}</dd><dt>{s.label}</dt></div>)}
+              </dl>
+            )}
+            {c.links && c.links.length > 0 && <p class="reel__links">{c.links.map((l) => <a class="exp-chip" href={l.href}>{l.label}</a>)}</p>}
+          </article>
+        ))}
+      </div>
+      {chapters.length > 1 && (
+        <div class="reel__rail desk-only" role="group" aria-label={name}>
+          {chapters.map((c, i) => (
+            <button type="button" aria-label={`${t('reel.chapter')}: ${c.title ?? c.label}`} title={c.title ?? c.label} data-reel-jump={i}><span></span></button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div class="reel__spin">
+      <div class="reel__frames" data-reel-frames>
+        {frames.map((f, i) => (
+          <figure class="rframe on-photo" data-reel-frame={i} aria-label={f.caption}>
+            {f.video ? (
+              <video muted loop playsinline preload="none" poster={f.poster} aria-label={f.caption ?? name} data-reel-video>
+                <source src={f.video} type="video/mp4" />
+              </video>
+            ) : f.image ? (
+              <img src={f.image.src} alt={f.image.alt} sizes="340px" loading="lazy" decoding="async" draggable="false" />
+            ) : null}
+            {f.caption && <figcaption>{f.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+      {frames.length > 1 && (
+        <div class="reel__controls">
+          <button class="exp-round" type="button" aria-label="Previous reel" data-reel-prev>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5.5M11 6.5 5.5 12l5.5 5.5"></path></svg>
+          </button>
+          <button class="exp-round" type="button" aria-label="Pause" data-reel-toggle>
+            <svg class="reel__pause" viewBox="0 0 16 16" aria-hidden="true" style="fill: currentColor; stroke: none"><path d="M4 2h3v12H4zM9 2h3v12H9z"></path></svg>
+          </button>
+          <button class="exp-round" type="button" aria-label="Next reel" data-reel-next>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+          </button>
+        </div>
+      )}
+    </div>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .reel {
+    position: relative;
+    height: calc(100svh + (var(--steps) - 1) * 60svh);
+    color: rgb(var(--ink));
+  }
+
+  .reel__pin {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: center;
+    gap: var(--gutter);
+    height: 100svh;
+    min-height: 620px;
+    padding: calc(var(--header-h) + var(--space-3)) var(--margin) var(--space-5);
+    overflow: clip;
+  }
+
+  /* The screen washed in the reel at the front. */
+  .reel__wash {
+    position: absolute;
+    inset: -8%;
+  }
+
+  .reel__wash-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    filter: blur(70px) saturate(1.15);
+    opacity: 0;
+    transition: opacity 900ms var(--ease-out);
+  }
+
+  .reel__wash-img.is-active {
+    opacity: 0.15;
+  }
+
+  .reel__copy {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    gap: var(--space-4);
+    container-type: inline-size;
+  }
+
+  .reel__name {
+    font-size: min(5.5rem, calc(100cqi / (var(--len) * 0.84)));
+  }
+
+  .reel__facts,
+  .reel__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .reel__chapters {
+    display: grid;
+  }
+
+  .reel__chapter {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(18px, 1.9vw, 30px);
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+    pointer-events: none;
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 600ms cubic-bezier(0.2, 1.1, 0.3, 1);
+  }
+
+  .reel__chapter.is-active {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .reel__chapter-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .reel__text {
+    color: rgb(var(--ink) / 0.9);
+  }
+
+  /* ---------- The carousel: each frame told its distance from the front (--d, --ad) ---------- */
+  .reel__spin {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    justify-items: center;
+    gap: var(--space-3);
+    height: 100%;
+    min-width: 0;
+  }
+
+  .reel__frames {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1400px;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .reel.is-dragging .reel__frames {
+    cursor: grabbing;
+  }
+
+  .rframe {
+    --w: min(21vw, 37svh, 330px);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--w);
+    aspect-ratio: 9 / 16;
+    margin: calc(var(--w) * -0.89) 0 0 calc(var(--w) * -0.5);
+    overflow: hidden;
+    border-radius: 26px;
+    background: var(--navy-700);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.24),
+      0 30px 60px -22px rgb(var(--shade) / 0.85);
+    transform:
+      translateX(calc(var(--d, 0) * min(10.5vw, 158px)))
+      translateZ(calc(var(--ad, 0) * -130px))
+      rotateY(calc(var(--d, 0) * -24deg));
+    opacity: calc(1 - var(--ad, 0) * 0.26);
+    z-index: calc(40 - var(--ad, 0));
+    transition:
+      transform 760ms cubic-bezier(0.2, 1.1, 0.3, 1),
+      opacity 400ms var(--ease-out),
+      box-shadow 400ms var(--ease-out);
+  }
+
+  .rframe.is-front {
+    box-shadow:
+      0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 40px -4px rgb(var(--tone-glow) / 0.65),
+      0 30px 60px -22px rgb(var(--shade) / 0.85);
+  }
+
+  .rframe.is-far {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .rframe video,
+  .rframe img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .rframe figcaption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 34px 16px 14px;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.7), transparent);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .rframe.is-front figcaption {
+    opacity: 1;
+  }
+
+  .reel__controls {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .reel__pause {
+    width: 13px;
+    height: 13px;
+  }
+
+  @media (max-width: 1023px) {
+    .reel__pin {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-items: start;
+      padding-top: calc(var(--header-h) + var(--space-2));
+    }
+
+    .reel__copy {
+      gap: var(--space-2);
+    }
+
+    .reel__text {
+      font-size: var(--type-small);
+    }
+
+    .rframe {
+      --w: min(38vw, 26svh);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reel__wash-img,
+    .reel__chapter,
+    .rframe {
+      transition: none;
+    }
+  }
+
+  /* The story so far: it fills as you scroll, and each piece takes you there. */
+  .reel__rail {
+    display: flex;
+    gap: 5px;
+  }
+
+  .reel__rail button {
+    flex: 1 1 0;
+    height: 18px;
+    padding-block: 7px;
+  }
+
+  .reel__rail span {
+    display: block;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgb(var(--ink) / 0.22);
+  }
+
+  .reel__rail span::before {
+    content: '';
+    display: block;
+    height: 100%;
+    background: rgb(var(--tone-lit));
+    transform: scaleX(var(--fill, 0));
+    transform-origin: left;
+  }
+
+  .reel__rail button:hover span {
+    background: rgb(var(--ink) / 0.4);
+  }
+
+  .reel__rail button:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 2px;
+  }
+
+  .reel__frames {
+    translate: calc(var(--scrub, 0) * -34px) 0;
+  }
+
+  .reel__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .reel__stats div {
+    display: grid;
+  }
+
+  .reel__stats dd {
+    order: -1;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 1;
+    color: rgb(var(--tone-lit));
+  }
+
+  .reel__stats dt {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>
+
+<script>
+  import { initCaseReels } from '@/scripts/system/case-reel';
+  initCaseReels();
+</script>

@@ -1,260 +1,66 @@
 ---
-// Insights archive (docs/phase-2/05-wireframes.md §E): the latest (or featured) article large,
-// then category chips (URL-synced: /insights?category=creator-economy) over a grid with
-// "Load more". Only categories with articles get a chip; the mapping is proposed (Gate 2).
+// Insights archive: the latest article large, then every article as a big headline whose picture follows
+// the pointer (group/Headlines). Narrow it by topic and by how long you've got; the choice is kept in the
+// URL (/insights?category=creator-economy). Only topics with articles get a filter; the mapping is
+// proposed (Gate 2).
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import Chip from '@/components/core/Chip.astro';
-import Button from '@/components/core/Button.astro';
+import Headlines from '@/components/group/Headlines.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
-import { categoryLabels, formatDate, getArticles } from '@/lib/insights';
+import { categoryLabels, formatDate, getArticles, readingMinutes, type Article } from '@/lib/insights';
 import { routes } from '@/lib/routes';
 import { isPreview } from '@/lib/env';
+import { interfaceCopy } from '@/lib/ui-copy';
+const t = await interfaceCopy();
 
-const copy = (await getEntry('pages', 'insights'))?.data.sections.hero;
-if (!copy) throw new Error('Missing src/content/pages/insights.yaml');
+const page = await getEntry('pages', 'insights');
+const copy = page?.data.sections.hero;
+if (!page || !copy) throw new Error('Missing src/content/pages/insights.yaml');
+const s = page.data.sections;
 const articles = await getArticles();
 const lead = articles.find((a) => a.data.featured) ?? articles[0];
 const rest = articles.filter((a) => a !== lead);
 type Category = keyof typeof categoryLabels;
 const used = (Object.keys(categoryLabels) as Category[]).filter((c) => rest.some((a) => a.data.category === c));
+const ui = (key: string, fallback: string) => s.filters?.items?.find((i) => i.key === key)?.label ?? fallback;
+
+const toItem = (a: Article) => {
+  const minutes = readingMinutes(a);
+  return {
+    id: a.id,
+    title: a.data.title,
+    href: routes.article(a.id),
+    cover: a.data.cover.src,
+    category: a.data.category,
+    categoryLabel: categoryLabels[a.data.category],
+    date: formatDate(a.data.date),
+    minutes,
+    standfirst: a.data.standfirst,
+  };
+};
+const items = rest.map(toItem);
+const maxMinutes = Math.max(1, ...items.map((i) => i.minutes));
 ---
 
-<SiteLayout title="Insights | Stride" description={copy.body}>
-  <PageIntro crumbs={[{ label: 'Insights' }]} copy={copy} tone="light" />
-
-  {lead && (
-    <section class="lead" aria-label="Latest article">
-      <a class="lead__link container-wide" href={routes.article(lead.id)}>
-        <span class="lead__media"><img src={lead.data.cover.src} alt="" sizes="(max-width: 1023px) 100vw, 56vw" fetchpriority="high" decoding="async" /></span>
-        <span class="lead__text">
-          <span class="lead__meta">{categoryLabels[lead.data.category]} · {formatDate(lead.data.date)}</span>
-          <span class="lead__title">{lead.data.title}</span>
-          <span class="lead__standfirst">{lead.data.standfirst}</span>
-          <span class="lead__more">Read the article<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></span>
-        </span>
-      </a>
-    </section>
-  )}
-
-  <section class="arch" aria-label="All articles" data-archive>
-    <div class="container-wide">
-      <div class="arch__bar">
-        <div class="arch__chips" role="group" aria-label="Filter by category" data-filter-group="category">
-          <Chip value="all" active>All</Chip>
-          {used.map((c) => <Chip value={c}>{categoryLabels[c]}</Chip>)}
-        </div>
-        <p class="arch__count" role="status" aria-live="polite" data-filter-count data-noun="article|articles">{rest.length} articles</p>
-        {isPreview && <PlaceholderNotice variant="inline" label="Categories proposed">— article mapping to confirm (Gate 2); no articles yet in Education</PlaceholderNotice>}
-      </div>
-      <ul class="arch__grid" role="list" data-archive-grid data-page-size="12">
-        {rest.map((a) => (
-          <li class="card" data-filter-category={a.data.category}>
-            <a class="card__link" href={routes.article(a.id)}>
-              <span class="card__media"><img src={a.data.cover.src} alt="" sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 30vw" loading="lazy" decoding="async" /></span>
-              <span class="card__meta">{categoryLabels[a.data.category]} · {formatDate(a.data.date)}</span>
-              <h2 class="card__title">{a.data.title}</h2>
-            </a>
-          </li>
-        ))}
-      </ul>
-      <div class="arch__empty" hidden data-filter-empty>
-        <p>No articles in this category yet.</p>
-        <Button variant="secondary" data-filter-clear>Show all articles</Button>
-      </div>
-      <div class="arch__more">
-        <Button variant="secondary" data-load-more hidden>Load more</Button>
-      </div>
-    </div>
-  </section>
+<SiteLayout title="Insights | Stride" description={copy.body} look="white" headerOverlay>
+  <Headlines
+    copy={copy}
+    lead={lead ? toItem(lead) : undefined}
+    items={items}
+    categories={used.map((c) => ({ id: c, label: categoryLabels[c] }))}
+    maxMinutes={maxMinutes}
+    crumbs={[{ label: 'Insights' }]}
+    ui={{
+      topic: ui('topic', 'Topic'),
+      time: ui('time', "How long have you got?"),
+      all: ui('all', 'All'),
+      any: t('insights.any'),
+      upto: t('insights.upto'),
+      read: ui('read', 'Read the article'),
+      more: ui('more', 'Load more'),
+      empty: ui('empty', 'No articles match. Try another topic or time.'),
+      clear: ui('clear', 'Show all articles'),
+    }}
+  />
+  {isPreview && <PlaceholderNotice variant="inline" label="Categories proposed">— article mapping to confirm (Gate 2); no articles yet in Education</PlaceholderNotice>}
 </SiteLayout>
-
-<style>
-  .lead,
-  .arch {
-    position: relative;
-    z-index: 1;
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .lead {
-    padding-bottom: var(--space-9);
-  }
-
-  .lead__link {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-6) var(--gutter);
-    align-items: center;
-  }
-
-  .lead__media {
-    grid-column: 1 / 8;
-    aspect-ratio: 16 / 10;
-    overflow: hidden;
-    background: var(--line);
-  }
-
-  .lead__media img,
-  .card__media img {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-    transition: transform var(--dur-reveal) var(--ease-out);
-  }
-
-  .lead__link:hover img,
-  .card__link:hover img {
-    transform: scale(1.03);
-  }
-
-  .lead__text {
-    grid-column: 8 / -1;
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .lead__meta,
-  .card__meta,
-  .arch__count {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
-  }
-
-  .lead__title {
-    font-family: var(--font-display);
-    font-size: clamp(1.75rem, 3vw, 3rem);
-    font-weight: 850;
-    font-stretch: 108%;
-    line-height: 1;
-    letter-spacing: -0.015em;
-  }
-
-  .lead__standfirst {
-    font-size: var(--type-lead);
-    line-height: 1.4;
-    color: var(--navy-700);
-  }
-
-  .lead__more {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-weight: 600;
-  }
-
-  .lead__more svg {
-    width: 16px;
-  }
-
-  .arch {
-    padding-bottom: var(--section-pad);
-  }
-
-  .arch__bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3) var(--space-5);
-    padding-block: var(--space-6);
-    margin-bottom: var(--space-7);
-    border-top: 1px solid var(--line);
-  }
-
-  .arch__chips {
-    display: none;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  /* Filters need the script; without it every article is listed. */
-  :global(.js) .arch .arch__chips {
-    display: flex;
-  }
-
-  .arch__count {
-    margin-left: auto;
-  }
-
-  .arch__grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-8) var(--gutter);
-  }
-
-  .card[hidden] {
-    display: none;
-  }
-
-  .card__link {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .card__media {
-    aspect-ratio: 3 / 2;
-    overflow: hidden;
-    background: var(--line);
-  }
-
-  .card__title {
-    font-family: var(--font-display);
-    font-size: clamp(1.25rem, 1.6vw, 1.5rem);
-    font-weight: 800;
-    font-stretch: 104%;
-    line-height: 1.12;
-  }
-
-  .arch__empty {
-    display: grid;
-    gap: var(--space-4);
-    justify-items: start;
-    padding-block: var(--space-7);
-  }
-
-  .arch__empty[hidden] {
-    display: none;
-  }
-
-  .arch__more {
-    display: flex;
-    justify-content: center;
-    padding-top: var(--space-8);
-  }
-
-  .arch__more :global([hidden]) {
-    display: none;
-  }
-
-  @media (max-width: 1023px) {
-    .lead__media,
-    .lead__text {
-      grid-column: 1 / -1;
-    }
-
-    .arch__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 599px) {
-    .arch__grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .arch__count {
-      margin-left: 0;
-    }
-  }
-</style>
-
-<script>
-  import { initArchiveFilters } from '@/scripts/system/archive-filter';
-  initArchiveFilters();
-</script>

@@ -54,13 +54,13 @@ const { href, active = false, value, tone = 'light', class: className, ...rest }
   }
 
   .chip--on-dark:hover {
-    background: rgb(255 255 255 / 0.08);
+    background: rgb(var(--hair) / 0.1);
   }
 
   .chip--on-dark.is-active,
   .chip--on-dark[aria-pressed='true'] {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--navy-900);
+    background: rgb(var(--press));
+    border-color: rgb(var(--press));
+    color: rgb(var(--press-on));
   }
 </style>

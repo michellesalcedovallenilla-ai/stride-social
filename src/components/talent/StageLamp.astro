@@ -1,0 +1,164 @@
+---
+// A stage light over Stride Talent's hand of creators (desktop): only the light, coming down from somewhere above
+// the screen. A beam in the air with dust drifting through it, and a pool where it lands. It rests on the front card
+// and follows the pointer with a little weight. It sits in the hand's pinned screen. Behaviour:
+// src/scripts/system/lamp.ts.
+
+// Scattered once, the same way every time.
+const motes = Array.from({ length: 18 }, (_, i) => ({
+  x: 34 + ((i * 37) % 32),
+  y: 22 + ((i * 53) % 66),
+  size: 1.5 + ((i * 7) % 3) * 0.7,
+  time: 9 + ((i * 11) % 9),
+  delay: -((i * 13) % 17),
+}));
+---
+
+<div class="lamp desk-only" aria-hidden="true" data-lamp>
+  <span class="lamp__dim" data-lamp-dim></span>
+  <span class="lamp__pool" data-lamp-pool></span>
+  <div class="lamp__arm" data-lamp-arm>
+    <span class="lamp__beam">
+      <span class="lamp__haze"></span>
+      <span class="lamp__core"></span>
+    </span>
+    <span class="lamp__dust">
+      {motes.map((m) => <i style={`left: ${m.x}%; top: ${m.y}%; --s: ${m.size}px; --t: ${m.time}s; --d: ${m.delay}s`}></i>)}
+    </span>
+  </div>
+</div>
+
+<style>
+  /* Its pieces share the hand's screen directly, so the pool can light the cards under it. */
+  .lamp {
+    --source: -220px; /* where the light comes from: above the top of the screen */
+    display: contents;
+  }
+
+  @media (max-width: 1023px) {
+    .lamp {
+      display: none;
+    }
+  }
+
+  .lamp__arm,
+  .lamp__dim,
+  .lamp__pool {
+    position: absolute;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  /* Everything that swings: the origin is the source. */
+  .lamp__arm {
+    top: var(--source);
+    left: var(--lamp-x, 60%);
+    width: 0;
+    height: 0;
+    will-change: transform;
+  }
+
+  /* The beam in the air. Blur on the outside, the cut on the inside, or the blur would be cut away too. */
+  .lamp__beam {
+    position: absolute;
+    top: 0;
+    left: -380px;
+    width: 760px;
+    height: 1400px;
+    filter: blur(16px);
+    pointer-events: none;
+  }
+
+  .lamp__haze,
+  .lamp__core {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .lamp__haze {
+    background: linear-gradient(to bottom, rgb(207 237 248 / 0.3), rgb(207 237 248 / 0.2) 16%, rgb(207 237 248 / 0.075) 38%, rgb(207 237 248 / 0.03) 62%, transparent 88%);
+    clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%);
+  }
+
+  .lamp__core {
+    background: linear-gradient(to bottom, rgb(255 255 255 / 0.34), rgb(255 255 255 / 0.15) 18%, rgb(255 255 255 / 0.03) 42%, transparent 72%);
+    clip-path: polygon(48.5% 0, 51.5% 0, 74% 100%, 26% 100%);
+  }
+
+  /* The dust that shows in the light. */
+  .lamp__dust {
+    position: absolute;
+    top: 0;
+    left: -380px;
+    width: 760px;
+    height: 860px;
+    clip-path: polygon(47% 0, 53% 0, 85% 100%, 15% 100%);
+    mask-image: linear-gradient(to bottom, #000 56%, transparent);
+    pointer-events: none;
+  }
+
+  .lamp__dust i {
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: 0 0 5px rgb(255 255 255 / 0.8);
+    animation: lamp-mote var(--t) ease-in-out var(--d) infinite;
+  }
+
+  @keyframes lamp-mote {
+    0%,
+    100% {
+      opacity: 0;
+      transform: translate(0, 18px);
+    }
+
+    30% {
+      opacity: 0.8;
+    }
+
+    55% {
+      opacity: 0.3;
+      transform: translate(14px, -22px);
+    }
+
+    78% {
+      opacity: 0.7;
+      transform: translate(-10px, -44px);
+    }
+  }
+
+  /* The pool where it lands, and the dark around it: both move as one, set by the script. */
+  .lamp__pool {
+    top: -280px;
+    left: -280px;
+    width: 560px;
+    height: 560px;
+    border-radius: 50%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.05) 46%, transparent 72%);
+    mix-blend-mode: screen;
+    will-change: transform;
+  }
+
+  .lamp__dim {
+    top: -150vh;
+    left: -150vw;
+    width: 300vw;
+    height: 300vh;
+    background: radial-gradient(closest-side, transparent 15%, rgb(6 20 43 / 0.16) 26%, rgb(6 20 43 / 0.34) 44%);
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lamp__dust {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { initLamps } from '@/scripts/system/lamp';
+  initLamps();
+</script>

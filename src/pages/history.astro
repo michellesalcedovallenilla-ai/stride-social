@@ -1,33 +1,26 @@
 ---
-// Our History (docs/phase-2/05-wireframes.md §E; brief §7: an editorial timeline beginning with
-// the founding, with verified milestones and photography). Milestones: src/content/history.
-import { getEntry } from 'astro:content';
+// Our History (brief §7: a timeline beginning with the founding, with verified milestones and
+// photography): a road you travel sideways (group/HistoryRoad). Milestones: src/content/history; only
+// verified ones in production, preview also shows the previous site's until Stride confirms them (Q1).
+import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
+import HistoryRoad from '@/components/group/HistoryRoad.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
-import Timeline from '@/components/group/Timeline.astro';
+import { paragraphs } from '@/lib/experience';
 import { isPreview } from '@/lib/env';
 
-const copy = (await getEntry('pages', 'history'))?.data.sections.hero;
-if (!copy) throw new Error('Missing src/content/pages/history.yaml');
+const s = (await getEntry('pages', 'history'))?.data.sections;
+if (!s) throw new Error('Missing src/content/pages/history.yaml');
+const copy = s.hero;
+const more = (await getEntry('pages', 'about'))?.data.sections.more?.items ?? [];
+const milestones = (await getCollection('milestones', (m) => m.data.status === 'verified' || isPreview))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((m) => ({ id: m.id, year: m.data.year, title: m.data.title, body: paragraphs(m.data.body), image: m.data.image }));
+const next = more.filter((m) => m.href !== '/history').map((m) => ({ label: m.label, copy: m.copy, href: m.href ?? '/' }));
 ---
 
-<SiteLayout title="Our History | Stride" description={copy.body}>
-  <PageIntro crumbs={[{ label: 'About', href: '/about' }, { label: 'Our History' }]} copy={copy} tone="light">
-    {isPreview && (
-      <PlaceholderNotice variant="inline" label="Founding year to reconcile">— the brief says 2022; the previous site's timeline starts in 2018 and names 2020 (Q1)</PlaceholderNotice>
-    )}
-  </PageIntro>
-  <section class="history" aria-label="Timeline">
-    <Timeline />
-  </section>
+<SiteLayout title="Our History | Stride" description={copy.body} headerOverlay>
+  <HistoryRoad copy={copy} milestones={milestones} next={next} hint={s.road?.body ?? 'Scroll or drag along the road'} crumbs={[{ label: 'About', href: '/about' }, { label: 'Our History' }]}>
+    {isPreview && <PlaceholderNotice variant="inline" label="Founding year to reconcile">— the brief says 2022; the previous site's timeline starts in 2018 and names 2020 (Q1)</PlaceholderNotice>}
+  </HistoryRoad>
 </SiteLayout>
-
-<style>
-  .history {
-    position: relative;
-    z-index: 1;
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-</style>

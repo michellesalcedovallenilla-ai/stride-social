@@ -1,0 +1,108 @@
+---
+// The end of the Stride Social page: the shared menu (experience/Deck) with What We Do (the owner's four
+// groupings of the services, each opening its lead service), Industries (those with case studies, with
+// the real count), Featured Work (case studies, verified results only) and Our Approach (the four steps);
+// Start a Campaign goes to the enquiry page, carrying any services added to the brief from the big cards.
+// Images are the site's own.
+import { getCollection, getEntry } from 'astro:content';
+import Deck from '../experience/Deck.astro';
+import { routes } from '@/lib/routes';
+import type { Card } from '@/lib/experience';
+
+export interface Props {
+  whatWeDo: { key?: string; label: string; copy?: string }[];
+  approach: { label: string; copy?: string }[];
+  enquire: string;
+}
+
+const { whatWeDo, approach, enquire } = Astro.props;
+
+// What We Do: each of the owner's groupings holds the services it speaks of, the lead one first.
+const cardIcons = ['megaphone', 'layers', 'bag', 'wave'];
+const groups: Record<string, string[]> = {
+  'influencer-activations': ['influencer-activations', 'influencer-seeding'],
+  'ugc-production': ['ugc-production'],
+  'tiktok-shop': ['tiktok-shop', 'tiktok-shop-livestreams'],
+  'influencer-events': ['influencer-events', 'podcast-activations'],
+};
+const services: Card[] = await Promise.all(
+  whatWeDo.map(async (item, i) => {
+    const entries = (await Promise.all((groups[item.key ?? ''] ?? []).map((id) => getEntry('services', id)))).filter((e) => !!e);
+    return {
+      name: item.label,
+      text: item.copy,
+      href: entries[0] ? routes.service(entries[0].id) : '/social/services',
+      image: entries[0]?.data.hero ?? undefined,
+      mark: cardIcons[i],
+      blocks: entries.map((e) => ({
+        title: e.data.name,
+        text: e.data.descriptor,
+        list: e.data.deliverables,
+        href: routes.service(e.id),
+        action: 'View service',
+        keep: { list: 'brief' as const, id: e.id, label: e.data.name, group: e.id },
+      })),
+    };
+  }),
+);
+
+// Industries and Featured Work: real case studies only, and only verified results.
+const work = (await getCollection('work', (w) => w.data.visible)).sort((a, b) => a.data.order - b.data.order);
+const clientOf = async (w: (typeof work)[number]) => (await getEntry(w.data.client))?.data.name ?? w.data.title;
+// Each industry takes a photo the ones before it haven't used, where it has one.
+const usedPhotos = new Set<string>();
+const photoFor = (tagged: typeof work) => {
+  const pick = tagged.find((w) => w.data.card && !usedPhotos.has(w.data.card.src)) ?? tagged[0];
+  if (pick?.data.card) usedPhotos.add(pick.data.card.src);
+  return pick?.data.card;
+};
+const industries: Card[] = (
+  await Promise.all(
+    (await getCollection('industries'))
+      .sort((a, b) => a.data.order - b.data.order)
+      .map(async (ind) => {
+        const tagged = work.filter((w) => w.data.industries.some((r) => r.id === ind.id));
+        if (!tagged.length) return null;
+        const image = photoFor(tagged);
+        return {
+          name: ind.data.label,
+          text: `${tagged.length} ${tagged.length === 1 ? 'case study' : 'case studies'}`,
+          href: routes.workFiltered({ industry: ind.id }),
+          image,
+          blocks: await Promise.all(tagged.slice(0, 4).map(async (w) => ({ title: await clientOf(w), text: w.data.summary, href: routes.caseStudy(w.id), action: 'View case study' }))),
+          action: { label: 'See all', href: routes.workFiltered({ industry: ind.id }) },
+        };
+      }),
+  )
+).filter((c) => !!c);
+const featured: Card[] = await Promise.all(
+  work
+    .filter((w) => w.data.featuredOn.includes('social'))
+    .sort((a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99))
+    .slice(0, 4)
+    .map(async (w) => ({
+      name: await clientOf(w),
+      text: w.data.summary,
+      href: routes.caseStudy(w.id),
+      image: w.data.card,
+      stats: w.data.results.filter((r) => r.status === 'verified').slice(0, 3),
+      action: { label: 'View case study', href: routes.caseStudy(w.id) },
+    })),
+);
+const steps: Card[] = approach.map((a) => ({ name: a.label, text: a.copy, href: '#approach' }));
+---
+
+<Deck
+  variant="spines"
+  id="social-menu"
+  label="Explore Stride Social"
+  tone="social"
+  look="ice"
+  tabs={[
+    { key: 'do', label: 'What We Do', icon: 'grid', cards: services },
+    { key: 'industries', label: 'Industries', icon: 'layers', cards: industries },
+    { key: 'work', label: 'Featured Work', icon: 'play', cards: featured },
+    { key: 'approach', label: 'Our Approach', icon: 'target', anchor: 'approach', numbered: true, atDesk: 'still', cards: steps },
+  ]}
+  link={{ label: 'Start a Campaign', href: enquire, keep: 'brief' }}
+/>

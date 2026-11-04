@@ -61,6 +61,22 @@ function showGroupError(g: HTMLFieldSetElement, error: string) {
   setDescribedError(g, `${g.id}-error`, error);
 }
 
+/** Checks the fields inside part of a form (one step of form-steps.ts); returns those that need attention. */
+export function checkWithin(scope: HTMLElement): HTMLElement[] {
+  const invalid: HTMLElement[] = [];
+  scope.querySelectorAll<Control>('.field__control').forEach((c) => {
+    const error = c.closest('[hidden]') ? '' : controlError(c);
+    showControlError(c, error);
+    if (error) invalid.push(c);
+  });
+  scope.querySelectorAll<HTMLFieldSetElement>('[data-check-group]').forEach((g) => {
+    const error = groupError(g);
+    showGroupError(g, error);
+    if (error) invalid.push(g.querySelector('input')!);
+  });
+  return invalid;
+}
+
 function initCounters(root: HTMLElement) {
   root.querySelectorAll<HTMLTextAreaElement | HTMLInputElement>('[data-counter]').forEach((c) => {
     const out = document.getElementById(`${c.id}-count`);
@@ -173,7 +189,7 @@ function initForm(root: HTMLElement) {
     if (!panel) return;
     form.hidden = true;
     panel.hidden = false;
-    panel.focus();
+    panel.focus({ preventScroll: form.dataset.quiet === 'true' });
   };
 
   const succeed = (name: string) => {
@@ -208,7 +224,7 @@ function initForm(root: HTMLElement) {
     } catch {
       setSending(false);
       if (alert) alert.hidden = false;
-      submit?.focus();
+      submit?.focus({ preventScroll: form.dataset.quiet === 'true' });
     }
   });
 }

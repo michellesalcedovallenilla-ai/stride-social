@@ -291,7 +291,7 @@ const sectionCopy = z.object({
   body: z.string().optional(),
   cta: z.object({ label: z.string(), href: z.string() }).optional(),
   items: z
-    .array(z.object({ key: z.string().optional(), label: z.string(), copy: z.string().optional(), cta: z.string().optional(), href: z.string().optional(), audience: z.string().optional() }))
+    .array(z.object({ key: z.string().optional(), label: z.string(), copy: z.string().optional(), cta: z.string().optional(), href: z.string().optional(), audience: z.string().optional(), image: assetPath.optional() }))
     .optional(),
   awaiting: z.array(z.string()).optional(),
   /** Collection entry ids hand-picked for this section (e.g. hero portraits from the roster). */

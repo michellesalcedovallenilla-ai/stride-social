@@ -1,16 +1,25 @@
 ---
 // Homepage section 1, the hero: the creator showreel fills the screen behind an editorial,
-// off-centre composition. "Built around" is a small, slightly turned kicker; "creators." is the
-// one huge word, wide enough to run off both edges. Small annotations (the group tag, numbered
-// routes to the three businesses, "Global" beside the group line) frame it without crowding.
+// off-centre composition. "Built around" is a small kicker (straight on desktop, slightly turned
+// below); "creators." is the one huge word, wide enough to run off both edges. Small annotations (the group tag, numbered
+// routes to the three businesses, "Global" beside the group line) frame it without crowding. On
+// desktop the headline sits above a slim band at the foot, split from it by a fine rule: the group
+// line under its left edge, the award badges ending under its full stop.
 // The footage and selected type drift a little with the pointer (src/scripts/system/motion.ts).
-// With `intro`, the page opens on the Stride lockup animation first (home/IntroReveal.astro), on
-// every device and every visit: it covers the whole screen and scrolling stays locked until it
-// ends or is skipped, while the reel loads behind it; then it fades to the hero as the type is
-// masked in (src/scripts/system/hero-intro.ts).
+// With `intro`, the page opens with an intro. On desktop it is the cinematic entrance (about 3.4s,
+// src/scripts/system/hero-entrance.ts): a small headline, its letters a flickering collage of
+// campaign footage, falls from above, growing and coming apart as it comes, bounces once on the rule
+// above the band (on screen from the start) and reassembles into the headline, turning white as the
+// footage behind comes into focus. It
+// plays once per visit: coming back to the homepage from another page goes straight to the
+// finished hero (a reload plays it again).
+// Phones and tablets open on the Stride lockup animation (home/IntroReveal.astro) on every visit: it
+// covers the whole screen and scrolling stays locked until it ends or is skipped, while the reel
+// loads behind it; then it fades to the hero (src/scripts/system/hero-intro.ts).
 import Media from '../core/Media.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
 import IntroReveal from './IntroReveal.astro';
+import displayFont from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
 
 type Division = 'social' | 'talent' | 'education';
 type VideoSource = { mp4: string; webm?: string; poster: string };
@@ -18,18 +27,30 @@ type VideoSource = { mp4: string; webm?: string; poster: string };
 export interface Props {
   headline: string[]; // ['Built', 'around', 'creators.']: the last line is the big word
   description: string;
+  awards?: { src: string; alt: string }[]; // badges above the kicker (desktop for now)
   reel?: VideoSource & { label: string; mobile?: VideoSource }; // the showreel; a placeholder frame without it
   routes: { audience: string; name: string; href: string; division: Division }[]; // numbered annotations, one per business
   intro?: { words: { label: string; division?: Division }[] };
 }
 
-const { headline, description, reel, routes, intro } = Astro.props;
+const { headline, description, awards = [], reel, intro } = Astro.props;
 const kicker = headline.slice(0, -1).join(' ');
 const word = headline[headline.length - 1] ?? '';
-const pad = (n: number) => String(n).padStart(2, '0');
+// The group line, word by word.
+const words = description.split(' ');
+// Inside the entrance letters: a 4x4 collage of frames from the showreel (campaign footage already
+// on the site; scratchpad make_collage.py). Each letter starts at a different point of its cycle.
+const collage = '/assets/site/hero-collage.jpg';
+const flicker = (i: number) => `--d: -${((i * 0.61) % 2.4).toFixed(2)}s`;
 ---
 
-<section class:list={['cover', { 'cover--intro': intro }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
+<section class:list={['cover', 'on-photo', { 'cover--intro': intro }]} aria-labelledby="hero-title" data-hero-intro={intro ? '' : undefined}>
+  {/* Desktop: fetch the first frame, the letters' collage and the headline's typeface early, so the
+      intro starts straight away and nothing waits on the network. */}
+  {reel && <link rel="preload" as="image" href={reel.poster} media="(min-width: 1024px)" fetchpriority="high" />}
+  <link rel="preload" as="image" href={collage} media="(min-width: 1024px)" />
+  {awards.map((a) => <link rel="preload" as="image" href={a.src} media="(min-width: 1024px)" />)}
+  <link rel="preload" as="font" type="font/woff2" href={displayFont} crossorigin="anonymous" media="(min-width: 1024px)" />
   {intro && (
     <>
       <div class="cover__intro">
@@ -42,6 +63,29 @@ const pad = (n: number) => String(n).padStart(2, '0');
         (() => {
           if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
           const hero = document.querySelector('[data-hero-intro]');
+          // Desktop: the cinematic entrance is the intro, once per visit (sessionStorage); back from
+          // another page, the finished hero. Its starting state is set here, before the first paint.
+          if (matchMedia('(min-width: 1024px)').matches) {
+            let seen = false;
+            try {
+              const nav = performance.getEntriesByType('navigation')[0];
+              seen = sessionStorage.getItem('stride:intro') === 'seen' && !(nav && nav.type === 'reload');
+              sessionStorage.setItem('stride:intro', 'seen');
+            } catch (e) {}
+            if (seen) {
+              hero.classList.add('is-return');
+              return;
+            }
+            hero.classList.add('is-entrance', 'is-cinematic');
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            scrollTo(0, 0);
+            // If the entrance script never starts, show the finished hero (only as a last resort: a slow
+            // first load must still open on the intro, never on the finished page).
+            setTimeout(() => {
+              if (!hero.dataset.entranceReady) hero.classList.remove('is-entrance', 'is-cinematic');
+            }, 8000);
+            return;
+          }
           hero.classList.add('is-intro-playing');
           document.documentElement.classList.add('intro-lock');
           if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -54,7 +98,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
           }, 3000);
         })();
       </script>
-      <button class="cover__intro-toggle" type="button" data-intro-toggle>Skip intro</button>
     </>
   )}
 
@@ -68,38 +111,59 @@ const pad = (n: number) => String(n).padStart(2, '0');
       )}
     </div>
     <div class="cover__shade" aria-hidden="true"></div>
+    {/* Frosted glass diffusion: a soft, etched translucence around the type at the foot and the
+        navigation at the top and the left edge, leaving the centre of the footage clear. */}
+    <div class="cover__frost" aria-hidden="true"></div>
+    {/* Frosted glass that forms over the footage as the next section rises (home/HeroScene.astro). */}
+    <div class="cover__glass" aria-hidden="true"></div>
 
-    <p class="cover__tag cover__enter" data-parallax="5"><span class="cover__num">00</span>The Stride Group</p>
-
-    {routes.length > 0 && (
-      <nav class="cover__routes" aria-label="Stride businesses" data-parallax="6">
-        <ol role="list">
-          {routes.map((r, i) => (
-            <li class="cover__enter" style={`--enter: ${i}`}>
-              <a class={`cover__route cover__route--${r.division}`} href={r.href} data-magnetic>
-                <span class="cover__num">{pad(i + 1)}</span>
-                <span class="cover__route-audience">{r.audience}</span>
-                <span class="cover__route-name">{r.name}</span>
-                <svg class="cover__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12 12 4M5.5 4H12v6.5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-              </a>
-            </li>
+    {/* Each letter falls into place, the big word first; hovered letters hop. The letters are
+        decoration, so the heading reads as one label. */}
+    <h1 class="cover__title" id="hero-title" aria-label={`${kicker} ${word}`}>
+      <span class="cover__kicker" aria-hidden="true">
+        {[...kicker].map((ch, i) => (
+          <span class="cover__char cover__enter" data-ch={`k${i}`} style={`--d: ${word.length + i}; --rot: ${((i * 37) % 31) - 15}deg`}><span>{ch === ' ' ? ' ' : ch}</span></span>
+        ))}
+      </span>
+      <span class="cover__word-wrap" data-parallax="-12" aria-hidden="true">
+        <span class="cover__word">
+          {[...word].map((ch, i) => (
+            <span class="cover__char cover__enter" data-ch={`w${i}`} style={`--d: ${i}; --rot: ${((i * 53) % 41) - 20}deg`}><span>{ch}</span></span>
           ))}
-        </ol>
-      </nav>
-    )}
-
-    <h1 class="cover__title" id="hero-title">
-      <span class="cover__kicker"><span class="cover__kicker-inner cover__enter">{kicker}</span></span>
-      {' '}
-      <span class="cover__word-wrap" data-parallax="-12"><span class="cover__word cover__enter">{word}</span></span>
+        </span>
+      </span>
     </h1>
 
-    <div class="cover__aside cover__enter">
-      <p class="cover__global"><span class="cover__num">↗</span>Global</p>
-      <p class="cover__description">{description}</p>
+    <p class="cover__description">
+      {words.map((w, i) => (
+        <><span class="cover__w cover__enter" style={`--w: ${i}`}>{w}</span>{' '}</>
+      ))}
+    </p>
+
+    <span class="cover__rule" aria-hidden="true"></span>
+
+    {awards.length > 0 && (
+      <ul class="cover__awards" role="list" aria-label="Awards">
+        {awards.map((a) => (
+          <li><img src={a.src} alt={a.alt} width="469" height="585" loading="lazy" decoding="async" sizes="92px" /></li>
+        ))}
+      </ul>
+    )}
+
+    {/* The cinematic entrance (desktop): the headline's letters, each a flickering collage of
+        campaign footage, fall from a small headline above, growing and coming apart as they come,
+        bounce once on the rule and reassemble into the real headline, turning white. Removed
+        once it lands (src/scripts/system/hero-entrance.ts). The word comes first, so the smaller
+        kicker letters pass over it. Inside each letter: its motion streak, the footage, the white. */}
+    <div class="cover__stage" aria-hidden="true" data-hero-stage style={`--collage: url(${collage})`}>
+      {[...word].map((ch, i) => (
+        <span class="cover__s cover__s--word" data-ch={`w${i}`} style={flicker(i + 3)}><span class="cover__s-trail">{ch}</span><span class="cover__s-img">{ch}</span><span class="cover__s-white">{ch}</span></span>
+      ))}
+      {[...kicker].map((ch, i) => ch.trim() && (
+        <span class="cover__s cover__s--kicker" data-ch={`k${i}`} style={flicker(i)}><span class="cover__s-trail">{ch}</span><span class="cover__s-img">{ch}</span><span class="cover__s-white">{ch}</span></span>
+      ))}
     </div>
 
-    <p class="cover__scroll cover__enter" aria-hidden="true">Scroll <span>↓</span></p>
   </div>
 </section>
 
@@ -112,7 +176,21 @@ const pad = (n: number) => String(n).padStart(2, '0');
     color: var(--white);
   }
 
+  /* --word-size fits "creators." between the margins. On desktop, from the foot of the screen up: the
+     band (the group line and the awards), a fine rule, then "Creators.", then "Built around". */
+  @media (min-width: 1024px) {
+    .cover__content {
+      --kicker: clamp(1.5rem, 3.6vw, 3.75rem); /* "Built around"'s size; the band scales with it */
+      --band-foot: 28px;
+      --band: calc(1.9 * var(--kicker));
+      --rule-gap: 18px;
+      --word-foot: calc(var(--band-foot) + var(--band) + 2 * var(--rule-gap) + 1px);
+      --type-top: calc(var(--word-foot) + var(--word-size) * 0.8 + var(--space-3) + var(--kicker));
+    }
+  }
+
   .cover__content {
+    --word-size: calc((100vw - 2 * var(--margin)) * 0.137);
     position: relative;
     height: 100svh;
     min-height: 600px;
@@ -137,93 +215,97 @@ const pad = (n: number) => String(n).padStart(2, '0');
     pointer-events: none;
   }
 
-  /* A navy veil over the footage, deeper under the header and behind the big word, so the
-     white type always reads. */
+  /* The footage stays in full colour: a light vignette, deeper at the foot behind the big word
+     and the group line, so the white type always reads. (The overlay is decoration only: it never
+     takes the pointer, and the type and interface sit above it.) */
   .cover__shade {
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(to bottom, rgb(6 20 43 / 0.55), transparent 22%),
-      linear-gradient(to top, rgb(6 20 43 / 0.75), transparent 50%),
-      rgb(6 20 43 / 0.3);
+      radial-gradient(120% 90% at 50% 40%, transparent 45%, rgb(6 20 43 / 0.55) 100%),
+      linear-gradient(to bottom, rgb(6 20 43 / 0.45), transparent 20%),
+      linear-gradient(to top, rgb(6 20 43 / 0.85), rgb(6 20 43 / 0.35) 38%, transparent 62%);
   }
 
-  /* ---------- Annotations ---------- */
-  .cover__num {
-    display: inline-block;
-    min-width: 2.4em;
-    color: var(--ice);
+  /* Desktop: the footage carries its own colour grade and as little as possible lies over it: a soft
+     fade from the foot that ends just above the headline, whatever the screen's shape (eased over
+     many stops, so it never bands), and faint fall-offs at the top (header) and the left edge (radial
+     navigation). The intro's focus pull lands exactly on this grade
+     (src/scripts/system/hero-entrance.ts), and the scene's blur below starts from it. */
+  @media (min-width: 1024px) {
+    .cover__media {
+      filter: contrast(1.1) saturate(1.18) brightness(0.94);
+    }
+
+    .cover__shade {
+      background:
+        linear-gradient(to right, rgb(6 20 43 / 0.16), transparent 12%),
+        linear-gradient(to bottom, rgb(6 20 43 / 0.22), transparent 14%),
+        linear-gradient(
+          to top,
+          rgb(6 20 43 / 0.74) 0,
+          rgb(6 20 43 / 0.62) calc(var(--type-top) * 0.3),
+          rgb(6 20 43 / 0.46) calc(var(--type-top) * 0.6),
+          rgb(6 20 43 / 0.3) calc(var(--type-top) * 0.85),
+          rgb(6 20 43 / 0.18) var(--type-top),
+          rgb(6 20 43 / 0.06) calc(var(--type-top) * 1.2),
+          transparent calc(var(--type-top) * 1.4)
+        );
+    }
   }
 
-  .cover__tag,
-  .cover__global,
-  .cover__route,
-  .cover__scroll {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+  /* Phones and tablets: a very fine film grain over the footage: sparse light and dark specks, drawn
+     once as a tile and laid over with plain transparency, with no blend mode, so it costs nothing per
+     frame while the video plays and doesn't dull its colour. It also hides any banding in the
+     gradients. It sits under the type and the interface. */
+  @media (max-width: 1023px) {
+    .cover__shade::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='l' x='0' y='0'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' seed='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.4 0 0 0 -1.35'/></filter><filter id='d' x='0' y='0'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' seed='9' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 0 0 0 1.05'/></filter><rect width='100%' height='100%' filter='url(%23l)'/><rect width='100%' height='100%' filter='url(%23d)'/></svg>");
+      opacity: 0.15;
+    }
   }
 
-  .cover__tag {
+  /* ---------- Deeper into the scene (desktop, inside home/HeroScene.astro) ----------
+     As the destinations rise over the pinned hero, the script sets --fade and --deep (0 to 1): the
+     type fades and drifts up a touch, the footage dissolves from its grade into soft moving light
+     (blurred, dimmed, a little less saturated), and a frosted navy glass forms over it: a deep tint
+     lit softly from the top left, with a faint bright edge along the top. The glass is what the next
+     section reads on. */
+  .cover__glass {
     position: absolute;
-    top: calc(var(--header-h) + var(--space-5));
-    left: var(--margin);
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background:
+      radial-gradient(110% 70% at 18% 0%, rgb(255 255 255 / 0.07), transparent 62%),
+      radial-gradient(90% 60% at 85% 100%, rgb(41 67 104 / 0.3), transparent 70%),
+      linear-gradient(180deg, rgb(12 39 83 / 0.58), rgb(6 20 43 / 0.74) 55%, rgb(6 20 43 / 0.84));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
   }
 
-  .cover__routes {
-    position: absolute;
-    top: calc(var(--header-h) + var(--space-5));
-    right: var(--margin);
-  }
+  @media (min-width: 1024px) {
+    .cover.is-deep .cover__media {
+      filter: contrast(calc(1.1 - var(--deep) * 0.1)) saturate(calc(1.18 - var(--deep) * 0.28)) brightness(calc(0.94 - var(--deep) * 0.24)) blur(calc(var(--deep) * 30px));
+    }
 
-  .cover__routes ol {
-    display: grid;
-    gap: var(--space-1);
-    justify-items: end;
-  }
+    .cover.is-deep .cover__glass {
+      opacity: var(--deep);
+    }
 
-  .cover__route {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-height: 36px;
-    padding: 0 var(--space-3) 0 var(--space-4);
-    border-radius: 999px;
-    transition:
-      background-color var(--dur-base) var(--ease-out),
-      color var(--dur-base) var(--ease-out);
-  }
+    .cover.is-deep .cover__title {
+      opacity: calc(1 - var(--fade));
+    }
 
-  .cover__route-name {
-    color: rgb(255 255 255 / 0.55);
-    transition: color var(--dur-base) var(--ease-out);
-  }
-
-  .cover__arrow {
-    width: 14px;
-    height: 14px;
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .cover__route:hover,
-  .cover__route:focus-visible {
-    background: var(--ice);
-    color: var(--navy-900);
-  }
-
-  .cover__route:hover .cover__num,
-  .cover__route:hover .cover__route-name,
-  .cover__route:focus-visible .cover__num,
-  .cover__route:focus-visible .cover__route-name {
-    color: var(--navy-900);
-  }
-
-  .cover__route:hover .cover__arrow,
-  .cover__route:focus-visible .cover__arrow {
-    transform: translate(2px, -2px) rotate(45deg);
+    .cover.is-deep .cover__description,
+    .cover.is-deep .cover__rule,
+    .cover.is-deep .cover__awards {
+      opacity: calc(1 - var(--fade));
+      translate: 0 calc(var(--fade) * -28px);
+    }
   }
 
   /* ---------- Title ---------- */
@@ -232,39 +314,69 @@ const pad = (n: number) => String(n).padStart(2, '0');
     text-transform: uppercase;
   }
 
-  /* "Built around": secondary, set right of centre and turned a few degrees. */
+  .cover__char {
+    display: inline-block;
+    white-space: pre;
+  }
+
+  /* Hovered letters hop and tilt, springing back when the pointer moves on. */
+  .cover__char > span {
+    display: inline-block;
+    transition:
+      translate 450ms cubic-bezier(0.34, 1.7, 0.64, 1),
+      rotate 450ms cubic-bezier(0.34, 1.7, 0.64, 1),
+      color var(--dur-base) var(--ease-out);
+  }
+
+  .cover__char:hover > span {
+    translate: 0 -0.12em;
+    rotate: calc(var(--rot) * 0.5);
+    color: var(--ice);
+  }
+
+  /* "Built around": secondary, on its own line above the big word (turned a few degrees below
+     desktop). */
   .cover__kicker {
     position: absolute;
-    left: 38%;
-    bottom: calc(12vw + var(--space-6));
+    left: var(--margin);
+    bottom: calc(var(--word-size) * 0.8 + var(--space-5));
     display: block;
-    overflow: hidden;
-    padding: 0.08em 0.1em;
-    font-size: clamp(1.5rem, 3.4vw, 3.5rem);
-    font-weight: 750;
+    font-size: clamp(1.5rem, 3.6vw, 3.75rem);
+    font-weight: 800;
     font-stretch: var(--stretch-normal);
     line-height: 1;
     letter-spacing: -0.01em;
     rotate: -3deg;
   }
 
-  .cover__kicker-inner {
+  /* Desktop: perfectly straight, so the lockup with "Creators." reads clean and stable. */
+  @media (min-width: 1024px) {
+    .cover__kicker {
+      bottom: calc(var(--word-foot) + var(--word-size) * 0.8 + var(--space-3));
+      rotate: none;
+    }
+  }
+
+  /* "Creators.": the dominant moment, fitted between the margins. */
+  .cover__word-wrap {
+    position: absolute;
+    left: var(--margin);
+    right: var(--margin);
+    bottom: var(--space-3);
     display: block;
   }
 
-  /* "Creators.": the dominant moment, a touch wider than the screen so it bleeds off both edges. */
-  .cover__word-wrap {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -0.02em;
-    display: block;
+  /* Desktop: above the band. */
+  @media (min-width: 1024px) {
+    .cover__word-wrap {
+      bottom: var(--word-foot);
+    }
   }
 
   .cover__word {
     display: block;
-    margin-left: -0.035em;
-    font-size: 14.2vw;
+    margin-left: -0.04em;
+    font-size: var(--word-size);
     font-weight: 850;
     font-stretch: var(--stretch-wide);
     line-height: 0.8;
@@ -273,74 +385,308 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   /* ---------- Group line ---------- */
-  .cover__aside {
+  .cover__description {
     position: absolute;
     right: var(--margin);
-    bottom: calc(12vw + var(--space-6));
-    display: grid;
-    gap: var(--space-3);
-    max-width: 30ch;
+    bottom: calc(var(--word-size) * 0.8 + var(--space-7));
+    max-width: 24ch;
+    font-size: clamp(1.25rem, 1.75vw, 1.85rem);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--white);
+    text-wrap: balance;
+    text-shadow: 0 2px 18px rgb(6 20 43 / 0.45);
   }
 
-  .cover__description {
-    font-size: var(--type-body);
-    line-height: 1.45;
-    color: rgb(255 255 255 / 0.85);
-  }
-
-  .cover__scroll {
-    position: absolute;
-    left: var(--margin);
-    bottom: calc(12vw + var(--space-6));
-    color: rgb(255 255 255 / 0.7);
-  }
-
-  .cover__scroll span {
+  /* Each word lights up ice as the pointer passes over it. */
+  .cover__w {
     display: inline-block;
-    margin-left: var(--space-2);
+    transition: color var(--dur-base) var(--ease-out), translate 350ms var(--ease-out);
+  }
+
+  .cover__w:hover {
+    color: var(--ice);
+    translate: 0 -2px;
+  }
+
+  /* Desktop: a soft shadow under the headline and a firmer one under the group line. */
+  @media (min-width: 1024px) {
+    .cover__title {
+      text-shadow: 0 2px 28px rgb(6 20 43 / 0.32);
+    }
+
+    /* The group line sits in the band under the headline's left edge, on three lines (the width
+       holds them there; phrases joined in the copy never break), centred on the awards' height. */
+    .cover__description {
+      --size: clamp(1rem, 1.55vw, 1.6rem);
+      --line: calc(var(--size) * 1.36);
+      left: var(--margin);
+      right: auto;
+      bottom: calc(var(--band-foot) + (var(--band) - 3 * var(--line)) / 2);
+      max-width: none;
+      width: 27.5em;
+      font-size: var(--size);
+      line-height: var(--line);
+      text-wrap: wrap;
+      text-shadow:
+        0 1px 2px rgb(6 20 43 / 0.3),
+        0 2px 20px rgb(6 20 43 / 0.55);
+    }
+  }
+
+  /* ---------- The rule and the awards (desktop for now) ----------
+     A fine rule between the headline and the band, margin to margin. The badges sit in the band and
+     end under the headline's full stop, sized with the kicker's type so they keep their proportion
+     to it at any screen width. A soft shadow lifts them off the footage. */
+  .cover__rule,
+  .cover__awards {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .cover__rule {
+      position: absolute;
+      left: var(--margin);
+      right: var(--margin);
+      bottom: calc(var(--band-foot) + var(--band) + var(--rule-gap));
+      display: block;
+      height: 1px;
+      background: rgb(255 255 255 / 0.28);
+    }
+
+    .cover__awards {
+      position: absolute;
+      right: var(--margin);
+      bottom: var(--band-foot);
+      display: flex;
+      gap: 0.2em;
+      font-size: var(--kicker);
+      filter: drop-shadow(0 8px 20px rgb(6 20 43 / 0.4));
+    }
+
+    .cover__awards img {
+      display: block;
+      width: auto;
+      height: 1.9em;
+    }
   }
 
   /* ---------- Entrances (played once the intro hands over) ----------
-     The big word is masked in from the left; the kicker drops into its slot from above; the
-     annotations slide in from the right, slightly blurred, one after another. */
-  .cover__word {
-    animation: cover-wipe 1100ms var(--ease-out) 120ms both;
+     The letters drop in from above the screen one by one, each landing with a small bounce
+     and a twist that settles; "Built around" follows the big word. The group line then rises
+     in word by word. */
+  .cover__char {
+    animation: cover-fall 1100ms cubic-bezier(0.3, 0, 0.3, 1) both;
+    animation-delay: calc(150ms + var(--d) * 70ms);
   }
 
-  .cover__kicker-inner {
-    animation: cover-drop 800ms var(--ease-out) 420ms both;
+  .cover__w {
+    animation: cover-rise 700ms var(--ease-out) both;
+    animation-delay: calc(1500ms + var(--w) * 45ms);
   }
 
-  .cover__tag,
-  .cover__routes li,
-  .cover__aside,
-  .cover__scroll {
-    animation: cover-slide 700ms var(--ease-out) both;
-    animation-delay: calc(560ms + var(--enter, 0) * 80ms);
-  }
-
-  @keyframes cover-wipe {
-    from {
-      clip-path: inset(-10% 100% -10% 0);
-      transform: translateX(-4%);
+  @keyframes cover-fall {
+    0% {
+      opacity: 0;
+      transform: translateY(-110vh) rotate(var(--rot));
     }
-    to {
-      clip-path: inset(-10% -10% -10% 0);
+    8% {
+      opacity: 1;
+    }
+    62% {
+      transform: translateY(0) rotate(calc(var(--rot) * -0.3));
+    }
+    76% {
+      transform: translateY(-0.14em) rotate(calc(var(--rot) * 0.15));
+    }
+    88% {
+      transform: translateY(0) rotate(calc(var(--rot) * -0.05));
+    }
+    94% {
+      transform: translateY(-0.03em);
+    }
+    100% {
       transform: none;
     }
   }
 
-  @keyframes cover-drop {
+  @keyframes cover-rise {
     from {
-      transform: translateY(-110%) rotate(-6deg);
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(0.6em);
     }
   }
 
-  @keyframes cover-slide {
+  /* ---------- Cinematic entrance (desktop) ----------
+     While .is-entrance is on (set before the first paint), the real letters wait unseen, the
+     footage is blurred, and the stage holds the falling letters. The script (one GSAP timeline)
+     animates everything, then lifts .is-entrance when the letters rest on the headline.
+     .is-cinematic stays. */
+  .cover__stage {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: none;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .cover.is-entrance .cover__stage {
+    display: block;
+  }
+
+  /* One letter: positioned only by its transform (the script places its centre), set in the same
+     type as the real headline so it lands at exactly its size. Everything on the stage waits at a
+     barely-there opacity (0.001) rather than 0, so the browser draws it ahead of time and nothing has
+     to be drawn mid-motion. */
+  .cover__s {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    white-space: pre;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    opacity: 0.001;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+
+  /* As .cover__kicker. */
+  .cover__s--kicker {
+    font-size: clamp(1.5rem, 3.6vw, 3.75rem);
+    font-weight: 800;
+    font-stretch: var(--stretch-normal);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* As .cover__word. */
+  .cover__s--word {
+    font-size: var(--word-size);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.8;
+    letter-spacing: -0.035em;
+  }
+
+  /* The letter's layers. The letter itself is only moved, turned, faded and scaled (2D), which the
+     GPU does without repainting it; only the footage inside flickers, on a layer of its own. */
+  /* The footage: the collage seen through the glyph, cutting from shot to shot (one tile of the
+     4x4 collage at a time: across every 0.18s, down every 0.72s), like a film-title montage. The
+     script stops it once the letter has turned white. */
+  .cover__s-img {
+    position: relative;
+    display: block;
+    color: transparent;
+    background-image: var(--collage);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation:
+      cover-collage-x 0.72s steps(4) infinite,
+      cover-collage-y 2.88s steps(4) infinite;
+    animation-delay: var(--d, 0s);
+    will-change: transform;
+  }
+
+  @keyframes cover-collage-x {
+    from {
+      background-position-x: 0%;
+    }
+
+    to {
+      background-position-x: 133.333%;
+    }
+  }
+
+  @keyframes cover-collage-y {
+    from {
+      background-position-y: 0%;
+    }
+
+    to {
+      background-position-y: 133.333%;
+    }
+  }
+
+  /* The motion streak: the glyph stretched upwards from its foot, a smear of light fading out
+     towards the top, shown while the letter falls fast (the script sets its length and strength
+     from the speed). Drawn once; only stretched and faded. */
+  .cover__s-trail {
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    background: linear-gradient(to top, rgb(245 252 255 / 0.6), rgb(245 252 255 / 0.18) 45%, rgb(245 252 255 / 0) 85%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    transform-origin: 50% 100%;
+    opacity: 0.001;
+  }
+
+  .cover__s-white {
+    position: absolute;
+    inset: 0;
+    color: var(--white);
+    text-shadow: 0 2px 28px rgb(6 20 43 / 0.32);
+    opacity: 0.001;
+  }
+
+  /* The cinematic entrance replaces the plain letter drop entirely. */
+  .cover.is-cinematic .cover__char {
+    animation: none;
+  }
+
+  .cover.is-entrance .cover__char {
+    opacity: 0;
+  }
+
+  .cover.is-entrance .cover__char.is-landed {
+    opacity: 1;
+  }
+
+  .cover.is-entrance .cover__media {
+    filter: contrast(1.1) saturate(1.18) brightness(0.72) blur(26px);
+  }
+
+  /* The pointer drift waits too, so the letters land exactly on the headline; it eases back in. */
+  .cover.is-entrance .cover__word-wrap {
+    translate: none !important;
+  }
+
+  .cover.is-settling .cover__word-wrap {
+    transition: translate 700ms var(--ease-out);
+  }
+
+  /* The band is there from the start, fading up with the page, so the letters have a floor to land on. */
+  .cover.is-cinematic .cover__w {
+    animation: none;
+  }
+
+  .cover.is-cinematic .cover__description,
+  .cover.is-cinematic .cover__rule,
+  .cover.is-cinematic .cover__awards {
+    animation: cover-fade 400ms var(--ease-out) backwards;
+  }
+
+  /* Back on the homepage in the same visit (desktop): the finished hero, simply faded in. */
+  .cover.is-return .cover__char,
+  .cover.is-return .cover__w {
+    animation: none;
+  }
+
+  .cover.is-return .cover__title,
+  .cover.is-return .cover__description,
+  .cover.is-return .cover__rule,
+  .cover.is-return .cover__awards {
+    animation: cover-fade 500ms var(--ease-out) both;
+  }
+
+  @keyframes cover-fade {
     from {
       opacity: 0;
-      filter: blur(6px);
-      transform: translateX(32px);
     }
   }
 
@@ -413,41 +759,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
     animation: none;
   }
 
-  /* "Skip intro": only while the intro plays (WCAG 2.2.2), in the screen's corner. */
-  .cover__intro-toggle {
-    display: none;
-    position: fixed;
-    right: var(--space-4);
-    bottom: var(--space-4);
-    z-index: 151;
-    min-height: 44px;
-    padding: 0 var(--space-4);
-    border: 1px solid rgb(255 255 255 / 0.5);
-    border-radius: 999px;
-    background: rgb(6 20 43 / 0.35);
-    color: var(--white);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    backdrop-filter: blur(6px);
-    transition: background-color var(--dur-base) var(--ease-out);
-  }
-
-  .cover__intro-toggle:hover {
-    background: rgb(6 20 43 / 0.6);
-  }
-
-  :global(.js) .cover.is-intro-playing .cover__intro-toggle {
-    display: block;
-  }
 
   /* ---------- Tablet ---------- */
   @media (max-width: 1023px) {
     .cover__kicker {
       left: var(--margin);
-    }
-
-    .cover__scroll {
-      display: none;
     }
   }
 
@@ -457,10 +773,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
   @media (max-width: 767px) {
     .cover__content {
       min-height: 560px;
-    }
-
-    .cover__routes {
-      display: none;
     }
 
     .cover__word {
@@ -475,14 +787,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
       font-size: clamp(1.25rem, 6.4vw, 1.75rem);
     }
 
-    .cover__aside {
+    .cover__description {
       left: var(--margin);
       right: var(--margin);
       bottom: calc(14vw + var(--space-4) + 3.4rem);
       max-width: none;
-    }
-
-    .cover__description {
       font-size: var(--type-small);
     }
 
@@ -495,18 +804,74 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .cover__word,
-    .cover__kicker-inner,
-    .cover__tag,
-    .cover__routes li,
-    .cover__aside,
-    .cover__scroll {
+    .cover__char,
+    .cover__w {
       animation: none;
+    }
+
+    /* The reduced-motion entrance: the headline and group line simply fade in. */
+    .cover__title,
+    .cover__description {
+      animation: cover-fade 700ms var(--ease-out) both;
+    }
+
+    .cover__stage {
+      display: none !important;
+    }
+
+    .cover__char > span,
+    .cover__w {
+      transition: none;
+    }
+  }
+
+  /* ---------- Frosted glass diffusion ----------
+     One sheet of etched glass over the footage, present only where it's needed: it thickens from the
+     middle of the screen down to the foot (behind the headline, the group line and the awards), with
+     lighter bands across the top (the header) and down the left edge (the radial navigation). The
+     centre of the footage stays clear. The sheet is the blur, a milky lift, and a fine grain like
+     sandblasted glass; the mask does the rest. Decoration only: it never takes the pointer. */
+  .cover__frost {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to top, rgb(207 237 248 / 0.16), rgb(207 237 248 / 0.06) 50%, rgb(233 250 253 / 0.04));
+    backdrop-filter: blur(22px) saturate(1.15) brightness(1.06);
+    -webkit-backdrop-filter: blur(22px) saturate(1.15) brightness(1.06);
+    -webkit-mask-image:
+      linear-gradient(to top, #000 0%, #000 22%, rgb(0 0 0 / 0.75) 36%, rgb(0 0 0 / 0.3) 46%, transparent 56%),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.7) 0%, rgb(0 0 0 / 0.3) 8%, transparent 16%),
+      linear-gradient(to right, rgb(0 0 0 / 0.7) 0%, rgb(0 0 0 / 0.35) 7%, transparent 15%);
+    mask-image:
+      linear-gradient(to top, #000 0%, #000 22%, rgb(0 0 0 / 0.75) 36%, rgb(0 0 0 / 0.3) 46%, transparent 56%),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.7) 0%, rgb(0 0 0 / 0.3) 8%, transparent 16%),
+      linear-gradient(to right, rgb(0 0 0 / 0.7) 0%, rgb(0 0 0 / 0.35) 7%, transparent 15%);
+    -webkit-mask-composite: source-over;
+    mask-composite: add;
+  }
+
+  /* The etched grain, on the glass itself. */
+  .cover__frost::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+  }
+
+  /* While the scene's own glass forms over the footage, this sheet steps back so they don't double up. */
+  @media (min-width: 1024px) {
+    .cover.is-deep .cover__frost {
+      opacity: calc(1 - var(--deep));
     }
   }
 </style>
 
 <script>
   import { initHeroIntro } from '@/scripts/system/hero-intro';
+  import { initHeroEntrance } from '@/scripts/system/hero-entrance';
+  initHeroEntrance();
   initHeroIntro();
 </script>
