@@ -4,20 +4,6 @@ sections:
   ui:
     status: draft
     items:
-      # The cursor
-      - { key: cursor.open, label: Choose your cursor }
-      - { key: cursor.title, label: Your cursor }
-      - { key: cursor.finish, label: Finish }
-      - { key: cursor.finish.clear, label: Clear }
-      - { key: cursor.finish.ice, label: Ice }
-      - { key: cursor.finish.steel, label: Steel }
-      - { key: cursor.finish.ink, label: Ink }
-      - { key: cursor.size, label: Size }
-      - { key: cursor.size.small, label: Small }
-      - { key: cursor.size.medium, label: Medium }
-      - { key: cursor.size.large, label: Large }
-      - { key: cursor.ripple, label: Ripple }
-      - { key: cursor.off, label: Normal cursor }
       # The shortlist tray
       - { key: tray.brief.title, label: Your brief }
       - { key: tray.brief.action, label: Start a campaign }
