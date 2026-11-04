@@ -1,0 +1,1031 @@
+---
+// Stride Education's opening: "Every creator starts somewhere", as a level map to climb. A path winds up
+// the screen through the topics, from the bottom; scrolling lights it level by level, the bar fills, and
+// a glass card travels with you saying what that level teaches and whether it's available. Tap any level to
+// go there, and add it to your own path: the tray keeps your picks and the enquiry form opens with them
+// ticked (/education/enquire?topics=...). Behaviour: src/scripts/system/level-map.ts. Items only with a
+// confirmed availability (src/lib/education.ts); with none yet, it's just the headline.
+// On desktop it's a mountain to climb, with no boxes: a topographic map, every level named on it, a light climbing
+// the road smoothly with the scroll while the view rises with it, and the level you're on told on the left.
+import type { StageMessage } from '@/lib/experience';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  topics: { id: string; title: string; summary?: string | null; chip?: string }[];
+  messages: StageMessage[];
+  level: 'h1' | 'h2';
+  ui: { path: string; empty: string; add: string; added: string; cta: string; levelOf: string };
+  enquire: string;
+}
+
+const { topics, messages, level, ui, enquire } = Astro.props;
+const word = await interfaceCopy();
+const questions = [word('find.q1'), word('find.q2'), word('find.q3')];
+const Title = level;
+const n = topics.length;
+// The path, in a 800 x 800 board: from the foot, winding to the top.
+const xs = [18, 58, 84, 50, 16, 44, 80];
+const points = topics.map((_, i) => ({ x: xs[i % xs.length], y: 90 - (i * 80) / Math.max(1, n - 1) }));
+const px = (v: number) => (v * 8).toFixed(1);
+const pathD = points.reduce((d, p, i) => {
+  if (i === 0) return `M ${px(p.x)} ${px(p.y)}`;
+  const a = points[i - 1];
+  const midY = (a.y + p.y) / 2;
+  return `${d} C ${px(a.x)} ${px(midY)}, ${px(p.x)} ${px(midY)}, ${px(p.x)} ${px(p.y)}`;
+}, '');
+// The same road on the desktop's taller map (800 x 1600), so the levels have room for their names.
+const tall = (v: number) => (v * 16).toFixed(1);
+const roadD = points.reduce((d, p, i) => {
+  if (i === 0) return `M ${px(p.x)} ${tall(p.y)}`;
+  const a = points[i - 1];
+  const midY = (a.y + p.y) / 2;
+  return `${d} C ${px(a.x)} ${tall(midY)}, ${px(p.x)} ${tall(midY)}, ${px(p.x)} ${tall(p.y)}`;
+}, '');
+// The contour lines of the mountain: uneven rings round the summit, the last level.
+const summit = points[n - 1] ?? { x: 50, y: 10 };
+const contours = Array.from({ length: 16 }, (_, k) => {
+  const r = 70 + k * 92;
+  const ring = Array.from({ length: 56 }, (_, i) => {
+    const a = (i / 56) * Math.PI * 2;
+    const wobble = 1 + 0.13 * Math.sin(3 * a + k * 0.55) + 0.07 * Math.sin(5 * a - k * 0.8) + 0.035 * Math.sin(9 * a + k * 1.3);
+    return `${(summit.x * 8 + Math.cos(a) * r * wobble * 1.25).toFixed(0)} ${(summit.y * 16 + Math.sin(a) * r * wobble).toFixed(0)}`;
+  });
+  return `M${ring.join('L')}Z`;
+});
+---
+
+<section class="lmap" aria-labelledby="lmap-title" data-lmap data-tone="education" data-look="slate" data-enquire={enquire} data-level-of={ui.levelOf} style={`--steps: ${Math.max(1, n)}`}>
+  <div class="lmap__pin" data-portal-hero>
+
+    <div class="lmap__copy" data-reveal="from-left">
+      <div class="lmap__messages">
+        {messages.map((m, i) => {
+          const Heading = i === 0 ? Title : 'p';
+          return (
+            <div class:list={['lmap__message', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-lmap-message={i}>
+              {m.title && <Heading class="lmap__title exp-title" id={i === 0 ? 'lmap-title' : undefined}>{m.title}</Heading>}
+              {m.text && <p class="lmap__body">{m.text}</p>}
+            </div>
+          );
+        })}
+      </div>
+
+      <div class="lmap__slot" data-lmap-slot></div>
+
+      {n > 0 && (
+        <div class="lmap__tray glass" aria-live="polite">
+          <p class="lmap__tray-head"><span class="exp-label">{ui.path}</span><span class="exp-label" data-lmap-level></span></p>
+          <div class="lmap__xp" aria-hidden="true"><span></span></div>
+          <p class="lmap__empty" data-lmap-empty>{ui.empty}</p>
+          <ol class="lmap__picks" role="list" data-lmap-picks></ol>
+          <div class="lmap__actions" data-lmap-actions>
+            <a class="exp-pill" href={enquire} data-lmap-cta>
+              {ui.cta}
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+            </a>
+          </div>
+        </div>
+      )}
+      {n > 0 && (
+        <div class="lmap__finder desk-only" data-lmap-finder>
+          <button class="exp-pill exp-pill--ghost" type="button" aria-expanded="false" data-lmap-find>{word('find.open')}</button>
+          <div class="lmap__quiz glass" hidden data-lmap-quiz data-result={word('find.result')}>
+            {questions.map((q, i) => (
+              <div class="lmap__q" hidden={i > 0} data-lmap-q={i}>
+                <p class="exp-label">{i + 1} / {questions.length}</p>
+                <p class="lmap__q-text">{q}</p>
+                <div class="lmap__q-answers">
+                  <button class="exp-pill" type="button" data-lmap-answer="1">{word('find.yes')}</button>
+                  <button class="exp-pill exp-pill--ghost" type="button" data-lmap-answer="0">{word('find.no')}</button>
+                </div>
+              </div>
+            ))}
+            <p class="lmap__q-text" hidden aria-live="polite" data-lmap-result></p>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {n > 0 && (
+      <div class="lmap__board" data-lmap-board>
+        <div class="lmap__topo" aria-hidden="true" data-lmap-topo>
+          <svg viewBox="0 0 800 1600">
+            {contours.map((d, k) => <path d={d} style={`--k: ${k}`}></path>)}
+          </svg>
+        </div>
+        <div class="lmap__world" data-lmap-world>
+          <svg class="lmap__svg" viewBox="0 0 800 800" aria-hidden="true">
+            <path class="lmap__road" d={pathD}></path>
+            <path class="lmap__lit" d={pathD} pathLength="1" data-lmap-lit></path>
+          </svg>
+          <svg class="lmap__route" viewBox="0 0 800 1600" aria-hidden="true">
+            <path class="lmap__route-base" d={roadD} data-lmap-route></path>
+            <path class="lmap__route-peek" d={roadD} pathLength="1" data-lmap-peek></path>
+            <path class="lmap__route-glow" d={roadD} pathLength="1" data-lmap-glow></path>
+            <path class="lmap__route-lit" d={roadD} pathLength="1" data-lmap-routelit></path>
+          </svg>
+
+          <ol class="lmap__nodes" role="list" aria-label={ui.path}>
+            {topics.map((t, i) => (
+              <li class:list={['lmap__node', { 'is-flip': points[i].x > 60 }]} style={`left: ${points[i].x}%; top: ${points[i].y}%`} data-lmap-node={i} data-id={t.id} data-title={t.title}>
+                <button class="lmap__dot" type="button" aria-label={`${pad(i + 1)}: ${t.title}`} data-lmap-go={i}>
+                  <span class="lmap__num">{pad(i + 1)}</span>
+                  <span class="lmap__label" aria-hidden="true">{t.title}</span>
+                </button>
+                <span class="lmap__star" aria-hidden="true">★</span>
+              </li>
+            ))}
+          </ol>
+
+          <span class="lmap__climber" aria-hidden="true" data-lmap-climber></span>
+          <div class="lmap__burst" aria-hidden="true" data-lmap-burst></div>
+        </div>
+
+        <div class="lmap__pop glass" data-lmap-pop>
+          {topics.map((t, i) => (
+            <div class:list={['lmap__card', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-lmap-card={i}>
+              <p class="lmap__card-head"><span class="exp-label">{ui.levelOf.replace('{n}', String(i + 1)).replace('{total}', String(n))}</span>{t.chip && <span class="lmap__chip">{t.chip}</span>}</p>
+              <p class="lmap__name">{t.title}</p>
+              {t.summary && <p class="lmap__summary">{t.summary}</p>}
+              <button class="lmap__add exp-pill exp-pill--ghost" type="button" aria-pressed="false" data-lmap-add={i}>
+                <span class="lmap__add-off">{ui.add}</span>
+                <span class="lmap__add-on">★ {ui.added}</span>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .lmap {
+    position: relative;
+    height: calc(100svh + (var(--steps) - 1) * 50svh);
+    color: rgb(var(--ink));
+  }
+
+  .lmap__pin {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    align-items: center;
+    gap: var(--gutter);
+    height: 100svh;
+    min-height: 620px;
+    padding: calc(var(--header-h) + var(--space-3)) var(--margin) var(--space-5);
+    overflow: clip;
+  }
+
+  /* ---------- The words and the tray ---------- */
+  .lmap__copy {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    gap: var(--space-5);
+    container-type: inline-size;
+  }
+
+  .lmap__messages {
+    display: grid;
+  }
+
+  .lmap__message {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: end;
+    gap: var(--space-4);
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 600ms var(--ease-out),
+      filter 500ms var(--ease-out);
+  }
+
+  .lmap__message.is-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .lmap__title {
+    font-size: clamp(1.875rem, 10.4cqi, 4rem);
+  }
+
+  .lmap__body {
+    max-width: 30rem;
+    color: rgb(var(--ink) / 0.86);
+  }
+
+  .lmap__tray {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+    padding: clamp(16px, 1.6vw, 24px);
+  }
+
+  .lmap__tray-head,
+  .lmap__card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+  }
+
+  .lmap__xp {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgb(255 255 255 / calc(0.14 * var(--fill-k)));
+  }
+
+  .lmap__xp span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: rgb(var(--tone-lit));
+    box-shadow: 0 0 14px rgb(var(--tone-glow) / 0.9);
+    transform: scaleX(var(--xp, 0.1));
+    transform-origin: left;
+    transition: transform 600ms cubic-bezier(0.2, 1.2, 0.35, 1);
+  }
+
+  .lmap__empty {
+    font-size: 0.875rem;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .lmap__empty[hidden] {
+    display: none;
+  }
+
+  .lmap__picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .lmap__picks :global(li) {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgb(var(--tone-lit));
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: rgb(var(--tone-on));
+    animation: lmap-pop 480ms cubic-bezier(0.2, 1.6, 0.35, 1);
+  }
+
+  @keyframes lmap-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+  }
+
+  /* ---------- The board ---------- */
+  .lmap__board {
+    position: relative;
+    z-index: 2;
+    justify-self: center;
+    height: min(100%, 52vw);
+    aspect-ratio: 1;
+  }
+
+  .lmap__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .lmap__road,
+  .lmap__lit {
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  .lmap__road {
+    stroke: rgb(var(--ink) / 0.26);
+    stroke-width: 14;
+    stroke-dasharray: 1 26;
+  }
+
+  .lmap__lit {
+    stroke: rgb(var(--tone-lit));
+    stroke-width: 6;
+    stroke-dasharray: 1;
+    stroke-dashoffset: var(--road, 1);
+    filter: drop-shadow(0 0 10px rgb(var(--tone-glow) / 0.95));
+    transition: stroke-dashoffset 500ms var(--ease-out);
+  }
+
+  .lmap__nodes {
+    position: absolute;
+    inset: 0;
+  }
+
+  .lmap__node {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .lmap__dot {
+    position: absolute;
+    top: -30px;
+    left: -30px;
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(165deg, rgb(255 255 255 / calc(0.24 * var(--fill-k))), rgb(255 255 255 / calc(0.05 * var(--fill-k))));
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.34),
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      0 14px 30px -12px rgb(var(--shade) / 0.8);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: rgb(var(--ink));
+    transition:
+      transform 420ms cubic-bezier(0.2, 1.6, 0.35, 1),
+      background-color 300ms var(--ease-out),
+      color 300ms var(--ease-out),
+      box-shadow 300ms var(--ease-out);
+  }
+
+  .lmap__dot:hover {
+    transform: scale(1.12);
+  }
+
+  .lmap__dot:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 3px;
+  }
+
+  .lmap__node.is-done .lmap__dot {
+    background: rgb(var(--tone-lit) / 0.9);
+    color: rgb(var(--tone-on));
+  }
+
+  .lmap__node.is-now .lmap__dot {
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+    transform: scale(1.22);
+    box-shadow:
+      0 0 0 6px rgb(var(--tone-lit) / 0.24),
+      0 0 34px 4px rgb(var(--tone-glow) / 0.8);
+  }
+
+  .lmap__star {
+    position: absolute;
+    top: -40px;
+    left: 16px;
+    font-size: 1.125rem;
+    color: rgb(var(--ink));
+    text-shadow: 0 0 10px rgb(var(--tone-glow));
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      opacity 300ms var(--ease-out),
+      transform 420ms cubic-bezier(0.2, 1.6, 0.35, 1);
+  }
+
+  .lmap__node.is-picked .lmap__star {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The card travelling with you. */
+  .lmap__pop {
+    position: absolute;
+    top: var(--pop-y, 50%);
+    left: var(--pop-x, 50%);
+    z-index: 3;
+    display: grid;
+    width: min(320px, 44%);
+    padding: clamp(16px, 1.4vw, 22px);
+    transform: translateY(-50%);
+    transition:
+      top 620ms cubic-bezier(0.2, 1.1, 0.3, 1),
+      left 620ms cubic-bezier(0.2, 1.1, 0.3, 1);
+    background: linear-gradient(165deg, rgb(var(--panel) / 0.86), rgb(var(--panel) / 0.74));
+  }
+
+  .lmap__card {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--space-2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 300ms var(--ease-out);
+  }
+
+  .lmap__card.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lmap__chip {
+    flex: none;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgb(var(--tone-lit));
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--tone-on));
+  }
+
+  .lmap__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+    font-weight: 800;
+    line-height: 1.06;
+  }
+
+  .lmap__summary {
+    font-size: 0.875rem;
+    line-height: 1.38;
+    color: rgb(var(--ink) / 0.84);
+  }
+
+  .lmap__add {
+    margin-top: var(--space-2);
+    min-height: 38px;
+    padding: 4px var(--space-4);
+    font-size: 0.625rem;
+  }
+
+  .lmap__add-on,
+  .lmap__add[aria-pressed='true'] .lmap__add-off {
+    display: none;
+  }
+
+  .lmap__add[aria-pressed='true'] .lmap__add-on {
+    display: inline;
+  }
+
+  .lmap__add[aria-pressed='true'] {
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  /* Reaching the top. */
+  .lmap__burst {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .lmap__burst :global(span) {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgb(var(--tone-lit));
+    box-shadow: 0 0 10px rgb(var(--tone-glow));
+    animation: lmap-burst 1100ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+  }
+
+  @keyframes lmap-burst {
+    to {
+      opacity: 0;
+      transform: translate(var(--bx), var(--by)) scale(0.2);
+    }
+  }
+
+  /* ---------- Below desktop: the words, then the map ---------- */
+  @media (max-width: 1023px) {
+    .lmap__pin {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-items: start;
+      padding-top: calc(var(--header-h) + var(--space-2));
+    }
+
+    .lmap__copy {
+      gap: var(--space-3);
+    }
+
+    .lmap__body {
+      font-size: var(--type-small);
+    }
+
+    .lmap__board {
+      height: min(100%, 92vw);
+    }
+
+    .lmap__dot {
+      top: -22px;
+      left: -22px;
+      width: 44px;
+      height: 44px;
+      font-size: 0.75rem;
+    }
+
+    .lmap__pop {
+      width: min(240px, 62%);
+    }
+
+    .lmap__summary {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lmap__message,
+    .lmap__xp span,
+    .lmap__lit,
+    .lmap__dot,
+    .lmap__pop,
+    .lmap__card,
+    .lmap__star,
+    .lmap__topo svg,
+    .lmap__route-peek,
+    .lmap__label {
+      transition: none !important;
+    }
+
+    .lmap__picks :global(li),
+    .lmap__burst :global(span) {
+      animation: none;
+    }
+  }
+
+  /* ---------- The world's parts: the ordinary map doesn't use these ---------- */
+  .lmap__world {
+    position: absolute;
+    inset: 0;
+  }
+
+  .lmap__topo,
+  .lmap__route,
+  .lmap__climber,
+  .lmap__label,
+  .lmap__slot {
+    display: none;
+  }
+
+  /* ---------- Desktop: the mountain (.is-world: level-map.ts) ---------- */
+  @media (min-width: 1024px) {
+    .lmap.is-world .lmap__pin {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: stretch;
+      padding-block: calc(var(--header-h) + var(--space-2)) var(--space-5);
+    }
+
+    /* The left: the headline, the level you're on, your path. No panels. */
+    .lmap.is-world .lmap__copy {
+      align-self: center;
+      gap: clamp(var(--space-4), 3.4svh, var(--space-6));
+    }
+
+    .lmap.is-world .lmap__message {
+      align-content: start;
+      gap: var(--space-3);
+    }
+
+    .lmap.is-world .lmap__title {
+      font-size: clamp(1.875rem, min(10cqi, 6.4svh), 3.5rem);
+    }
+
+    .lmap.is-world .lmap__body {
+      font-size: clamp(0.9375rem, 2.1svh, 1.0625rem);
+      line-height: 1.45;
+    }
+
+    .lmap.is-world .lmap__slot {
+      display: block;
+      padding-top: clamp(var(--space-3), 2.6svh, var(--space-5));
+      border-top: 1px solid rgb(255 255 255 / 0.2);
+    }
+
+    .lmap.is-world .lmap__pop.glass {
+      position: static;
+      width: auto;
+      padding: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      transform: none;
+      transition: none;
+    }
+
+    .lmap.is-world .lmap__card {
+      gap: var(--space-2);
+      transform: translateY(10px);
+      transition:
+        opacity 280ms var(--ease-out),
+        transform 480ms cubic-bezier(0.2, 1, 0.3, 1);
+    }
+
+    .lmap.is-world .lmap__card.is-active {
+      transform: none;
+    }
+
+    .lmap.is-world .lmap__name {
+      font-size: clamp(1.375rem, min(2.5vw, 4.4svh), 2.25rem);
+      font-weight: 850;
+      font-stretch: var(--stretch-wide);
+      line-height: 1;
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+    }
+
+    .lmap.is-world .lmap__summary {
+      max-width: 30rem;
+      font-size: clamp(0.9375rem, 2.1svh, 1.0625rem);
+      line-height: 1.42;
+    }
+
+    .lmap.is-world .lmap__tray.glass {
+      gap: var(--space-2);
+      padding: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    /* The map shows how far you've climbed: here it's only what you've picked. */
+    .lmap.is-world .lmap__xp,
+    .lmap.is-world [data-lmap-level] {
+      display: none;
+    }
+
+    .lmap.is-world .lmap__picks :global(li) {
+      background: none;
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.5);
+      color: var(--white);
+    }
+
+    /* Enquire and Find my level side by side. */
+    .lmap.is-world .lmap__tray .lmap__finder {
+      display: inline-block;
+      margin: 0 0 0 var(--space-2);
+    }
+
+    .lmap.is-world .lmap__actions {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+
+    /* The questions open over the column, at its full width. */
+    .lmap.is-world .lmap__tray .lmap__finder {
+      position: static;
+    }
+
+    .lmap.is-world .lmap__quiz {
+      width: min(26rem, 100%);
+    }
+
+    .lmap.is-world .lmap__q-answers {
+      flex-wrap: nowrap;
+    }
+
+    .lmap.is-world .lmap__q-answers .exp-pill {
+      white-space: nowrap;
+    }
+
+    /* A short screen: the headline and the level are what matter. */
+    @media (max-height: 780px) {
+      .lmap.is-world .lmap__copy {
+        gap: var(--space-3);
+      }
+
+      .lmap.is-world .lmap__body,
+      .lmap.is-world .lmap__tray-head,
+      .lmap.is-world .lmap__empty {
+        display: none;
+      }
+
+      .lmap.is-world .lmap__title {
+        font-size: clamp(1.625rem, min(8.6cqi, 5.4svh), 2.75rem);
+      }
+
+      .lmap.is-world .lmap__summary {
+        font-size: 0.875rem;
+      }
+
+      .lmap.is-world .lmap__actions {
+        margin-top: 0;
+      }
+    }
+
+    /* The right: the map. */
+    .lmap.is-world .lmap__board {
+      justify-self: stretch;
+      width: 100%;
+      height: auto;
+      aspect-ratio: auto;
+      mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 92%, transparent);
+    }
+
+    .lmap.is-world .lmap__world {
+      inset: 0 0 auto;
+      aspect-ratio: 1 / 2;
+      will-change: transform;
+    }
+
+    .lmap.is-world .lmap__svg {
+      display: none;
+    }
+
+    .lmap.is-world .lmap__route {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      fill: none;
+    }
+
+    .lmap__route path {
+      stroke-linecap: round;
+    }
+
+    .lmap__route-base {
+      stroke: rgb(255 255 255 / 0.3);
+      stroke-width: 5;
+      stroke-dasharray: 0.5 16;
+    }
+
+    .lmap__route-peek {
+      stroke: rgb(255 255 255 / 0.4);
+      stroke-width: 3;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      opacity: 0;
+      transition:
+        opacity 240ms var(--ease-out),
+        stroke-dashoffset 460ms var(--ease-out);
+    }
+
+    .lmap__route-peek.is-on {
+      opacity: 1;
+    }
+
+    .lmap__route-glow,
+    .lmap__route-lit {
+      stroke-dasharray: 1;
+      stroke-dashoffset: var(--climb, 1);
+    }
+
+    .lmap__route-glow {
+      stroke: rgb(207 237 248 / 0.28);
+      stroke-width: 14;
+    }
+
+    .lmap__route-lit {
+      stroke: var(--white);
+      stroke-width: 3.5;
+    }
+
+    /* The contour lines: quiet, thicker towards the summit, drifting behind the road. */
+    .lmap.is-world .lmap__topo {
+      position: absolute;
+      inset: 0 0 auto;
+      z-index: 0;
+      display: block;
+      aspect-ratio: 1 / 2;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    .lmap__topo svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      fill: none;
+      transition: transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+      transform: translate(var(--px, 0), var(--py, 0));
+    }
+
+    .lmap__topo path {
+      stroke: rgb(255 255 255 / calc(0.21 - var(--k) * 0.008));
+      stroke-width: 1.3;
+    }
+
+    /* A level: a small mark on the road and its name beside it. */
+    .lmap.is-world .lmap__dot {
+      top: -13px;
+      left: -13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      width: max-content;
+      max-width: min(17rem, 44cqi);
+      height: auto;
+      padding: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      text-align: left;
+      color: var(--white);
+      transition: none;
+    }
+
+    .lmap.is-world .lmap__board {
+      container-type: inline-size;
+    }
+
+    .lmap.is-world .lmap__node.is-flip .lmap__dot {
+      right: -13px;
+      left: auto;
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .lmap.is-world .lmap__dot:hover {
+      transform: none;
+    }
+
+    /* The mark. */
+    .lmap.is-world .lmap__dot::before {
+      content: '';
+      flex: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--navy-500);
+      box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.6);
+      transition:
+        background-color 300ms var(--ease-out),
+        box-shadow 300ms var(--ease-out),
+        scale 380ms cubic-bezier(0.2, 1.5, 0.4, 1);
+    }
+
+    .lmap.is-world .lmap__dot:hover::before {
+      scale: 1.2;
+    }
+
+    .lmap.is-world .lmap__node.is-done .lmap__dot,
+    .lmap.is-world .lmap__node.is-now .lmap__dot {
+      background: none;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .lmap.is-world .lmap__node.is-done .lmap__dot::before,
+    .lmap.is-world .lmap__node.is-now .lmap__dot::before {
+      background: var(--white);
+      box-shadow: inset 0 0 0 1.5px var(--white);
+    }
+
+    .lmap.is-world .lmap__num {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      letter-spacing: 0;
+      color: var(--white);
+      transition: color 300ms var(--ease-out);
+    }
+
+    .lmap.is-world .lmap__node.is-flip .lmap__num {
+      right: 0;
+      left: auto;
+    }
+
+    .lmap.is-world .lmap__node.is-done .lmap__num,
+    .lmap.is-world .lmap__node.is-now .lmap__num {
+      color: var(--navy-900);
+    }
+
+    /* The name: faint ahead of you, clear behind, largest where you are. */
+    .lmap.is-world .lmap__label {
+      display: block;
+      padding-top: 3px;
+      font-family: var(--font-display);
+      font-size: clamp(0.875rem, 1.15vw, 1.0625rem);
+      font-weight: 800;
+      line-height: 1.12;
+      text-shadow: 0 0 14px rgb(41 67 104 / 0.95), 0 0 4px rgb(41 67 104 / 0.9);
+      opacity: 0.62;
+      transform-origin: 0 0;
+      transition:
+        opacity 300ms var(--ease-out),
+        scale 420ms cubic-bezier(0.2, 1.1, 0.35, 1);
+    }
+
+    .lmap.is-world .lmap__node.is-flip .lmap__label {
+      transform-origin: 100% 0;
+    }
+
+    .lmap.is-world .lmap__node.is-done .lmap__label {
+      opacity: 0.82;
+    }
+
+    .lmap.is-world .lmap__node.is-now .lmap__label,
+    .lmap.is-world .lmap__dot:hover .lmap__label,
+    .lmap.is-world .lmap__dot:focus-visible .lmap__label {
+      opacity: 1;
+    }
+
+    .lmap.is-world .lmap__node.is-now .lmap__label {
+      scale: 1.22;
+    }
+
+    /* On your path: a star by the mark. */
+    .lmap.is-world .lmap__star {
+      top: -30px;
+      left: -8px;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    /* The climber: a light on the road. */
+    .lmap.is-world .lmap__climber {
+      position: absolute;
+      top: -9px;
+      left: -9px;
+      z-index: 2;
+      display: block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--white);
+      box-shadow:
+        0 0 0 7px rgb(255 255 255 / 0.2),
+        0 0 0 16px rgb(255 255 255 / 0.08),
+        0 0 44px 12px rgb(207 237 248 / 0.75);
+      pointer-events: none;
+      will-change: transform;
+    }
+  }
+
+  /* Find my level: three questions over the path tray. */
+  .lmap__finder {
+    position: relative;
+    margin-top: var(--space-3);
+  }
+
+  .lmap__quiz {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    z-index: 5;
+    width: min(24rem, 100%);
+    padding: clamp(16px, 1.6vw, 24px);
+    background: rgb(var(--panel) / 0.92);
+    animation: lmap-pop 420ms cubic-bezier(0.2, 1.4, 0.35, 1);
+  }
+
+  .lmap__quiz[hidden],
+  .lmap__q[hidden] {
+    display: none;
+  }
+
+  .lmap__q {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .lmap__q-text {
+    font-family: var(--font-display);
+    font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+    font-weight: 800;
+    line-height: 1.12;
+  }
+
+  .lmap__q-answers {
+    display: flex;
+    gap: var(--space-2);
+  }
+</style>
+
+<script>
+  import { initLevelMaps } from '@/scripts/system/level-map';
+  initLevelMaps();
+</script>

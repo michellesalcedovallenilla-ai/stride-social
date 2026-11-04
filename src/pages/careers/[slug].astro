@@ -1,16 +1,16 @@
 ---
-// Job page (docs/phase-2/05-wireframes.md §E): title, location, salary · description · apply
-// (the careers inbox, with the role in the subject). Built only for roles that may be listed:
-// confirmed open, or in preview the previous site's postings, labelled.
+// Job page: the role as a big glass ticket that stays beside you and leans towards the pointer, the
+// description beside it, and how to apply (the careers inbox, with the role in the subject). Built only for
+// roles that may be listed: confirmed open, or in preview the previous site's postings, labelled.
 import { getCollection, render } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
-import Button from '@/components/core/Button.astro';
 import Prose from '@/components/core/Prose.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
 import { careersEmail } from '@/config/forms';
 import { isPreview } from '@/lib/env';
 import { site } from '@/config/site';
+import { interfaceCopy } from '@/lib/ui-copy';
 
 export async function getStaticPaths() {
   const roles = await getCollection('roles', (r) => r.data.status === 'open' || (isPreview && r.data.status === 'legacy'));
@@ -18,12 +18,11 @@ export async function getStaticPaths() {
 }
 
 const { role } = Astro.props;
+const t = await interfaceCopy();
 const d = role.data;
 const { Content } = await render(role);
 const mailto = `mailto:${careersEmail}?subject=${encodeURIComponent(`Application: ${d.title}`)}`;
-// Cap the title so its longest word fits the column on small phones.
-const longest = Math.max(1, ...d.title.split(/\s+/).map((w) => w.length));
-const fit = `${(100 / (longest * 0.9)).toFixed(2)}cqi`;
+const longest = Math.max(5, ...d.title.split(/\s+/).map((w) => w.length));
 // JobPosting only lists fields that are real (salary "Upon Application" is not a figure).
 const jsonLd = [
   {
@@ -37,24 +36,27 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={d.seo?.title ?? `${d.title} | Careers at Stride`} description={d.seo?.description ?? d.summary} jsonLd={isPreview && d.status !== 'open' ? undefined : jsonLd}>
-  <article class="job">
-    <header class="job__head container-wide">
-      <Breadcrumbs items={[{ label: 'Careers', href: '/careers' }, { label: d.title }]} tone="light" />
-      <div class="job__titles">
-        {d.status === 'legacy' && <PlaceholderNotice variant="inline" label="To confirm">— posted on the previous site; confirm it's still open (and the details, e.g. the office mentioned)</PlaceholderNotice>}
-        <h1 class="job__title" style={`--fit: ${fit}`}>{d.title}</h1>
-        <p class="job__meta">{[d.location, d.salary].filter(Boolean).join(' · ')}</p>
-        <p class="job__summary">{d.summary}</p>
-        <Button href={mailto} tone="light" arrow>Apply by email</Button>
-      </div>
-    </header>
-    <div class="job__body container-wide">
-      <Prose><Content /></Prose>
-      <aside class="job__apply">
-        <p class="job__apply-label">How to apply</p>
-        <p>Email your CV to <a href={mailto}>{careersEmail}</a> with the role in the subject line.</p>
+<SiteLayout title={d.seo?.title ?? `${d.title} | Careers at Stride`} description={d.seo?.description ?? d.summary} jsonLd={isPreview && d.status !== 'open' ? undefined : jsonLd} look="white" headerOverlay>
+  <article class="job" data-tone="group" data-look="white" data-job data-hint={t('role.hint')} data-count={t('role.count')} data-tick={t('role.tick')} data-body={t('role.body')}>
+    <div class="job__inner container-wide">
+      <aside class="job__side">
+        <div class="job__ticket glass" data-job-ticket>
+          <Breadcrumbs items={[{ label: 'Careers', href: '/careers' }, { label: 'Role' }]} tone="dark" />
+          <h1 class="job__title exp-title" style={`--len: ${longest}`}>{d.title}</h1>
+          <p class="job__meta">{[d.location, d.salary].filter(Boolean).map((x) => <span class="exp-chip">{x}</span>)}</p>
+          <p class="job__summary">{d.summary}</p>
+          <p class="job__ticks exp-label" hidden data-job-ticks></p>
+          <a class="exp-pill" href={mailto} data-job-apply>
+            Apply by email
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+          </a>
+          <p class="job__how">Email your CV to <a href={mailto}>{careersEmail}</a> with the role in the subject line.</p>
+          {d.status === 'legacy' && <PlaceholderNotice variant="inline" label="To confirm">— posted on the previous site; confirm it's still open</PlaceholderNotice>}
+        </div>
       </aside>
+      <div class="job__body glass">
+        <Prose class="exp-prose"><Content /></Prose>
+      </div>
     </div>
   </article>
 </SiteLayout>
@@ -62,83 +64,170 @@ const jsonLd = [
 <style>
   .job {
     position: relative;
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-8);
+    color: rgb(var(--ink));
+  }
+
+  .job__inner {
+    position: relative;
     z-index: 1;
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .job__head {
     display: grid;
-    gap: var(--space-7);
-    padding-block: var(--space-7) var(--space-8);
-    border-bottom: 1px solid var(--line);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-6) var(--gutter);
+    align-items: start;
   }
 
-  .job__titles {
+  .job__side {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-3));
+    perspective: 1400px;
+  }
+
+  .job__ticket {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-5);
     justify-items: start;
-    max-width: 980px;
+    gap: var(--space-3);
+    padding: clamp(20px, 2.2vw, 36px);
     container-type: inline-size;
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.9),
+      0 0 34px -6px rgb(var(--tone-glow) / 0.5),
+      0 30px 60px -30px rgb(var(--shade) / 0.8);
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 240ms var(--ease-out);
   }
 
   .job__title {
-    font-family: var(--font-display);
-    font-size: min(clamp(2.25rem, 5vw, 5rem), var(--fit));
-    font-weight: 850;
-    font-stretch: 110%;
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-    overflow-wrap: break-word;
+    font-size: min(3.75rem, calc(100cqi / (var(--len) * 0.9)));
   }
 
-  .job__meta,
-  .job__apply-label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
+  .job__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
   .job__summary {
-    max-width: 52ch;
-    font-size: var(--type-lead);
+    color: rgb(var(--ink) / 0.88);
+  }
+
+  .job__how {
+    font-size: var(--type-small);
+    color: rgb(var(--ink) / 0.72);
+  }
+
+  .job__how a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .job__body {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    gap: var(--space-8) var(--gutter);
-    padding-block: var(--space-9) var(--section-pad);
+    padding: clamp(22px, 2.6vw, 44px);
   }
 
-  .job__apply {
-    display: grid;
-    gap: var(--space-3);
-    align-content: start;
-    position: sticky;
-    top: calc(var(--header-h) + var(--space-6));
-    padding: var(--space-5);
-    background: var(--white);
+  .job__ticks {
+    color: rgb(var(--tone-lit));
   }
 
-  .job__apply a {
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    overflow-wrap: anywhere;
+  /* Tick what sounds like you: it goes into your application. */
+  .job__body :global(li.has-tick) {
+    position: relative;
+    padding-left: 36px;
+    list-style: none;
+  }
+
+  .job__body :global(li.has-tick::marker) {
+    content: '';
+  }
+
+  .job__body :global(.job__tick) {
+    position: absolute;
+    top: 2px;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1.5px rgb(var(--hair) / 0.5);
+    font-size: 0.8125rem;
+    line-height: 1;
+    color: transparent;
+    transition:
+      background-color 200ms var(--ease-out),
+      color 200ms var(--ease-out);
+  }
+
+  .job__body :global(.job__tick:hover) {
+    box-shadow: inset 0 0 0 1.5px rgb(var(--tone-lit));
+  }
+
+  .job__body :global(.job__tick[aria-pressed='true']) {
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  .job__body :global(.job__tick:focus-visible) {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 2px;
   }
 
   @media (max-width: 1023px) {
-    .job__body {
+    .job__inner {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .job__apply {
+    .job__side {
       position: static;
     }
   }
 </style>
+
+<script>
+  import { initTilt } from '@/scripts/system/ambient';
+  document.querySelectorAll<HTMLElement>('[data-job-ticket]').forEach((t) => {
+    if (t.dataset.ready) return;
+    t.dataset.ready = 'true';
+    initTilt(t, () => t, 6);
+  });
+
+  // The role's responsibilities can be ticked; what's ticked goes into the application email.
+  document.querySelectorAll<HTMLElement>('[data-job]').forEach((root) => {
+    if (root.dataset.ready || !window.matchMedia('(min-width: 1024px)').matches) return;
+    root.dataset.ready = 'true';
+    const lists = [...root.querySelectorAll<HTMLElement>('.job__body ul')];
+    const list = lists.find((l) => /responsib/i.test(l.previousElementSibling?.textContent ?? '')) ?? lists[0];
+    const counter = root.querySelector<HTMLElement>('[data-job-ticks]');
+    const apply = root.querySelector<HTMLAnchorElement>('[data-job-apply]');
+    if (!list || !counter || !apply) return;
+    const base = apply.href;
+    const items = [...list.children] as HTMLElement[];
+    const nameOf = (li: HTMLElement) => (li.querySelector('strong')?.textContent ?? li.textContent ?? '').replace(/:\s*$/, '').trim().slice(0, 90);
+    const buttons = items.map((li) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'job__tick';
+      b.textContent = '✓';
+      b.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-label', `${root.dataset.tick ?? ''}: ${nameOf(li)}`);
+      li.classList.add('has-tick');
+      li.prepend(b);
+      return b;
+    });
+    const render = () => {
+      const on = items.filter((_, i) => buttons[i].getAttribute('aria-pressed') === 'true');
+      counter.textContent = on.length ? (root.dataset.count ?? '').replace('{n}', String(on.length)).replace('{total}', String(items.length)) : (root.dataset.hint ?? '');
+      counter.hidden = false;
+      apply.href = on.length ? `${base}&body=${encodeURIComponent(`${root.dataset.body ?? ''}\n${on.map((li) => `- ${nameOf(li)}`).join('\n')}\n\n`)}` : base;
+    };
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+        render();
+      }),
+    );
+    render();
+  });
+</script>

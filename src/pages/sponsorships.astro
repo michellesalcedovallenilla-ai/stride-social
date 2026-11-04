@@ -1,14 +1,12 @@
 ---
-// Our Sponsorships (docs/phase-2/05-wireframes.md §E; brief §7: a visual archive of creators,
-// sports teams, events and community initiatives). Filter by type; each entry shows its image,
-// partner, year and summary. Only entries Stride has confirmed render. The collection is empty
-// until Stride supplies entries (Q12): preview explains what's needed, production shows a short
-// honest note and stays out of search results.
+// Our Sponsorships (brief §7: a visual archive of creators, sports teams, events and community
+// initiatives): the movable wall (experience/Wall), filtered by type, each entry growing into a big card.
+// Only entries Stride has confirmed render. The collection is empty until Stride supplies entries (Q12):
+// until then, a frosted door with a short honest note, out of search results.
 import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import Chip from '@/components/core/Chip.astro';
-import Button from '@/components/core/Button.astro';
+import Wall from '@/components/experience/Wall.astro';
+import DivisionDoor from '@/components/talent/DivisionDoor.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
 import { isPreview } from '@/lib/env';
 
@@ -17,126 +15,49 @@ if (!s) throw new Error('Missing src/content/pages/sponsorships.yaml');
 const entries = (await getCollection('sponsorships', (e) => e.data.approval.status === 'confirmed')).sort((a, b) => b.data.year - a.data.year);
 const types = { creator: 'Creators', 'sports-team': 'Sports teams', event: 'Events', community: 'Community' } as const;
 const used = (Object.keys(types) as (keyof typeof types)[]).filter((t) => entries.some((e) => e.data.type === t));
+const crumbs = [{ label: 'About', href: '/about' }, { label: 'Our Sponsorships' }];
+const items = entries.map((e) => ({
+  key: e.id,
+  name: e.data.title,
+  meta: `${types[e.data.type]} · ${e.data.year}`,
+  image: e.data.images[0],
+  href: e.data.link ?? `#${e.id}`,
+  filters: { type: e.data.type },
+  card: {
+    name: e.data.title,
+    text: e.data.summary,
+    href: e.data.link ?? `#${e.id}`,
+    image: e.data.images[0],
+    chips: [e.data.partner, types[e.data.type], String(e.data.year), ...(e.data.location ? [e.data.location] : [])],
+    action: e.data.link ? { label: 'Find out more', href: e.data.link, external: true } : undefined,
+  },
+}));
 ---
 
-<SiteLayout title="Our Sponsorships | Stride" description={s.hero.body} noindex={entries.length === 0}>
-  <PageIntro crumbs={[{ label: 'About', href: '/about' }, { label: 'Our Sponsorships' }]} copy={s.hero} tone="light" />
-
-  <section class="spons" aria-label="Sponsorships" data-archive>
-    <div class="container-wide">
-      {entries.length > 0 ? (
-        <>
-          <div class="spons__chips" role="group" aria-label="Filter by type" data-filter-group="type">
-            <Chip value="all" active>All</Chip>
-            {used.map((t) => <Chip value={t}>{types[t]}</Chip>)}
-          </div>
-          <p class="visually-hidden" role="status" aria-live="polite" data-filter-count data-noun="sponsorship|sponsorships"></p>
-          <ul class="spons__grid" role="list" data-archive-grid>
-            {entries.map((e) => (
-              <li class="spon" data-filter-type={e.data.type}>
-                <img class="spon__img" src={e.data.images[0].src} alt={e.data.images[0].alt} loading="lazy" />
-                <p class="spon__meta">{types[e.data.type]} · {e.data.year}{e.data.location && ` · ${e.data.location}`}</p>
-                <h2 class="spon__title">{e.data.title}</h2>
-                <p class="spon__partner">{e.data.partner}</p>
-                <p>{e.data.summary}</p>
-                {e.data.link && <a class="spon__link" href={e.data.link} target="_blank" rel="noopener">Find out more<span class="visually-hidden"> about {e.data.title} (opens in a new tab)</span></a>}
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : isPreview ? (
-        <PlaceholderNotice variant="block" label="Awaiting sponsorship entries (Q12)">
-          <p>Each entry needs a title, partner, type (creator, sports team, event or community), year, at least one photo with alt text, a short summary and Stride's confirmation. Add them as Markdown files in src/content/sponsorships. Production shows the note below until then.</p>
-        </PlaceholderNotice>
-      ) : (
-        <div class="spons__empty">
-          <p>{s.empty.body}</p>
-          <div class="spons__actions">
-            <Button href="/social" variant="secondary">Stride Social</Button>
-            <Button href="/talent" variant="secondary">Stride Talent</Button>
-          </div>
-        </div>
-      )}
-    </div>
-  </section>
+<SiteLayout title="Our Sponsorships | Stride" description={s.hero.body} noindex={entries.length === 0} headerOverlay>
+  {entries.length > 0 ? (
+    <Wall
+      items={items}
+      groups={[{ key: 'type', label: 'Type', options: used.map((t) => ({ id: t, label: types[t], n: entries.filter((e) => e.data.type === t).length })) }]}
+      copy={s.hero}
+      noun="sponsorship|sponsorships"
+      tone="group"
+      look="deep"
+      crumbs={crumbs}
+      eyebrow={s.hero.eyebrow}
+    />
+  ) : (
+    <DivisionDoor
+      tone="group"
+      look="deep"
+      name={s.hero.headline ?? 'Our sponsorships.'}
+      brand={s.hero.eyebrow}
+      tagline={s.hero.body}
+      text={[s.empty.body ?? '']}
+      crumbs={crumbs}
+      actions={[{ label: 'Stride Social', href: '/social' }, { label: 'Stride Talent', href: '/talent' }]}
+    >
+      {isPreview && <PlaceholderNotice variant="inline" label="Awaiting sponsorship entries (Q12)">— each needs a title, partner, type, year, a photo with alt text, a summary and Stride's confirmation</PlaceholderNotice>}
+    </DivisionDoor>
+  )}
 </SiteLayout>
-
-<style>
-  .spons {
-    position: relative;
-    z-index: 1;
-    padding-bottom: var(--section-pad);
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .spons__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-bottom: var(--space-7);
-  }
-
-  .spons__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-    gap: var(--space-8) var(--gutter);
-  }
-
-  .spon {
-    display: grid;
-    gap: var(--space-3);
-    align-content: start;
-  }
-
-  .spon[hidden] {
-    display: none;
-  }
-
-  .spon__img {
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-  }
-
-  .spon__meta,
-  .spon__partner {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
-  }
-
-  .spon__title {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 2.2vw, 2rem);
-    font-weight: 850;
-    font-stretch: 110%;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .spon__link {
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .spons__empty {
-    display: grid;
-    gap: var(--space-5);
-    max-width: 52ch;
-    font-size: var(--type-lead);
-  }
-
-  .spons__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-</style>
-
-<script>
-  import { initArchiveFilters } from '@/scripts/system/archive-filter';
-  initArchiveFilters();
-</script>

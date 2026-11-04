@@ -1,28 +1,24 @@
 ---
-// Site chrome: the Stride logo, Contact and a Menu button, the division sub-bar, the camera mode
-// dial docked at the left edge (desktop) and the full-screen menu, where a larger dial chooses a
-// mode and shows its pages. The dial replaced the mega menus (docs/phase-3/homepage-magazine.md).
-// Behaviour: src/scripts/system/header.ts and src/scripts/system/mode-dial.ts.
+// Site chrome: the Stride logo and the Menu button, and the radial scroll
+// navigation on the left (global/EdgeNav.astro). The Menu button slides open into a horizontal
+// frosted-glass bar to its left, listing the six areas; it is the expanded form of the same
+// navigation (shared behaviour and active state), not a separate menu.
+// Behaviour: src/scripts/system/header.ts and src/scripts/system/edge-nav.ts.
 import StrideLogo from '../core/StrideLogo.astro';
-import ModeDial from './ModeDial.astro';
-import { contactLink, divisionBars, modes, modeOf, type DivisionKey } from '@/config/navigation';
-import { socials } from '@/config/site';
+import EdgeNav from './EdgeNav.astro';
+import { modes, modeOf } from '@/config/navigation';
 
 export interface Props {
-  division: DivisionKey;
   path: string;
   /** Transparent header with light text over a full-bleed dark hero. */
   overlay?: boolean;
 }
 
-const { division, path, overlay = false } = Astro.props;
-const bar = division !== 'group' ? divisionBars[division] : null;
+const { path, overlay = false } = Astro.props;
 const mode = modeOf(path);
-const modeIndex = Math.max(0, modes.findIndex((m) => m.key === mode));
-const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
-<div class:list={['chrome', { 'chrome--overlay': overlay, 'chrome--with-bar': bar }]} data-chrome>
+<div class:list={['chrome', { 'chrome--overlay': overlay }]} data-chrome>
   <header class="header">
     <div class="header__bar">
       <a class="header__logo" href="/" aria-label="Stride home">
@@ -30,95 +26,63 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </a>
 
       <div class="header__actions">
-        {/* The current mode, like a camera's mode display. */}
-        <span class="header__mode"><span class="header__mode-dot" aria-hidden="true"></span><span class="visually-hidden">Mode: </span>{modes[modeIndex].label}</span>
-        <a class="header__contact" href={contactLink.href} data-magnetic>{contactLink.label}</a>
-        <button class="header__menu-btn" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-toggle data-magnetic>
-          <span class="header__menu-label">Menu</span>
+        <button class="header__menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu" data-menu-toggle>
           <span class="header__burger" aria-hidden="true"><span></span><span></span></span>
         </button>
+
+        {/* The expanded navigation: one glass bar that slides open to the left of the Menu button. */}
+        <nav class="menu-panel" id="site-menu" aria-label="Site menu" data-menu-panel inert>
+          <ol class="menu-panel__list" role="list">
+            {modes.map((m, i) => (
+              <li style={`--o: ${modes.length - 1 - i}`}>
+                <a
+                  class:list={['menu-panel__item', { 'is-active': m.key === mode }]}
+                  href={m.href}
+                  data-menu-item={m.key}
+                  aria-current={path !== '/' && m.key === mode ? 'page' : undefined}
+                >{m.label}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
       </div>
     </div>
   </header>
 
-  {bar && (
-    <nav class="division-bar" aria-label={`${bar.name} sections`}>
-      <span class="division-bar__name">{bar.name}</span>
-      <ul class="division-bar__links" role="list">
-        {bar.links.map((l) => <li><a href={l.href} aria-current={path === l.href ? 'page' : undefined}>{l.label}</a></li>)}
-      </ul>
-      <a class="division-bar__cta" href={bar.cta.href}>{bar.cta.label}</a>
-    </nav>
-  )}
 </div>
 
-{/* Open only on the home page, whose hero is composed around it; tucked everywhere else. */}
-<ModeDial current={mode} variant="dock" openAtTop={path === '/'} />
-
-<div class="menu" id="site-menu" data-menu hidden role="dialog" aria-modal="true" aria-label="Site menu">
-  <div class="menu__top">
-    <a href="/" aria-label="Stride home"><StrideLogo tone="dark" /></a>
-    <button class="menu__close" type="button" data-menu-close aria-label="Close menu">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l12 12M14 2 2 14" stroke="currentColor" stroke-width="1.6"></path></svg>
-    </button>
-  </div>
-
-  {/* One panel per mode; the dial below decides which one shows. */}
-  <div class="menu__panels">
-    {modes.map((m, i) => (
-      <section class="menu__panel" data-mode-panel={i} hidden={i !== modeIndex} aria-labelledby={`menu-mode-${i}`}>
-        <p class="menu__index" aria-hidden="true">{pad(i + 1)} / {pad(modes.length)}</p>
-        <h2 class="menu__mode" id={`menu-mode-${i}`}>
-          <a href={m.href} aria-current={mode === m.key ? 'page' : undefined}>
-            {m.label}
-            <svg class="menu__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
-          </a>
-        </h2>
-        <ul class="menu__links" role="list">
-          {m.links.map((link) => (
-            <li><a href={link.href} aria-current={path === link.href ? 'page' : undefined}>{link.label}</a></li>
-          ))}
-        </ul>
-      </section>
-    ))}
-  </div>
-
-  <div class="menu__foot">
-    <a class="menu__contact" href={contactLink.href}>{contactLink.label}</a>
-    <ul class="menu__social" role="list">
-      {socials.map((s) => <li><a href={s.href} target="_blank" rel="noopener">{s.label}</a></li>)}
-    </ul>
-  </div>
-
-  <ModeDial current={mode} variant="menu" />
-</div>
+{/* The radial navigation, fixed on the left on every page (along the bottom on phones). */}
+<EdgeNav current={mode} home={path === '/'} />
 
 <style>
-  /* ---------- Chrome container (header + division bar move together) ---------- */
+  /* ---------- Chrome container ---------- */
   .chrome {
-    --chrome-bg: var(--navy-900);
-    --chrome-ink: var(--white);
+    --chrome-ink: rgb(var(--ink));
     position: fixed;
     inset: 0 0 auto;
     z-index: 100;
     transition: transform var(--dur-slow) var(--ease-out);
-    view-transition-name: site-chrome;
   }
 
   .chrome.is-hidden {
     transform: translateY(-100%);
   }
 
-  .header {
-    position: relative;
-    background: var(--chrome-bg);
-    color: var(--chrome-ink);
-    transition: background-color var(--dur-base) var(--ease-out);
+  /* Over the Social globe the logo stripe has the top of the screen (src/scripts/system/creator-globe.ts).
+     Keyboard focus still brings the header back. */
+  :global(html.is-on-globe) .chrome:not(:focus-within) {
+    transform: translateY(-100%);
   }
 
-  /* Over a full-bleed hero the bar is see-through until the page scrolls. */
-  .chrome--overlay:not(.is-scrolled) .header {
-    background: transparent;
+  /* See-through all the way down, on every page on navy: no bar across what's scrolling under it. */
+  .header {
+    position: relative;
+    color: var(--chrome-ink);
+  }
+
+  /* Only the internal pages that aren't on navy (the styleguide) need a solid bar for its white logo. */
+  .chrome:not(.chrome--overlay) .header {
+    background: var(--navy-900);
   }
 
   .header__bar {
@@ -140,44 +104,177 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .header__actions {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-4);
     margin-left: auto;
   }
 
-  .header__contact,
   .header__menu-btn {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-3);
+    justify-content: center;
+    width: 64px;
     min-height: 44px;
-    padding: 0 var(--space-5);
+    padding: 0;
     border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
+    transition: box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  .header__menu-btn {
+    position: relative;
+    z-index: 2;
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.35);
+    color: var(--chrome-ink);
+    /* Glass: no fill, only what's behind it softened, so it stays clear over whatever scrolls past. */
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* No fill on hover, or when open: only its outline brightens. */
+  .header__menu-btn:hover {
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.7);
+  }
+
+  /* Open: the button sits at the right end of the bar; the burger turns to a cross. */
+  .header__menu-btn[aria-expanded='true'] {
+    color: rgb(var(--ink));
+  }
+
+  .header__burger span {
+    transition: translate 420ms var(--ease-out), rotate 420ms var(--ease-out);
+  }
+
+  .header__menu-btn[aria-expanded='true'] .header__burger span:first-child {
+    translate: 0 3.25px;
+    rotate: 45deg;
+  }
+
+  .header__menu-btn[aria-expanded='true'] .header__burger span:last-child {
+    translate: 0 -3.25px;
+    rotate: -45deg;
+  }
+
+  /* ---------- Menu bar ----------
+     One horizontal glass bar attached to the Menu button: it sits around the button and reaches
+     left. Closed, it is clipped to the button's own pill; opening, the clip slides open to the
+     left and the six areas fade in from right to left, nearest the button first. */
+  .menu-panel {
+    --pad: 6px;
+    --btn-w: 64px;
+    position: absolute;
+    top: calc(-1 * var(--pad));
+    right: calc(-1 * var(--pad));
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    height: calc(44px + 2 * var(--pad));
+    padding: 0 calc(var(--btn-w) + var(--pad) + 10px) 0 var(--pad);
+    border: 1px solid rgb(var(--hair) / 0.22);
+    border-radius: 999px;
+    background: linear-gradient(to bottom, rgb(255 255 255 / calc(0.16 * var(--fill-k))), rgb(255 255 255 / calc(0.07 * var(--fill-k))));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 16px 40px -20px rgb(var(--shade) / 0.45);
+    backdrop-filter: blur(22px) saturate(170%) brightness(0.86);
+    -webkit-backdrop-filter: blur(22px) saturate(170%) brightness(0.86);
+    color: rgb(var(--ink));
+    clip-path: inset(0 0 0 calc(100% - var(--btn-w) - 2 * var(--pad)) round 999px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      clip-path 620ms var(--ease-out),
+      opacity 220ms var(--ease-out),
+      visibility 0s linear 620ms;
+  }
+
+  .menu-panel.is-open {
+    clip-path: inset(0 round 999px);
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .menu-panel__list {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  /* --o: order from the button outwards, so the nearest area appears first. */
+  .menu-panel__list li {
+    opacity: 0;
+    translate: 10px 0;
+    transition:
+      opacity 220ms var(--ease-out),
+      translate 220ms var(--ease-out);
+  }
+
+  .menu-panel.is-open .menu-panel__list li {
+    opacity: 1;
+    translate: 0 0;
+    transition-duration: 460ms;
+    transition-delay: calc(120ms + var(--o) * 40ms);
+  }
+
+  .menu-panel__item {
+    display: block;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.9375rem;
     font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: rgb(var(--ink) / 0.84);
     transition:
       background-color var(--dur-base) var(--ease-out),
       color var(--dur-base) var(--ease-out);
   }
 
-  .header__contact {
-    background: var(--white);
-    color: var(--navy-900);
+  .menu-panel__item:hover,
+  .menu-panel__item:focus-visible {
+    background: rgb(255 255 255 / calc(0.1 * var(--fill-k)));
+    color: rgb(var(--ink));
+    outline: none;
   }
 
-  .header__menu-btn {
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
-    color: var(--chrome-ink);
+  .menu-panel__item:focus-visible {
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.55);
   }
 
-  .header__contact:hover,
-  .header__menu-btn:hover {
-    background: var(--ice);
-    color: var(--navy-900);
+  .menu-panel__item.is-active {
+    background: rgb(255 255 255 / calc(0.22 * var(--fill-k)));
+    color: rgb(var(--ink));
+  }
+
+  /* Narrower desktops: a slightly tighter bar. */
+  @media (max-width: 1279px) {
+    .menu-panel__item {
+      padding: 9px 12px;
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Phones and tablets: there's no room for both, so the logo steps aside while the bar is open. */
+  @media (max-width: 1023px) {
+    .header__logo {
+      transition: opacity var(--dur-base) var(--ease-out);
+    }
+
+    .chrome:has(.menu-panel.is-open) .header__logo {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-panel,
+    .menu-panel__list li,
+    .header__burger span {
+      transition: none;
+    }
   }
 
   .header__burger {
@@ -191,321 +288,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
     background: currentColor;
   }
 
-  .header__mode {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(255 255 255 / 0.75);
-  }
-
-  .header__mode-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ice);
-  }
-
-  /* ---------- Division sub-bar ---------- */
-  .division-bar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-6);
-    height: var(--division-bar-h);
-    padding-inline: var(--margin);
-    background: var(--accent);
-    color: var(--navy-900);
-  }
-
-  .division-bar__name {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .division-bar__links {
-    display: flex;
-    gap: var(--space-5);
-    font-size: var(--type-small);
-    font-weight: 500;
-  }
-
-  .division-bar__links a:hover,
-  .division-bar__links a[aria-current='page'] {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-
-  .division-bar__cta {
-    margin-left: auto;
-    padding: 6px var(--space-4);
-    border-radius: var(--radius);
-    background: var(--navy-900);
-    color: var(--white);
-    font-size: var(--type-small);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  /* ---------- Below desktop ---------- */
-  @media (max-width: 1023px) {
-    .header__contact {
-      display: none;
-    }
-
-    .division-bar {
-      gap: var(--space-5);
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .division-bar__name {
-      display: none;
-    }
-
-    .division-bar__links {
-      flex: none;
-    }
-  }
-
-  @media (max-width: 479px) {
-    .header__menu-btn {
-      padding: 0 var(--space-4);
-    }
-
-    .division-bar__cta {
-      display: none;
-    }
-  }
-
-  /* ---------- Full-screen menu ----------
-     The selected mode's name and pages fill the top; the dial sits in the bottom half. */
-  .menu {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding: 0 var(--margin);
-    background:
-      radial-gradient(120% 70% at 50% 110%, rgb(195 242 251 / 0.08), transparent 60%),
-      var(--navy-900);
-    color: var(--white);
-    animation: menu-in 420ms var(--ease-out);
-  }
-
-  .menu[hidden] {
-    display: none;
-  }
-
-  /* Wipes down from the top, like a shutter. */
-  @keyframes menu-in {
-    from {
-      clip-path: inset(0 0 100% 0);
-    }
-    to {
-      clip-path: inset(0);
-    }
-  }
-
-  .menu__top {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-h);
-  }
-
-  .menu__close {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
-  }
-
-  .menu__close:hover {
-    background: var(--ice);
-    color: var(--navy-900);
-  }
-
-  .menu__close svg {
-    width: 14px;
-  }
-
-  .menu__panels {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding-top: clamp(var(--space-4), 4vh, var(--space-7));
-    padding-bottom: min(40vh, 300px);
-  }
-
-  .menu__panel[hidden] {
-    display: none;
-  }
-
-  .menu__panel {
-    display: grid;
-    gap: var(--space-5);
-    animation: panel-in 380ms var(--ease-out);
-  }
-
-  /* Each mode slides in from the side it turned from, slightly blurred. */
-  @keyframes panel-in {
-    from {
-      opacity: 0;
-      filter: blur(6px);
-      transform: translateX(24px);
-    }
-  }
-
-  .menu__index {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.14em;
-    color: rgb(255 255 255 / 0.55);
-  }
-
-  .menu__mode {
-    font-family: var(--font-display);
-    font-size: clamp(3.5rem, 8.6vw, 8.5rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.86;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-  }
-
-  .menu__mode a {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.12em;
-  }
-
-  .menu__arrow {
-    width: 0.4em;
-    height: 0.4em;
-    color: var(--ice);
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .menu__mode a:hover .menu__arrow,
-  .menu__mode a:focus-visible .menu__arrow {
-    transform: translateX(0.12em);
-  }
-
-  .menu__links {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: var(--space-1) var(--gutter);
-    max-width: 960px;
-  }
-
-  .menu__links a {
-    display: inline-block;
-    padding: 6px 0;
-    font-size: clamp(1rem, 1.3vw, 1.125rem);
-    color: rgb(255 255 255 / 0.82);
-    transition: color var(--dur-fast) var(--ease-out);
-  }
-
-  .menu__links a:hover,
-  .menu__links a[aria-current='page'] {
-    color: var(--ice);
-  }
-
-  .menu__foot {
-    position: absolute;
-    top: calc(var(--header-h) + var(--space-2));
-    right: var(--margin);
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-    margin-right: 60px;
-  }
-
-  .menu__contact {
-    display: inline-flex;
-    align-items: center;
-    min-height: 40px;
-    padding: 0 var(--space-5);
-    border-radius: 999px;
-    background: var(--white);
-    color: var(--navy-900);
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .menu__social {
-    display: flex;
-    gap: var(--space-4);
-    font-size: var(--type-small);
-    color: rgb(255 255 255 / 0.7);
-  }
-
-  .menu__social a:hover {
-    color: var(--ice);
-  }
-
-  @media (max-width: 1023px) {
-    /* Contact sits in the top bar, beside the close button. */
-    .menu__foot {
-      top: calc((var(--header-h) - 40px) / 2);
-      margin-right: 56px;
-    }
-  }
-
-  /* Phones: the dial is the main control, so the panel is compact and the mode name is big. */
-  @media (max-width: 767px) {
-    .menu__mode {
-      font-size: clamp(2.75rem, 15vw, 4.5rem);
-      font-stretch: 112%;
-    }
-
-    .menu__links {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      column-gap: var(--space-5);
-    }
-
-    .menu__links a {
-      font-size: 0.9375rem;
-    }
-
-    .menu__panels {
-      padding-bottom: calc(min(116vw, 620px) * 0.56);
-    }
-
-    .menu__social {
-      display: none;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .menu,
-    .menu__panel {
-      animation: none;
-    }
-  }
 </style>
 
 <script>
   import { initHeader } from '@/scripts/system/header';
-  import { initModeDials } from '@/scripts/system/mode-dial';
   initHeader();
-  initModeDials();
 </script>

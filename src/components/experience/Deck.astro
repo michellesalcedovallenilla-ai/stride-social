@@ -1,0 +1,1089 @@
+---
+// The menu that ends a page (first built for Stride Social): a row of glass cards above a bar of tabs at
+// the foot of the screen. Tabs swap the cards; choosing a card grows its big card (BigCard) over the row.
+// The last item of the bar can be a plain link. Behaviour: src/scripts/system/deck.ts, grow.ts. Without
+// the script, the first tab shows and cards are plain links. `variant` is each division's own way on desktop:
+// `spines` (Stride Social: full photos, one open and the rest narrowed), `lineup` (Stride Talent: a row of
+// posters in black and white, the nearest stepping forward in colour), `stairs` (Stride Education: a staircase with a lit line
+// along its tops). `row` is the plain row, and what every variant falls back to below desktop.
+import BigCard from './BigCard.astro';
+import type { DeckTab, DeckVariant, Tone, Look } from '@/lib/experience';
+import { pad } from '@/lib/experience';
+
+export interface Props {
+  id: string;
+  label: string;
+  tabs: DeckTab[];
+  /** `keep` counts that list on the link, and carries it to the form (shortlist.ts). */
+  link?: { label: string; href: string; icon?: string; keep?: 'brief' | 'creators' };
+  variant?: DeckVariant;
+  tone?: Tone;
+  /** The palette colour it lives in. */
+  look?: Look;
+}
+
+const { id, label, tabs: allTabs, link, tone = 'group', look = 'deep', variant = 'row' } = Astro.props;
+const opens = variant === 'spines';
+const lineup = variant === 'lineup';
+const stairs = variant === 'stairs';
+const tabs = allTabs.filter((t) => t.cards.length > 0);
+
+const icons: Record<string, string> = {
+  megaphone: '<path d="M3 10v4l11 4V6L3 10Z"/><path d="M7 15.5V19h3v-2.4"/><path d="M17.5 9.5a3.5 3.5 0 0 1 0 5"/><path d="M20 7a7 7 0 0 1 0 10"/>',
+  layers: '<path d="M12 3.5 3 8l9 4.5L21 8l-9-4.5Z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16 9 4.5 9-4.5"/>',
+  bag: '<path d="M5.5 8h13l1 12.5h-15L5.5 8Z"/><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5"/>',
+  wave: '<path d="M3 12h1"/><path d="M7 9v6"/><path d="M10.5 5v14"/><path d="M14 8v8"/><path d="M17.5 10v4"/><path d="M20.5 12h.5"/>',
+  grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  play: '<circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.500v-7Z"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="m12 12 8-8"/>',
+  mail: '<rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  people: '<circle cx="9" cy="8" r="3.2"/><path d="M3.2 19.5c0-3.2 2.6-5.8 5.8-5.800s5.8 2.6 5.8 5.8"/><circle cx="16.8" cy="9" r="2.5"/><path d="M15.8 14c2.8.3 5 2.6 5 5.5"/>',
+  quote: '<path d="M5 18.5V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8.500L5 18.5Z"/>',
+  star: '<path d="m12 3.5 2.6 5.5 6 .8-4.4 4.1 1.1 6L12 17l-5.3 2.9 1.1-6L3.4 9.800l6-.800L12 3.500Z"/>',
+  cap: '<path d="M12 4.5 1.8 9.2 12 14l10.2-4.800L12 4.500Z"/><path d="M6.2 11.400v4.400c0 1.4 2.6 3 5.8 3s5.8-1.6 5.8-3v-4.4"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z"/>',
+  book: '<path d="M4 5.500A2.5 2.5 0 0 1 6.5 3H20v15H6.500A2.5 2.5 0 0 0 4 20.500v-15Z"/><path d="M4 20.500A2.5 2.5 0 0 0 6.5 21H20"/>',
+  chat: '<path d="M4 12a8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8H4l1.8-3A8 8 0 0 1 4 12Z"/>',
+};
+---
+
+<section class:list={['deck', { 'deck--made': variant !== 'row', 'deck--open': opens, 'deck--lineup': lineup, 'deck--stairs': stairs }]} id={id} aria-label={label} data-deck data-variant={variant} data-tone={tone} data-look={look}>
+  <div class="deck__inner container-wide">
+    <div class="deck__panels">
+      {tabs.map((t, ti) => (
+        <div class="deck__panel" id={`${id}-panel-${t.key}`} role="tabpanel" aria-labelledby={`${id}-tab-${t.key}`} hidden={ti !== 0} data-deck-panel={t.key} data-grow-row>
+          {stairs && t.cards.length > 1 && (
+            <>
+              <p class="deck__stair-title" aria-hidden="true">{t.label}</p>
+              <svg class="deck__stair-line" aria-hidden="true" data-stair-line>
+                <path class="deck__stair-base"></path>
+                <path class="deck__stair-lit" pathLength="1"></path>
+              </svg>
+              <span class="deck__climber" aria-hidden="true" data-stair-climber></span>
+            </>
+          )}
+          <ul class="deck__cards" role="list" style={`--n: ${t.cards.length}`}>
+            {t.cards.map((c, i) => (
+              <li class:list={{ 'is-open': opens && i === 0 }} style={`--i: ${i}`}>
+                <a class:list={['deck__card', { 'on-photo': c.image || opens || lineup }]} href={c.href} draggable="false" data-grow-card={c.direct ? undefined : `${t.key}-${i}`} data-desk={c.direct ? undefined : t.atDesk}>
+                  {c.art && <span class="deck__art" aria-hidden="true" data-placeholder="division image" set:html={c.art} />}
+                  {c.image && <img class="deck__image" src={c.image.src} alt="" sizes={opens ? '640px' : lineup ? '360px' : '300px'} loading="lazy" decoding="async" draggable="false" />}
+                  {c.mark ? (
+                    <svg class="deck__mark" viewBox="0 0 24 24" aria-hidden="true" set:html={icons[c.mark]} />
+                  ) : t.numbered ? (
+                    <span class="deck__number" aria-hidden="true">{pad(i + 1)}</span>
+                  ) : null}
+                  <span class="deck__text">
+                    <h2 class="deck__name" style={lineup ? `--len: ${Math.max(...c.name.split(/\s+/).map((w) => w.length))}` : undefined}>{c.name}</h2>
+                    {lineup && c.quote ? <span class="deck__copy">{c.quote}</span> : c.text && <span class="deck__copy">{c.text}</span>}
+                    {stairs && c.chips?.[0] && <span class="deck__chip">{c.chips[0]}</span>}
+                    {stairs && c.html && <span class="deck__html" set:html={c.html} />}
+                  </span>
+                  {opens && <span class="deck__spine" aria-hidden="true">{c.name}</span>}
+                  <span class="deck__arrow" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+
+      {tabs.flatMap((t) =>
+        t.cards.flatMap((c, i) => (c.direct ? [] : [<BigCard card={c} growKey={`${t.key}-${i}`} eyebrow={t.label} index={i} total={t.cards.length} />])),
+      )}
+    </div>
+
+    <div class="deck__bar">
+      {variant !== 'row' && <span class="deck__pill desk-only" aria-hidden="true" data-deck-pill></span>}
+      <div class="deck__tabs" role="tablist" aria-label={label} data-deck-tabs>
+        {tabs.map((t, i) => (
+          <button class="deck__tab" type="button" role="tab" id={`${id}-tab-${t.key}`} aria-controls={`${id}-panel-${t.key}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-deck-tab={t.key} data-deck-anchor={t.anchor}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" set:html={icons[t.icon]} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {link && (
+        <a class="deck__tab deck__tab--link" href={link.href} data-keep-cta={link.keep} data-keep-base={link.keep ? link.href : undefined}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" set:html={icons[link.icon ?? 'mail']} />
+          {link.label}
+          {link.keep && <span class="deck__count" data-tray={link.keep} hidden><span data-tray-count>0</span></span>}
+        </a>
+      )}
+    </div>
+  </div>
+  {tabs.flatMap((t) => (t.anchor ? [<span class="deck__anchor" id={t.anchor}></span>] : []))}
+</section>
+
+<style>
+  .deck {
+    position: relative;
+    display: grid;
+    min-height: 100svh;
+    padding-block: var(--space-8) clamp(24px, 4.5vh, 44px);
+    overflow: hidden;
+    background:
+      radial-gradient(70% 28% at 50% 72%, rgb(var(--tone-wash) / 0.2), transparent),
+      radial-gradient(60% 30% at 50% 30%, rgb(var(--tone-depth) / 0.4), transparent);
+    color: rgb(var(--ink));
+  }
+
+  /* The lit horizon along the foot. */
+  .deck::after {
+    content: '';
+    position: absolute;
+    inset: auto 12% 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgb(var(--tone-lit) / 0.8), transparent);
+    box-shadow: 0 0 22px 2px rgb(var(--tone-glow) / 0.5);
+  }
+
+  .deck__anchor {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .deck__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: 1fr auto; /* the cards centred in the room above, the tabs at the foot */
+    gap: clamp(var(--space-5), 4vh, var(--space-7));
+    width: 100%;
+  }
+
+  .deck__panels {
+    position: relative;
+    display: grid;
+    align-items: center;
+  }
+
+  /* ---------- The cards ---------- */
+  .deck__panel[hidden] {
+    display: none;
+  }
+
+  .deck__cards {
+    --gap: clamp(12px, 1.3vw, 20px);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: var(--gap);
+    animation: deck-in 500ms var(--ease-out);
+  }
+
+  /* More than four: the row slides sideways. */
+  .deck__panel:has(li:nth-child(5)) .deck__cards {
+    grid-auto-columns: calc((100% - 3 * var(--gap)) / 4);
+    padding-block: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .deck__panel:has(li:nth-child(5)) li {
+    scroll-snap-align: start;
+  }
+
+  .deck__panel:has(li:nth-child(5)) .deck__cards {
+    cursor: grab;
+  }
+
+  .deck__image,
+  .deck__card {
+    -webkit-user-drag: none;
+  }
+
+  @keyframes deck-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  .deck__card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    min-height: clamp(300px, 54svh, 560px);
+    padding: clamp(18px, 1.6vw, 24px);
+    padding-bottom: 66px;
+    overflow: hidden;
+    border-radius: 22px;
+    background: linear-gradient(165deg, rgb(255 255 255 / calc(0.1 * var(--fill-k))), rgb(255 255 255 / calc(0.03 * var(--fill-k))) 55%, rgb(var(--tone-depth) / 0.2));
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.18),
+      0 24px 50px -30px rgb(var(--shade) / 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition:
+      box-shadow 400ms var(--ease-out),
+      translate 400ms var(--ease-out);
+  }
+
+  /* Lit: the one under the pointer, or the first while none is. */
+  .deck__cards:not(:hover) li:first-child .deck__card,
+  .deck__card:hover,
+  .deck__card:focus-visible {
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 26px -2px rgb(var(--tone-glow) / 0.6),
+      0 24px 50px -30px rgb(var(--shade) / 0.8);
+  }
+
+  .deck__card:hover,
+  .deck__card:focus-visible {
+    translate: 0 -4px;
+    outline: none;
+  }
+
+  .deck__card:hover .deck__arrow {
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
+  }
+
+  .deck__card.on-photo {
+    background:
+      linear-gradient(165deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.03) 55%),
+      var(--navy-700);
+  }
+
+  .deck__image {
+    position: absolute;
+    inset: 0 0 0 auto;
+    z-index: -1;
+    width: 62%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    opacity: 0.6;
+    mask-image: linear-gradient(to left, #000 25%, transparent 95%);
+    transition: opacity 400ms var(--ease-out);
+  }
+
+  .deck__card:hover .deck__image {
+    opacity: 0.85;
+  }
+
+  .deck__mark {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .deck__number {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    color: rgb(var(--tone-lit));
+  }
+
+  .deck__text {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: auto;
+  }
+
+  .deck__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.75vw, 1.875rem);
+    font-weight: 800;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+  }
+
+  .deck__copy {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    font-size: 0.8125rem;
+    line-height: 1.38;
+    color: rgb(var(--ink) / 0.84);
+  }
+
+  .deck__arrow {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgb(6 20 43 / 0.45);
+    color: var(--white);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.45);
+    transition:
+      background-color 400ms var(--ease-out),
+      color 400ms var(--ease-out);
+  }
+
+  .deck__arrow svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---------- The tabs ---------- */
+  .deck__bar {
+    display: flex;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / calc(0.04 * var(--fill-k)));
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.14);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .deck__tabs {
+    display: contents;
+  }
+
+  .deck__tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 48px;
+    padding-inline: var(--space-3);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: rgb(var(--ink) / 0.86);
+    transition:
+      background-color 300ms var(--ease-out),
+      box-shadow 300ms var(--ease-out),
+      color 300ms var(--ease-out);
+  }
+
+  .deck__tab svg {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .deck__tab:hover {
+    color: rgb(var(--ink));
+    background: rgb(255 255 255 / calc(0.05 * var(--fill-k)));
+  }
+
+  .deck__tab[aria-selected='true'] {
+    background: linear-gradient(180deg, rgb(var(--tone-depth) / 0.6), rgb(var(--tone-glow) / 0.16));
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 22px -4px rgb(var(--tone-glow) / 0.7);
+    color: rgb(var(--ink));
+  }
+
+  .deck__tab:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 2px;
+  }
+
+  /* ---------- The version that opens (Stride Social, desktop) ----------
+     Full photos, navy under them. One card is open; the others narrow to spines with their names
+     running up them, so nothing reflows as the widths change: the open card's text has a fixed width,
+     worked out from the row's and the number of cards. */
+  .deck__spine {
+    display: none;
+  }
+
+  .deck__count[hidden] {
+    display: none;
+  }
+
+  .deck__count {
+    display: grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding-inline: 5px;
+    border-radius: 999px;
+    background: rgb(var(--press-on));
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: rgb(var(--press));
+  }
+
+  :global(.deck__fly) {
+    position: fixed;
+    z-index: 200;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--navy-900);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    pointer-events: none;
+  }
+
+  @media (min-width: 1024px) {
+    :global(.js) .deck--made.is-waiting .deck__cards > li {
+      opacity: 0;
+    }
+
+    :global(.js) .deck--made .deck__panels {
+      align-items: stretch;
+    }
+
+    :global(.js) .deck--made .deck__panel:not([hidden]) {
+      display: grid;
+    }
+
+    :global(.js) .deck--open .deck__panel .deck__cards {
+      --grow: 3.2;
+      --pad: clamp(18px, 1.7vw, 26px);
+      display: flex;
+      container-type: inline-size;
+      padding-block: 0;
+      overflow: visible;
+      animation: none;
+      cursor: auto;
+    }
+
+    :global(.js) .deck--open .deck__panel .deck__cards > li {
+      flex: 1 1 0;
+      min-width: 0;
+      transition: flex-grow 680ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    :global(.js) .deck--open .deck__panel .deck__cards > li.is-open {
+      flex-grow: var(--grow);
+    }
+
+    :global(.js) .deck--open .deck__panel .deck__cards .deck__card {
+      min-height: 0;
+      padding: var(--pad);
+      background: linear-gradient(170deg, var(--navy-500), var(--navy-900));
+      box-shadow:
+        inset 0 0 0 1px rgb(255 255 255 / 0.14),
+        0 24px 50px -30px rgb(var(--shade) / 0.8);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      translate: none;
+      outline: none;
+    }
+
+    :global(.js) .deck--open .deck__panel .deck__cards > li.is-open .deck__card {
+      box-shadow:
+        inset 0 0 0 1.5px rgb(255 255 255 / 0.55),
+        0 30px 60px -28px rgb(var(--shade) / 0.9);
+    }
+
+    :global(.js) .deck--open .deck__panel .deck__cards .deck__card:focus-visible {
+      outline: 2px solid rgb(var(--tone-lit));
+      outline-offset: 3px;
+    }
+
+    /* The shade the words sit on. */
+    :global(.js) .deck--open .deck__card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(to top, rgb(6 20 43 / 0.9), rgb(6 20 43 / 0.55) 26%, rgb(6 20 43 / 0.12) 52%, rgb(6 20 43 / 0.25));
+      pointer-events: none;
+    }
+
+    :global(.js) .deck--open .deck__image {
+      inset: 0;
+      width: 100%;
+      opacity: 1;
+      mask-image: none;
+      filter: saturate(0.72) brightness(0.8);
+      transition: filter 680ms var(--ease-out);
+    }
+
+    :global(.js) .deck--open li.is-open .deck__image {
+      filter: none;
+    }
+
+    :global(.js) .deck--open .deck__number {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: rgb(255 255 255 / 0.9);
+    }
+
+    :global(.js) .deck--open .deck__text {
+      position: absolute;
+      left: var(--pad);
+      bottom: var(--pad);
+      /* The open card's width, whatever this card's is right now. */
+      width: calc((100cqi - (var(--n) - 1) * var(--gap)) * var(--grow) / (var(--grow) + var(--n) - 1) - 2 * var(--pad) - 52px);
+      margin: 0;
+      opacity: 0;
+      transition: opacity 260ms var(--ease-out);
+    }
+
+    :global(.js) .deck--open li.is-open .deck__text {
+      opacity: 1;
+      transition: opacity 420ms var(--ease-out) 180ms;
+    }
+
+    :global(.js) .deck--open .deck__name {
+      font-size: clamp(1.5rem, 2.3vw, 2.5rem);
+    }
+
+    :global(.js) .deck--open .deck__copy {
+      display: block;
+      overflow: visible;
+      font-size: 0.9375rem;
+      line-height: 1.42;
+      -webkit-line-clamp: none;
+      color: rgb(255 255 255 / 0.9);
+    }
+
+    :global(.js) .deck--open .deck__spine {
+      position: absolute;
+      left: 50%;
+      bottom: var(--pad);
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      writing-mode: vertical-rl;
+      transform: translateX(-50%) rotate(180deg);
+      transition: opacity 420ms var(--ease-out) 180ms;
+    }
+
+    :global(.js) .deck--open li.is-open .deck__spine {
+      opacity: 0;
+      transition: opacity 180ms var(--ease-out);
+    }
+
+    :global(.js) .deck--open .deck__arrow {
+      opacity: 0;
+      transition:
+        opacity 300ms var(--ease-out),
+        background-color 400ms var(--ease-out),
+        color 400ms var(--ease-out);
+    }
+
+    :global(.js) .deck--open li.is-open .deck__arrow {
+      opacity: 1;
+    }
+
+    :global(.js) .deck--made .deck__card[data-desk='still'] {
+      cursor: default;
+    }
+
+    :global(.js) .deck--made .deck__card[data-desk='still'] .deck__arrow {
+      display: none;
+    }
+
+    /* The row's shadows don't show round a big card. */
+    :global(.js) .deck--open.has-big-card .deck__panel .deck__cards .deck__card {
+      box-shadow: none;
+    }
+
+    /* The bar: one pill slides between the tabs, and Start a Campaign is the button it is. */
+    :global(.js) .deck--made .deck__bar {
+      position: relative;
+      align-items: center;
+    }
+
+    .deck__pill {
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgb(var(--tone-depth) / 0.6), rgb(var(--tone-glow) / 0.16));
+      box-shadow:
+        inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+        0 0 22px -4px rgb(var(--tone-glow) / 0.7);
+      transition:
+        transform 560ms cubic-bezier(0.3, 1.3, 0.45, 1),
+        width 560ms cubic-bezier(0.3, 1.3, 0.45, 1);
+    }
+
+    :global(.js) .deck--made .deck__tab {
+      position: relative;
+    }
+
+    :global(.js) .deck--made.has-pill .deck__tab[aria-selected='true'] {
+      background: none;
+      box-shadow: none;
+    }
+
+    :global(.js) .deck--made .deck__tab--link {
+      flex: none;
+      margin-left: var(--space-2);
+      padding-inline: var(--space-5);
+      background: rgb(var(--press));
+      color: rgb(var(--press-on));
+    }
+
+    :global(.js) .deck--made .deck__tab--link:hover {
+      background: rgb(var(--press-hover));
+      color: rgb(var(--press-on));
+    }
+  }
+
+  /* ---------- Stride Talent: the line-up (desktop) ----------
+     A row of posters, spread evenly and leaning very slightly, in black and white. The one nearest the
+     pointer steps forward in colour and the rest lean away (--d, --a: deck-lineup.ts). */
+  .deck__art {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+
+
+
+    :global(.js) .deck--lineup .deck__bar {
+      z-index: 70;
+    }
+
+    :global(.js) .deck--lineup .deck__panel {
+      position: relative;
+      z-index: 1;
+    }
+
+    :global(.js) .deck--lineup .deck__panel .deck__cards {
+      position: relative;
+      display: block;
+      height: 100%;
+      min-height: 420px;
+      padding: 0;
+      overflow: visible;
+      container-type: inline-size;
+      animation: none;
+      cursor: auto;
+    }
+
+    :global(.js) .deck--lineup .deck__panel .deck__cards > li {
+      --w: min(calc((100cqi - (var(--n) - 1) * 14px) / var(--n)), 340px);
+      position: absolute;
+      bottom: 34px;
+      left: calc(var(--i) * (100cqi - var(--w)) / (var(--n) - 1));
+      width: var(--w);
+      height: min(calc(100% - 44px), max(calc(var(--w) * 1.55), 480px));
+      z-index: calc(40 - var(--a, 0));
+      transform: translateY(calc(var(--a, 0) * 5px + 14px)) rotate(calc(var(--d, 0) * 0.5deg));
+      transform-origin: 50% 100%;
+      transition: transform 480ms cubic-bezier(0.25, 1.25, 0.4, 1);
+    }
+
+    :global(.js) .deck--lineup .deck__panel .deck__cards > li.is-open {
+      z-index: 60;
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    :global(.js) .deck--lineup .deck__panel .deck__cards .deck__card {
+      min-height: 0;
+      padding: 20px;
+      background: linear-gradient(170deg, rgb(41 67 104 / 0.9), var(--navy-900));
+      box-shadow:
+        inset 0 0 0 1px rgb(255 255 255 / 0.16),
+        -14px 0 34px -14px rgb(0 0 0 / 0.75);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      translate: none;
+      outline: none;
+    }
+
+    :global(.js) .deck--lineup .deck__panel .deck__cards > li.is-open .deck__card {
+      box-shadow:
+        inset 0 0 0 1.5px rgb(255 255 255 / 0.7),
+        0 0 60px -6px rgb(255 255 255 / 0.28),
+        0 34px 60px -24px rgb(0 0 0 / 0.9);
+    }
+
+    :global(.js) .deck--lineup .deck__panel .deck__cards .deck__card:focus-visible {
+      outline: 2px solid var(--white);
+      outline-offset: 3px;
+    }
+
+    :global(.js) .deck--lineup .deck__image {
+      inset: 0;
+      width: 100%;
+      object-position: 50% 18%;
+      opacity: 1;
+      mask-image: none;
+      filter: grayscale(1) brightness(0.62) contrast(1.08);
+      transition: filter 480ms var(--ease-out);
+    }
+
+    :global(.js) .deck--lineup li.is-open .deck__image {
+      filter: none;
+    }
+
+    /* The drawn placeholder: quiet until the card is chosen. */
+    :global(.js) .deck--lineup .deck__art {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      display: block;
+      color: var(--ice);
+      opacity: 0.5;
+      transition:
+        opacity 420ms var(--ease-out),
+        scale 700ms cubic-bezier(0.2, 1, 0.3, 1);
+      transform-origin: 50% 30%;
+    }
+
+    :global(.js) .deck--lineup .deck__art :global(svg) {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    :global(.js) .deck--lineup li.is-open .deck__art {
+      color: var(--white);
+      opacity: 1;
+      scale: 1.05;
+    }
+
+    :global(.js) .deck--lineup .deck__card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(to top, rgb(6 20 43 / 0.94), rgb(6 20 43 / 0.55) 24%, transparent 46%);
+      pointer-events: none;
+    }
+
+    :global(.js) .deck--lineup .deck__text {
+      opacity: 0;
+      transition: opacity 200ms var(--ease-out);
+    }
+
+    :global(.js) .deck--lineup li.is-open .deck__text,
+    :global(.js) .deck--lineup .deck__card:has(.deck__art) .deck__text {
+      opacity: 1;
+      transition: opacity 360ms var(--ease-out) 90ms;
+    }
+
+    :global(.js) .deck--lineup .deck__name {
+      font-size: min(clamp(1.25rem, 1.9vw, 1.875rem), calc((var(--w) - 40px) / (var(--len) * 1.08)));
+      line-height: 1.02;
+      font-stretch: var(--stretch-wide);
+      text-transform: uppercase;
+    }
+
+    :global(.js) .deck--lineup .deck__copy {
+      display: block;
+      overflow: visible;
+      font-size: 0.875rem;
+      -webkit-line-clamp: none;
+      color: rgb(255 255 255 / 0.92);
+    }
+
+
+    :global(.js) .deck--lineup .deck__arrow {
+      top: 14px;
+      right: 14px;
+      bottom: auto;
+      opacity: 0;
+      transition:
+        opacity 300ms var(--ease-out),
+        background-color 400ms var(--ease-out),
+        color 400ms var(--ease-out);
+    }
+
+    :global(.js) .deck--lineup li.is-open .deck__arrow {
+      opacity: 1;
+    }
+
+  }
+
+  /* ---------- Stride Education: the climb (desktop) ----------
+     The cards are a staircase, rising left to right, with the tab's name in the room above the first
+     steps. A line runs along the tops, lit as far as the step you're on, with a dot on it (deck-stairs.ts).
+     A tab with one card is one wide step: the whole statement, in large type. */
+  .deck__stair-title,
+  .deck__stair-line,
+  .deck__climber,
+  .deck__chip,
+  .deck__html {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    :global(.js) .deck--stairs .deck__panel:not([hidden]) {
+      position: relative;
+    }
+
+    :global(.js) .deck--stairs .deck__panel .deck__cards {
+      align-items: flex-end;
+      display: flex;
+      height: 100%;
+      min-height: 460px;
+      padding: 28px 0 0;
+      overflow: visible;
+      animation: none;
+      cursor: auto;
+    }
+
+    :global(.js) .deck--stairs .deck__panel .deck__cards > li {
+      flex: 1 1 0;
+      min-width: 0;
+      height: max(270px, calc(46% + var(--i) * 54% / max(1, var(--n) - 1)));
+    }
+
+    :global(.js) .deck--stairs .deck__panel .deck__cards .deck__card {
+      min-height: 0;
+      padding: 16px;
+      background: linear-gradient(170deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.05) 60%, rgb(6 20 43 / 0.16));
+      box-shadow:
+        inset 0 0 0 1px rgb(255 255 255 / 0.2),
+        0 24px 50px -30px rgb(0 0 0 / 0.8);
+      translate: none;
+      outline: none;
+      transition:
+        background-color 360ms var(--ease-out),
+        box-shadow 360ms var(--ease-out);
+    }
+
+    :global(.js) .deck--stairs .deck__panel .deck__cards > li.is-climbed .deck__card {
+      background: linear-gradient(170deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0.08) 60%, rgb(6 20 43 / 0.1));
+    }
+
+    :global(.js) .deck--stairs .deck__panel .deck__cards > li.is-open .deck__card {
+      background: linear-gradient(170deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0.12) 60%, rgb(255 255 255 / 0.06));
+      box-shadow:
+        inset 0 0 0 1.5px rgb(255 255 255 / 0.85),
+        0 0 40px -6px rgb(207 237 248 / 0.45),
+        0 24px 50px -30px rgb(0 0 0 / 0.8);
+    }
+
+    :global(.js) .deck--stairs .deck__panel .deck__cards .deck__card:focus-visible {
+      outline: 2px solid var(--white);
+      outline-offset: 3px;
+    }
+
+    :global(.js) .deck--stairs .deck__number {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.2vw, 3.25rem);
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: rgb(255 255 255 / 0.55);
+      transition: color 300ms var(--ease-out);
+    }
+
+    :global(.js) .deck--stairs li.is-open .deck__number,
+    :global(.js) .deck--stairs li.is-climbed .deck__number {
+      color: var(--white);
+    }
+
+    :global(.js) .deck--stairs .deck__text {
+      margin-top: 0;
+    }
+
+    :global(.js) .deck--stairs .deck__name {
+      font-size: clamp(0.9375rem, 1.2vw, 1.25rem);
+      line-height: 1.12;
+      hyphens: auto;
+      overflow-wrap: break-word;
+    }
+
+    :global(.js) .deck--stairs .deck__copy {
+      display: block;
+      overflow: visible;
+      font-size: 0.8125rem;
+      -webkit-line-clamp: none;
+    }
+
+    :global(.js) .deck--stairs .deck__chip {
+      display: inline-block;
+      justify-self: start;
+      margin-top: var(--space-1, 4px);
+      padding: 4px 9px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.32);
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    :global(.js) .deck--stairs .deck__stair-title {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      max-width: 52%;
+      font-family: var(--font-display);
+      font-size: clamp(2.25rem, 4.2vw, 4.25rem);
+      font-weight: 850;
+      font-stretch: var(--stretch-wide);
+      line-height: 0.94;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    :global(.js) .deck--stairs .deck__stair-line {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      fill: none;
+    }
+
+    .deck__stair-base {
+      stroke: rgb(255 255 255 / 0.3);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 0.5 12;
+    }
+
+    .deck__stair-lit {
+      stroke: var(--white);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      filter: drop-shadow(0 0 8px rgb(207 237 248 / 0.9));
+      transition: stroke-dashoffset 620ms cubic-bezier(0.3, 0.8, 0.3, 1);
+    }
+
+    :global(.js) .deck--stairs .deck__climber {
+      position: absolute;
+      top: -11px;
+      left: -11px;
+      display: block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--white);
+      box-shadow:
+        0 0 0 5px rgb(255 255 255 / 0.22),
+        0 0 26px 4px rgb(207 237 248 / 0.8);
+      pointer-events: none;
+      transition: transform 620ms cubic-bezier(0.3, 1.25, 0.45, 1);
+    }
+
+    /* One step: the whole statement. */
+    :global(.js) .deck--stairs .deck__panel .deck__cards > li:only-child {
+      height: 100%;
+    }
+
+    :global(.js) .deck--stairs li:only-child .deck__card {
+      justify-content: flex-end;
+      padding: clamp(28px, 4vw, 64px);
+    }
+
+    :global(.js) .deck--stairs li:only-child .deck__text {
+      margin-top: auto;
+      gap: var(--space-5);
+    }
+
+    :global(.js) .deck--stairs li:only-child .deck__name {
+      font-size: clamp(2.75rem, 7vw, 7rem);
+      font-weight: 850;
+      font-stretch: var(--stretch-wide);
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    :global(.js) .deck--stairs li:only-child .deck__copy {
+      max-width: 44rem;
+      font-size: clamp(1.125rem, 1.7vw, 1.625rem);
+      line-height: 1.32;
+    }
+
+    :global(.js) .deck--stairs li:only-child .deck__html {
+      display: grid;
+      gap: var(--space-3);
+      max-width: 44rem;
+      font-size: 1rem;
+      line-height: 1.45;
+      color: rgb(var(--ink) / 0.86);
+    }
+  }
+
+  /* ---------- Below desktop ---------- */
+  @media (max-width: 1023px) {
+    .deck__cards,
+    .deck__panel:has(li:nth-child(5)) .deck__cards {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-columns: auto;
+      overflow: visible;
+    }
+
+    .deck__bar {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .deck__tab {
+      flex: none;
+      padding-inline: var(--space-4);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .deck__cards,
+    .deck__panel:has(li:nth-child(5)) .deck__cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .deck__cards {
+      animation: none;
+    }
+
+    .deck__card,
+    .deck__image,
+    .deck__tab,
+    .deck__pill,
+    .deck__text,
+    .deck__spine,
+    .deck__arrow,
+    .deck__climber,
+    .deck__stair-lit,
+    .deck__cards > li {
+      transition: none !important;
+    }
+
+    .deck__card:hover,
+    .deck__card:focus-visible {
+      translate: none;
+    }
+  }
+</style>
+
+<script>
+  import { initDecks } from '@/scripts/system/deck';
+  initDecks();
+</script>

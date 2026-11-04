@@ -1,13 +1,15 @@
 // Opening for the homepage hero (components/home/CoverHero.astro, IntroReveal.astro). The inline
 // script in the hero adds .is-intro-playing (and html.intro-lock) before first paint whenever
-// motion is allowed, on every visit and every device. This module waits for the lockup's fonts (at
+// motion is allowed, on phones and tablets (desktops play the cinematic entrance instead,
+// src/scripts/system/hero-entrance.ts). This module waits for the lockup's fonts (at
 // most 1.5s, so the wordmark never swaps font mid-animation), centres the mark for its entrance and
 // starts the animation (.is-intro-run); when the progress line completes, it fades to the hero and
 // its showreel. While it plays it covers the whole screen and page scrolling stays locked (smooth
 // scroll paused too). The reel loads behind it from the start (.is-intro-buffered); `hero:intro`
 // tells it (src/scripts/system/media.ts) to wait, load or start.
-// "Skip intro" ends it early and is only shown while it plays (WCAG 2.2.2). Keyboard focus moving
-// anywhere else also goes straight to the page.
+// Escape ends it early (WCAG 2.2.2); on desktop it ends the entrance the same way (`hero:skip`,
+// src/scripts/system/hero-entrance.ts).
+// Keyboard focus moving anywhere else also goes straight to the page.
 
 type Lenis = { stop(): void; start(): void };
 const lenis = () => (window as unknown as { lenis?: Lenis }).lenis;
@@ -30,9 +32,8 @@ export function initHeroIntro() {
   const lockup = hero.querySelector<HTMLElement>('[data-reveal-lockup]');
   const mark = hero.querySelector<SVGElement>('[data-reveal-mark]');
   const progress = hero.querySelector<HTMLElement>('[data-reveal-progress]');
-  const button = hero.querySelector<HTMLButtonElement>('[data-intro-toggle]');
   // Claim the hero only when every part is there; otherwise the inline fallback reveals the page.
-  if (!lockup || !mark || !progress || !button) return;
+  if (!lockup || !mark || !progress) return;
   hero.dataset.introReady = 'true';
   const playing = () => hero.classList.contains('is-intro-playing');
   const announce = () => hero.dispatchEvent(new CustomEvent('hero:intro', { bubbles: true }));
@@ -71,14 +72,20 @@ export function initHeroIntro() {
     safety = window.setTimeout(() => id === run && playing() && finish(), (seconds + 2) * 1000);
   };
 
-  progress.addEventListener('animationend', () => {
+  // Escape ends the intro, or the desktop entrance (WCAG 2.2.2).
+  const skip = () => {
     if (playing()) finish();
+    hero.dispatchEvent(new CustomEvent('hero:skip'));
+  };
+
+  progress.addEventListener('animationend', (e) => {
+    if (e.target === progress && playing()) finish();
   });
-  button.addEventListener('click', () => {
-    if (playing()) finish();
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && (playing() || hero.classList.contains('is-entrance'))) skip();
   });
   document.addEventListener('focusin', (e) => {
-    if (playing() && e.target !== button) finish();
+    if (playing()) finish();
   });
   window.addEventListener('resize', () => {
     if (playing()) centreMark();

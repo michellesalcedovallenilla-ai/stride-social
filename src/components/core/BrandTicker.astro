@@ -1,0 +1,130 @@
+---
+// The brand partners' logos in white on a continuous ticker across the full width (sized and paced like
+// the live site's). Used under the homepage's three cards (home/ContentsIndex) and along the top of the
+// Social page's first screen (social/CreatorGlobe).
+export interface Props {
+  brands: { name: string; logo: string }[];
+}
+
+const { brands } = Astro.props;
+---
+
+{brands.length > 0 && (
+  <div class="brand-ticker" style={`--logo-count: ${brands.length}`}>
+    {[0, 1].map((copyIndex) => (
+      <ul
+        class="brand-ticker__track"
+        role="list"
+        aria-label={copyIndex === 0 ? 'Brand partners' : undefined}
+        aria-hidden={copyIndex === 1 ? 'true' : undefined}
+      >
+        {brands.map((b) => (
+          <li class="brand-ticker__logo">
+            <img src={b.logo} alt={copyIndex === 0 ? b.name : ''} width="1080" height="1080" loading="lazy" decoding="async" sizes="144px" />
+          </li>
+        ))}
+      </ul>
+    ))}
+  </div>
+)}
+
+<style>
+  /* Two copies of the row side by side, moving left by one row's width and starting over, so it never
+     ends. It pauses while hovered and fades out at both edges. Each file is a square with the mark
+     drawn inside at its own size (as on the live site), so the squares sit edge to edge with a fixed
+     gap, and the row tucks into the room above and below the marks. */
+  .brand-ticker {
+    display: flex;
+    justify-self: stretch;
+    overflow: hidden;
+    margin-block: -24px;
+    mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  }
+
+  .brand-ticker__track {
+    display: flex;
+    flex: none;
+    animation: brand-ticker calc(var(--logo-count) * 1s) linear infinite;
+  }
+
+  /* Desktop: the fades span the page margin, so the logos are gone before they pass under the
+     radial navigation on the left (and the right matches). */
+  @media (min-width: 1024px) {
+    .brand-ticker {
+      mask-image: linear-gradient(
+        to right,
+        transparent 72px,
+        #000 var(--margin),
+        #000 calc(100% - var(--margin)),
+        transparent calc(100% - 72px)
+      );
+    }
+  }
+
+  .brand-ticker:hover .brand-ticker__track {
+    animation-play-state: paused;
+  }
+
+  @keyframes brand-ticker {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  .brand-ticker__logo {
+    flex: none;
+    margin-right: 2.5rem;
+  }
+
+  .brand-ticker__logo img {
+    display: block;
+    width: 9rem;
+    height: 9rem;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+  }
+
+  @media (max-width: 767px) {
+    .brand-ticker {
+      margin-block: -18px;
+    }
+
+    .brand-ticker__logo {
+      margin-right: 1.75rem;
+    }
+
+    .brand-ticker__logo img {
+      width: 7rem;
+      height: 7rem;
+    }
+  }
+
+  /* No ticker: the logos stand still, wrapped and centred. */
+  @media (prefers-reduced-motion: reduce) {
+    .brand-ticker {
+      mask-image: none;
+    }
+
+    .brand-ticker__track {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0 2.5rem;
+      width: 100%;
+      padding-inline: var(--margin);
+      animation: none;
+    }
+
+    .brand-ticker__track[aria-hidden] {
+      display: none;
+    }
+
+    .brand-ticker__logo {
+      margin-right: 0;
+    }
+  }
+
+  :global(html[data-ink='light']) .brand-ticker__logo img {
+    filter: brightness(0) invert(0.08);
+  }
+</style>

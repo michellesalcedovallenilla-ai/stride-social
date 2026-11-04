@@ -7,9 +7,12 @@ import Seo from '@/components/global/Seo.astro';
 import SiteHeader from '@/components/global/SiteHeader.astro';
 import SiteFooter from '@/components/global/SiteFooter.astro';
 import ConsentBanner from '@/components/global/ConsentBanner.astro';
+import CursorBuddy from '@/components/global/CursorBuddy.astro';
+import Ambient from '@/components/experience/Ambient.astro';
 import { plausibleDomain } from '@/config/analytics';
 import { site } from '@/config/site';
 import type { DivisionKey } from '@/config/navigation';
+import type { Look } from '@/lib/experience';
 
 export interface Props {
   title: string;
@@ -19,16 +22,19 @@ export interface Props {
   division?: DivisionKey;
   /** The page opens with a full-bleed dark hero: header starts transparent with light text. */
   headerOverlay?: boolean;
+  /** The colour the page opens in; it then follows its sections as it scrolls. */
+  look?: Look;
   jsonLd?: Record<string, unknown>[];
   noindex?: boolean;
 }
 
-const { title, description, ogImage, ogType, division = 'group', headerOverlay = false, jsonLd, noindex } = Astro.props;
+const { title, description, ogImage, ogType, division = 'group', headerOverlay = false, look = 'deep', jsonLd, noindex } = Astro.props;
+const ink = ['deep', 'navy', 'slate'].includes(look) ? 'dark' : 'light';
 const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') || '/';
 ---
 
 <!doctype html>
-<html lang="en" data-division={division}>
+<html lang="en" data-division={division} data-look={headerOverlay ? look : undefined} data-ink={headerOverlay ? ink : undefined} class={headerOverlay ? 'has-backdrop' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -48,20 +54,24 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') |
     {plausibleDomain && <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.js"></script>}
   </head>
   <body>
+    {headerOverlay && <div class="backdrop" aria-hidden="true" data-backdrop><Ambient /></div>}
     <a class="skip-link" href="#main">Skip to content</a>
-    <SiteHeader division={division} path={path} overlay={headerOverlay} />
-    <main id="main" class:list={['page', { 'page--overlay': headerOverlay, 'page--with-bar': division !== 'group' }]}>
+    <SiteHeader path={path} overlay={headerOverlay} />
+    <main id="main" class:list={['page', { 'page--overlay': headerOverlay }]}>
       <slot />
     </main>
     <SiteFooter />
+    <CursorBuddy />
     <ConsentBanner />
     <script>
       import { initSmoothScroll } from '@/scripts/system/smooth-scroll';
+      import { initBackdrop } from '@/scripts/system/backdrop';
       import { initReveal } from '@/scripts/system/reveal';
       import { initRevealLines } from '@/scripts/system/reveal-lines';
       import { initParallax, initMagnetic } from '@/scripts/system/motion';
       document.documentElement.classList.add('motion-ready');
       initSmoothScroll();
+      initBackdrop();
       initReveal();
       initRevealLines();
       initParallax();
@@ -75,11 +85,18 @@ const path = Astro.url.pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1') |
     padding-top: var(--header-h);
   }
 
-  .page--with-bar {
-    padding-top: calc(var(--header-h) + var(--division-bar-h));
-  }
-
   .page--overlay {
     padding-top: 0;
+  }
+
+  /* The one background behind the whole page; its own layer, so changing colour redraws nothing else. */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: rgb(var(--backdrop, var(--tone-surface)));
+    transform: translateZ(0);
+    pointer-events: none;
   }
 </style>

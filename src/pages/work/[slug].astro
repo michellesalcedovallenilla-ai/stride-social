@@ -1,57 +1,86 @@
 ---
-// Case study template (docs/phase-2/05-wireframes.md §E): full-bleed hero · facts bar · the brief ·
-// the strategy · the execution · campaign videos · results (verified figures only, with source) ·
-// creators involved · quote (verified only) · next case. Missing parts show a labelled placeholder
-// in preview and are left out in production; unverified figures and the previous site's original
-// copy appear only in preview, labelled, because they may contain figures nobody has confirmed.
+// Case study: the campaign's own reels in a carousel you can spin, the story in a glass card beside them
+// (social/CaseReel). Then the shared menu: Results (verified figures only, with source), Creators, More
+// Work. Missing parts show a labelled note in preview and are left out in production; unverified figures
+// and the previous site's original copy appear only in preview, because they may contain figures nobody
+// has confirmed.
 import { getCollection, getEntries, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
+import CaseReel from '@/components/social/CaseReel.astro';
+import Deck from '@/components/experience/Deck.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
-import EnquiryCta from '@/components/social/EnquiryCta.astro';
 import { routes } from '@/lib/routes';
 import { rewriteLegacyLinks } from '@/lib/legacy-links';
+import { workPreviews } from '@/lib/previews';
 import { isPreview } from '@/lib/env';
 import { site } from '@/config/site';
+import { chunks, htmlParagraphs, paragraphs } from '@/lib/experience';
+import type { Card, Media } from '@/lib/experience';
 
 export async function getStaticPaths() {
   const work = (await getCollection('work', (w) => w.data.visible)).sort((a, b) => a.data.order - b.data.order);
-  return work.map((entry, i) => ({ params: { slug: entry.id }, props: { entry, next: work[(i + 1) % work.length] } }));
+  return work.map((entry, i) => ({ params: { slug: entry.id }, props: { entry, work, at: i } }));
 }
 
-const { entry, next } = Astro.props;
+const { entry, work, at } = Astro.props;
 const d = entry.data;
 const client = await getEntry(d.client);
 const clientName = client?.data.name ?? d.title;
 const services = await getEntries(d.services);
 const industries = await getEntries(d.industries);
 const creators = await getEntries(d.creators);
-const nextClient = (await getEntry(next.data.client))?.data.name ?? next.data.title;
-// The previous site's copy (preview only), with its links pointed at the new pages.
-const legacyHtml = rewriteLegacyLinks((entry.body ?? '').replace(/<!--[\s\S]*?-->/g, ''));
-
 const verified = d.results.filter((r) => r.status === 'verified');
 const unverified = d.results.filter((r) => r.status !== 'verified');
-const story = [
-  { key: 'brief', label: 'The brief', text: d.brief },
-  { key: 'strategy', label: 'The strategy', text: d.strategy },
-  { key: 'execution', label: 'The execution', text: d.execution },
-];
-const missing = story.filter((s) => !s.text?.trim());
-// Entries that were never split into brief/strategy/execution keep the old page's copy as their story.
-const legacyOnly = !d.brief?.trim() && !d.execution?.trim();
-const paragraphs = (text: string) => text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 const image = d.hero ?? d.card;
-const facts = [
-  { label: 'Client', value: clientName },
-  { label: 'Services', links: services.map((s) => ({ label: s.data.name, href: routes.service(s.id) })) },
-  { label: 'Industry', value: industries.map((i) => i.data.label).join(', ') },
-  { label: 'Markets', value: d.markets.join(', ') },
-  { label: 'Year', value: d.year ? String(d.year) : '' },
-].filter((f) => (f.links ? f.links.length > 0 : f.value));
-
 const final = (await getEntry('pages', 'social'))?.data.sections.final;
+
+// The story, in pieces that fit beside the phone.
+const sections = [
+  { label: 'The brief', text: d.brief },
+  { label: 'The strategy', text: d.strategy },
+  { label: 'The execution', text: d.execution },
+].filter((s) => s.text?.trim());
+// Entries never split into brief/strategy/execution keep the old page's copy, in preview only.
+const legacyOnly = !sections.length;
+const legacy = legacyOnly && isPreview ? [{ label: 'The story', parts: htmlParagraphs(rewriteLegacyLinks((entry.body ?? '').replace(/<!--[\s\S]*?-->/g, ''))) }] : [];
+const story = [
+  ...sections.map((s) => ({ label: s.label, parts: paragraphs(s.text) })),
+  ...legacy,
+]
+  .flatMap((s) => {
+    const pieces = s.parts.flatMap((p) => chunks(p)).slice(0, 4);
+    return pieces.map((text, i) => ({ label: pieces.length > 1 ? `${s.label} · ${i + 1}` : s.label, heading: i === 0 ? s.label : undefined, text }));
+  })
+  .slice(0, 8);
+
+const frames: (Media & { caption?: string })[] = d.videos.length
+  ? d.videos.map((v) => ({ video: v.src, poster: d.card.src, caption: v.caption ?? undefined }))
+  : workPreviews[entry.id]
+    ? [{ video: workPreviews[entry.id], poster: d.card.src }, { image: d.card }]
+    : [{ image }, ...(d.hero && d.card.src !== d.hero.src ? [{ image: d.card }] : [])];
+const facts = [...industries.map((i) => i.data.label), ...d.markets, ...(d.year ? [String(d.year)] : [])];
+const chapters = [
+  { label: 'The campaign', title: services.map((s) => s.data.name).join(' · ') || 'The campaign', text: d.summary, links: services.map((s) => ({ label: s.data.name, href: routes.service(s.id) })) },
+  ...story.map((s) => ({ label: s.label, title: s.heading, text: s.text })),
+  // Results join the story only once they're verified.
+  ...(verified.length ? [{ label: 'The results', title: 'The results', text: d.resultsSummary ?? '', stats: verified.map((r) => ({ label: r.label, value: r.value })) }] : []),
+];
+
+// The menu.
+const resultCards: Card[] = verified.map((r) => ({ name: r.value, text: r.label, href: '#results', html: `<p>Source: ${r.source.replace(/</g, '&lt;')}</p>`, stats: [{ label: r.label, value: r.value }] }));
+const creatorCards: Card[] = creators.map((c) => ({
+  name: c.data.name,
+  href: routes.creator(c.id),
+  image: c.data.portrait,
+  direct: true,
+}));
+const others = await Promise.all(
+  [1, 2, 3, 4].map(async (n) => {
+    const w = work[(at + n) % work.length];
+    return { name: (await getEntry(w.data.client))?.data.name ?? w.data.title, text: w.data.summary, href: routes.caseStudy(w.id), image: w.data.card, direct: true } as Card;
+  }),
+);
+const quote = d.quote?.status === 'verified' ? d.quote.text : null;
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -65,538 +94,23 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title={d.seo?.title ?? `${clientName} case study | Stride Social`} description={d.seo?.description ?? d.summary} division="social" ogImage={image.src} jsonLd={jsonLd} headerOverlay>
-  <header class="cs-hero">
-    <img class="cs-hero__img" src={image.src} alt={image.alt} fetchpriority="high" decoding="async" />
-    <div class="cs-hero__scrim" aria-hidden="true"></div>
-    <div class="cs-hero__inner container-wide">
-      <Breadcrumbs items={[{ label: 'Our Work', href: '/work' }, { label: clientName }]} tone="dark" />
-      <div class="cs-hero__text">
-        {services.length > 0 && <Eyebrow tone="dark">{services.map((s) => s.data.name).join(' · ')}</Eyebrow>}
-        <h1 class="cs-hero__title" data-reveal-lines="load">
-          <span class="reveal-line"><span class="reveal-line__inner">{clientName}</span></span>
-        </h1>
-        <p class="cs-hero__summary" data-reveal="load" style="--reveal-delay: 0.3s">{d.summary}</p>
-      </div>
-    </div>
-  </header>
+<SiteLayout title={d.seo?.title ?? `${clientName} case study | Stride Social`} description={d.seo?.description ?? d.summary} division="social" ogImage={image.src} jsonLd={jsonLd} look="ice" headerOverlay>
+  <CaseReel name={clientName} facts={facts.slice(0, 5)} frames={frames} chapters={chapters} crumbs={[{ label: 'Our Work', href: '/work' }, { label: clientName }]}>
+    {isPreview && legacyOnly && <PlaceholderNotice label="Original copy">— from the previous site, awaiting the brief / strategy / execution rewrite (Q6)</PlaceholderNotice>}
+    {isPreview && !legacyOnly && unverified.length > 0 && <PlaceholderNotice label="Results awaiting verification">{unverified.map((r) => `${r.label} ${r.value}`).join(' · ')}</PlaceholderNotice>}
+  </CaseReel>
 
-  <dl class="cs-facts container-wide">
-    {facts.map((f) => (
-      <div class="cs-facts__item">
-        <dt>{f.label}</dt>
-        <dd>{f.links ? f.links.map((l, i) => <>{i > 0 && ', '}<a href={l.href}>{l.label}</a></>) : f.value}</dd>
-      </div>
-    ))}
-  </dl>
-
-  <div class="cs-body">
-    {story.filter((s) => s.text?.trim()).map((s) => (
-      <section class="cs-block container-wide" aria-labelledby={`cs-${s.key}`}>
-        <h2 class="cs-block__label" id={`cs-${s.key}`}>{s.label}</h2>
-        <div class="cs-block__text">
-          {paragraphs(s.text!).map((p) => <p>{p}</p>)}
-        </div>
-      </section>
-    ))}
-
-    {isPreview && legacyOnly && (
-      <section class="cs-block container-wide" aria-labelledby="cs-story">
-        <h2 class="cs-block__label" id="cs-story">The story</h2>
-        <div class="cs-block__text">
-          <PlaceholderNotice variant="inline" label="Original copy">— from the previous site, awaiting the brief / strategy / execution rewrite (Q6)</PlaceholderNotice>
-          <div class="cs-legacy" set:html={legacyHtml} />
-        </div>
-      </section>
-    )}
-
-    {isPreview && !legacyOnly && missing.length > 0 && (
-      <div class="cs-block container-wide">
-        <p class="cs-block__label">Still needed</p>
-        <div class="cs-block__text">
-          <PlaceholderNotice variant="block" label={missing.map((m) => m.label).join(' · ')}>
-            <p>Not in the material from the previous site. Needs Stride's input (Q6).</p>
-          </PlaceholderNotice>
-        </div>
-      </div>
-    )}
-  </div>
-
-  {d.videos.length > 0 && (
-    <section class="cs-videos" aria-labelledby="cs-videos-title" data-rail>
-      <div class="cs-videos__head container-wide">
-        <h2 class="cs-block__label" id="cs-videos-title">Campaign content</h2>
-        <div class="cs-videos__controls">
-          <button class="cs-videos__arrow" type="button" data-rail-prev aria-label="Previous videos" disabled>
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M15 8H2M7 3 2 8l5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-          </button>
-          <button class="cs-videos__arrow" type="button" data-rail-next aria-label="Next videos">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-          </button>
-        </div>
-      </div>
-      <ul class="cs-videos__track" role="list" data-rail-track>
-        {d.videos.map((v, i) => (
-          <li class="cs-videos__item">
-            <video controls playsinline preload="metadata" aria-label={v.caption ?? `${clientName} campaign video ${i + 1} of ${d.videos.length}`}>
-              <source src={`${v.src}#t=0.1`} type="video/mp4" />
-            </video>
-            {v.caption && <p class="cs-videos__caption">{v.caption}</p>}
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
-
-  {(verified.length > 0 || (isPreview && (unverified.length > 0 || d.resultsSummary))) && (
-    <section class="cs-results" aria-labelledby="cs-results-title">
-      <div class="container-wide">
-        <h2 class="cs-block__label" id="cs-results-title">Results</h2>
-        {verified.length > 0 && (
-          <dl class="cs-results__grid">
-            {verified.map((r, i) => (
-              <div>
-                <dt>{r.label}</dt>
-                <dd>{r.value}<sup><a href={`#source-${i}`} aria-label={`Source for ${r.label}`}>{i + 1}</a></sup></dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {verified.length > 0 && (
-          <ol class="cs-results__sources">
-            {verified.map((r, i) => <li id={`source-${i}`}>{r.source}</li>)}
-          </ol>
-        )}
-        {isPreview && (unverified.length > 0 || d.resultsSummary) && (
-          <PlaceholderNotice variant="block" label="Results awaiting verification">
-            {unverified.length > 0 && <p>From the previous site, not yet confirmed (Q6): {unverified.map((r) => `${r.label} ${r.value}`).join(' · ')}.</p>}
-            {d.resultsSummary && <p>{d.resultsSummary}</p>}
-          </PlaceholderNotice>
-        )}
-      </div>
-    </section>
-  )}
-
-  {creators.length > 0 && (
-    <section class="cs-creators container-wide" aria-labelledby="cs-creators-title">
-      <h2 class="cs-block__label" id="cs-creators-title">Creators involved</h2>
-      <ul class="cs-creators__list" role="list">
-        {creators.map((c) => (
-          <li>
-            <a href={routes.creator(c.id)}>
-              {c.data.portrait && <img src={c.data.portrait.src} alt="" loading="lazy" />}
-              <span>{c.data.name}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
-
-  {d.quote?.status === 'verified' && (
-    <figure class="cs-quote container-wide">
-      <blockquote>{d.quote.text}</blockquote>
-      <figcaption>{clientName}</figcaption>
-    </figure>
-  )}
-
-  <nav class="cs-next" aria-label="Next case study">
-    <a class="cs-next__link" href={routes.caseStudy(next.id)}>
-      <img src={next.data.card.src} alt="" loading="lazy" decoding="async" />
-      <span class="cs-next__inner container-wide">
-        <span class="cs-next__label">Next case study</span>
-        <span class="cs-next__name">{nextClient}</span>
-      </span>
-    </a>
-  </nav>
-
-  <EnquiryCta headline={final?.headline ?? ''} label={final?.cta?.label ?? ''} service={services[0]?.id} />
+  <Deck
+    id="case-menu"
+    label={`More about ${clientName}`}
+    tone="social"
+    look="ice"
+    tabs={[
+      { key: 'results', label: 'Results', icon: 'target', anchor: 'results', cards: resultCards },
+      { key: 'quote', label: 'In Their Words', icon: 'quote', cards: quote ? [{ name: clientName, href: '#case-menu', quote, attribution: clientName }] : [] },
+      { key: 'creators', label: 'Creators', icon: 'people', cards: creatorCards },
+      { key: 'more', label: 'More Work', icon: 'grid', cards: others },
+    ]}
+    link={{ label: final?.cta?.label ?? 'Talk To Stride Social', href: services[0] ? `/social/enquire?service=${services[0].id}` : '/social/enquire' }}
+  />
 </SiteLayout>
-
-<style>
-  .cs-hero {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    min-height: 620px;
-    height: 88svh;
-    max-height: 960px;
-    overflow: hidden;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-hero__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-  }
-
-  .cs-hero__scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgb(6 20 43 / 0.92) 0%, rgb(6 20 43 / 0.45) 50%, rgb(6 20 43 / 0.55) 100%);
-  }
-
-  .cs-hero__inner {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--space-7);
-    padding-top: calc(var(--header-h) + var(--division-bar-h) + var(--space-6));
-    padding-bottom: var(--space-8);
-  }
-
-  .cs-hero__text {
-    display: grid;
-    gap: var(--space-5);
-    max-width: 1080px;
-  }
-
-  .cs-hero__title {
-    font-family: var(--font-display);
-    font-size: var(--type-hero);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.86;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-    overflow-wrap: break-word;
-  }
-
-  .cs-hero__summary {
-    max-width: 58ch;
-    font-size: var(--type-lead);
-    line-height: 1.4;
-    color: rgb(255 255 255 / 0.88);
-  }
-
-  .cs-facts {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--space-5) var(--gutter);
-    padding-block: var(--space-6);
-    border-bottom: 1px solid var(--line-dark);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-facts dt,
-  .cs-block__label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .cs-facts dd {
-    margin-top: var(--space-2);
-    font-weight: 500;
-  }
-
-  .cs-facts a {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .cs-body {
-    position: relative;
-    z-index: 1;
-    padding-block: var(--space-9) var(--space-6);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-block {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-4) var(--gutter);
-    padding-bottom: var(--space-9);
-  }
-
-  .cs-block__label {
-    grid-column: 1 / 4;
-  }
-
-  .cs-block__text {
-    grid-column: 4 / 11;
-    display: grid;
-    gap: var(--space-5);
-    justify-items: start;
-    font-size: var(--type-lead);
-    line-height: 1.5;
-    color: rgb(255 255 255 / 0.88);
-  }
-
-  .cs-legacy {
-    display: grid;
-    gap: var(--space-4);
-    font-size: var(--type-body);
-  }
-
-  .cs-legacy :global(a) {
-    text-decoration: underline;
-  }
-
-  .cs-videos {
-    position: relative;
-    z-index: 1;
-    padding-bottom: var(--space-9);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-videos__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
-  }
-
-  .cs-videos__controls {
-    display: flex;
-    gap: var(--space-3);
-  }
-
-  .cs-videos__arrow {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border: 1px solid rgb(255 255 255 / 0.4);
-    border-radius: 50%;
-  }
-
-  .cs-videos__arrow svg {
-    width: 16px;
-  }
-
-  .cs-videos__arrow:disabled {
-    opacity: 0.3;
-  }
-
-  .cs-videos__track {
-    display: flex;
-    gap: var(--gutter);
-    padding-inline: max(var(--margin), calc((100vw - var(--container-wide)) / 2));
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: max(var(--margin), calc((100vw - var(--container-wide)) / 2));
-    scrollbar-width: none;
-  }
-
-  .cs-videos__item {
-    flex: none;
-    width: clamp(220px, 22vw, 340px);
-    scroll-snap-align: start;
-  }
-
-  .cs-videos__item video {
-    width: 100%;
-    aspect-ratio: 9 / 16;
-    object-fit: cover;
-    background: var(--navy-700);
-  }
-
-  .cs-videos__caption {
-    margin-top: var(--space-3);
-    font-size: var(--type-small);
-  }
-
-  .cs-results {
-    position: relative;
-    z-index: 1;
-    padding-block: var(--space-9);
-    border-top: 1px solid var(--line-dark);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-results .container-wide {
-    display: grid;
-    gap: var(--space-6);
-    justify-items: start;
-  }
-
-  .cs-results__grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-7) var(--space-9);
-  }
-
-  /* Figure above its label. */
-  .cs-results__grid > div {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: var(--space-2);
-  }
-
-  .cs-results__grid dd {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 7vw, 7rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.9;
-    color: var(--accent);
-  }
-
-  .cs-results__grid sup {
-    font-size: 0.25em;
-    vertical-align: super;
-  }
-
-  .cs-results__sources {
-    padding-left: 1.2em;
-    font-size: var(--type-small);
-    list-style: decimal;
-    color: rgb(255 255 255 / 0.7);
-  }
-
-  .cs-creators {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    gap: var(--space-6);
-    padding-block: var(--space-9);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-creators__list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--gutter);
-  }
-
-  .cs-creators__list a {
-    display: grid;
-    gap: var(--space-3);
-    width: 180px;
-    font-weight: 600;
-  }
-
-  .cs-creators__list img {
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-  }
-
-  .cs-quote {
-    position: relative;
-    z-index: 1;
-    padding-block: var(--space-9);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-quote blockquote {
-    max-width: 28ch;
-    font-family: var(--font-serif);
-    font-size: clamp(2rem, 4vw, 3.75rem);
-    font-style: italic;
-    line-height: 1.1;
-  }
-
-  .cs-quote figcaption {
-    margin-top: var(--space-5);
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .cs-next {
-    position: relative;
-    z-index: 1;
-  }
-
-  .cs-next__link {
-    position: relative;
-    display: flex;
-    align-items: flex-end;
-    min-height: clamp(260px, 32vw, 460px);
-    overflow: hidden;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .cs-next__link img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-    opacity: 0.5;
-    transition:
-      opacity var(--dur-slow) var(--ease-out),
-      transform var(--dur-reveal) var(--ease-out);
-  }
-
-  .cs-next__link:hover img {
-    opacity: 0.7;
-    transform: scale(1.03);
-  }
-
-  .cs-next__inner {
-    position: relative;
-    display: grid;
-    gap: var(--space-3);
-    padding-block: var(--space-8);
-  }
-
-  .cs-next__label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .cs-next__name {
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 7vw, 7rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.88;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-  }
-
-  @media (max-width: 1023px) {
-    .cs-block__label,
-    .cs-block__text {
-      grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 767px) {
-    .cs-videos__controls {
-      display: none;
-    }
-
-    .cs-videos__item {
-      width: 62vw;
-    }
-  }
-
-  @media (max-width: 479px) {
-    .cs-hero__title {
-      font-size: 12vw;
-      font-stretch: 100%;
-    }
-  }
-</style>
-
-<script>
-  import { initRails } from '@/scripts/system/rail';
-  initRails();
-</script>

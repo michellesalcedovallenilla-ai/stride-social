@@ -1,0 +1,88 @@
+---
+// The Stride Education page's content: a level map to climb and personalize (LevelMap), then the shared
+// menu: The Experience, Our Purpose, Creator Stories, Enquire. One page in two places: at /education, and
+// on the homepage, where the Education card opens onto it (home/PagePortal.astro; `embedded`). Copy lives
+// in src/content/pages/education.yaml; items only with a confirmed availability (src/lib/education.ts),
+// each labelled available or planned; no photography exists yet (Q18).
+import { getCollection, getEntry } from 'astro:content';
+import LevelMap from './LevelMap.astro';
+import Deck from '../experience/Deck.astro';
+import { getExperience, getTopics } from '@/lib/education';
+import { asHtml, paragraphs } from '@/lib/experience';
+import type { Card, StageMessage } from '@/lib/experience';
+
+export interface Props {
+  /** Inside another page, which has its own h1 and may not reach this for a while. */
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+
+const page = await getEntry('pages', 'education');
+if (!page) throw new Error('Missing src/content/pages/education.yaml');
+const s = page.data.sections;
+
+// Only a confirmed availability gets a label.
+const availability: Record<string, string | undefined> = { available: 'Available now', planned: 'Coming soon' };
+const topics = await getTopics();
+const experience = await getExperience();
+const purpose = paragraphs(s.purpose.body);
+const enquire = s.final.cta?.href ?? '/education/enquire';
+const ui = (key: string, fallback: string) => s.map?.items?.find((i) => i.key === key)?.label ?? fallback;
+
+const messages: StageMessage[] = [
+  { title: (s.hero.lines ?? []).join(' '), text: s.hero.body },
+  { title: s.learn.headline, text: s.map?.body },
+  { title: s.purpose.eyebrow, text: purpose[1] ?? purpose[0] },
+  { title: s.final.headline, text: s.enquiry.body },
+];
+const experienceCards: Card[] = experience.map((t) => ({
+  name: t.data.title,
+  text: t.data.summary,
+  href: '#experience',
+  chips: [availability[t.data.status]].filter((x): x is string => !!x),
+  action: s.final.cta,
+}));
+const stories = await getCollection('testimonials', (t) => t.data.type === 'student' && t.data.consent.status === 'confirmed');
+---
+
+<LevelMap
+  level={embedded ? 'h2' : 'h1'}
+  messages={messages}
+  topics={topics.map((t) => ({ id: t.id, title: t.data.title, summary: t.data.summary, chip: availability[t.data.status] }))}
+  enquire={enquire}
+  ui={{
+    path: s.map?.eyebrow ?? 'Your path',
+    empty: ui('empty', 'Nothing yet. Add the levels you want.'),
+    add: ui('add', 'Add to my path'),
+    added: ui('added', 'On my path'),
+    cta: ui('cta', 'Enquire with my path'),
+    levelOf: ui('level', 'Level {n} of {total}'),
+  }}
+/>
+
+<Deck
+  variant="stairs"
+  id="education-menu"
+  label="Explore Stride Education"
+  tone="education"
+  look="slate"
+  tabs={[
+    { key: 'experience', label: s.experience.headline?.replace(/\.$/, '') ?? 'The experience', icon: 'book', anchor: 'experience', numbered: true, atDesk: 'still', cards: experienceCards },
+    {
+      key: 'purpose',
+      label: s.purpose.eyebrow ?? 'Our purpose',
+      icon: 'target',
+      atDesk: 'still',
+      cards: purpose.length ? [{ name: s.purpose.eyebrow ?? 'Our purpose', text: purpose[0], html: asHtml(purpose.slice(1)), href: '#learn', action: s.final.cta }] : [],
+    },
+    {
+      key: 'stories',
+      label: s.stories.headline?.replace(/\.$/, '') ?? 'Creator stories',
+      icon: 'quote',
+      anchor: 'education-stories',
+      cards: stories.map((q) => ({ name: q.data.name, text: q.data.role, href: '#education-stories', image: q.data.image, quote: q.data.quote, attribution: `${q.data.name}, ${q.data.role}` })),
+    },
+  ]}
+  link={{ label: s.final.cta?.label ?? 'Enquire', href: enquire }}
+/>

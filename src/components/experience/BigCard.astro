@@ -1,0 +1,667 @@
+---
+// The big card a glass card grows into (src/scripts/system/grow.ts): the navy and glow of the stages,
+// the cards' hairline edge, a wide uppercase name, mono labels, footage in the hero's grade, and inside
+// it whatever that card holds: services, case studies, verified results, a quote, a video.
+import type { Card } from '@/lib/experience';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  card: Card;
+  growKey: string;
+  eyebrow: string;
+  index?: number;
+  total?: number;
+}
+
+const { card: c, growKey, eyebrow, index, total } = Astro.props;
+const t = await interfaceCopy();
+---
+
+<div class="bigcard" role="dialog" aria-label={c.name} hidden data-grow-detail={growKey} data-lenis-prevent>
+  {c.image && !c.video && <img class="bigcard__image" src={c.image.src} alt={c.image.alt} sizes="50vw" loading="lazy" decoding="async" />}
+  <button class="bigcard__close" type="button" aria-label="Close" data-grow-close>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+  </button>
+  <div class="bigcard__body">
+    <header class="bigcard__head">
+      <p class="bigcard__eyebrow">{eyebrow}{index !== undefined && total !== undefined && <span>{pad(index + 1)} / {pad(total)}</span>}</p>
+      <h3 class="bigcard__name">{c.name}</h3>
+      {c.text && <p class="bigcard__copy">{c.text}</p>}
+      {c.chips && c.chips.length > 0 && <p class="bigcard__chips">{c.chips.map((x) => <span>{x}</span>)}</p>}
+    </header>
+
+    <div class="bigcard__rest">
+    {c.quote && (
+      <figure class="bigcard__quote">
+        <blockquote>{c.quote}</blockquote>
+        {c.attribution && <figcaption>{c.attribution}</figcaption>}
+      </figure>
+    )}
+
+    {c.html && <div class="bigcard__html" set:html={c.html} />}
+
+    {c.video && (
+      <video class="bigcard__video" controls playsinline preload="none" poster={c.image?.src} aria-label={c.name}>
+        <source src={c.video} type="video/mp4" />
+      </video>
+    )}
+
+    {c.stats && c.stats.length > 0 && (
+      <dl class="bigcard__stats">
+        {c.stats.map((r) => <div><dt>{r.label}</dt><dd>{r.value}</dd></div>)}
+      </dl>
+    )}
+
+    {c.blocks && c.blocks.length > 0 && (
+      <ul class="bigcard__blocks" role="list">
+        {c.blocks.map((b) => (
+          <li class="bigcard__slot">
+            <a class="bigcard__block" href={b.href} aria-label={`${b.action}: ${b.title}`}>
+              <h4 class="bigcard__block-title">{b.title}</h4>
+              {b.text && <p class="bigcard__block-text">{b.text}</p>}
+              {b.list && b.list.length > 0 && (
+                <ol class="bigcard__block-list" role="list">
+                  {b.list.map((x, n) => <li><span aria-hidden="true">{pad(n + 1)}</span>{x}</li>)}
+                </ol>
+              )}
+              <span class="bigcard__go" aria-hidden="true">{b.action}</span>
+              <span class="bigcard__arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+              </span>
+            </a>
+            {b.keep && (
+              <button class="bigcard__keep exp-pill exp-pill--ghost desk-only" type="button" aria-pressed="false" data-keep={b.keep.list} data-keep-id={b.keep.id} data-keep-label={b.keep.label} data-keep-group={b.keep.group}>
+                <span class="keep-off">{t('door.add')}</span><span class="keep-on">{t('door.added')}</span>
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {c.action && (
+      <a class="bigcard__action" href={c.action.href} target={c.action.external ? '_blank' : undefined} rel={c.action.external ? 'noopener' : undefined}>
+        {c.action.label}
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+      </a>
+    )}
+    </div>
+  </div>
+</div>
+
+<style>
+  .bigcard {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow-y: auto;
+    border-radius: 26px;
+    background:
+      radial-gradient(70% 60% at 18% 0%, rgb(var(--tone-depth) / 0.5), transparent 70%),
+      radial-gradient(70% 50% at 70% 110%, rgb(var(--tone-wash) / 0.22), transparent 72%),
+      rgb(var(--tone-surface));
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.26),
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 0 34px -8px rgb(var(--tone-glow) / 0.45),
+      0 30px 60px -30px rgb(var(--shade) / 0.8);
+    color: rgb(var(--ink));
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--hair) / 0.3) transparent;
+  }
+
+  .bigcard[hidden] {
+    display: none;
+  }
+
+  .bigcard__image {
+    position: absolute;
+    inset: 0 0 auto auto;
+    width: 56%;
+    height: min(100%, 460px);
+    max-width: none;
+    object-fit: cover;
+    opacity: 0.62;
+    filter: contrast(1.1) saturate(1.18) brightness(0.94);
+    mask-image:
+      linear-gradient(to left, #000 35%, transparent 100%),
+      linear-gradient(to top, transparent, #000 45%);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+    pointer-events: none;
+  }
+
+  .bigcard__close {
+    position: sticky;
+    top: 18px;
+    z-index: 2;
+    float: right;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin: 18px 18px 0 0;
+    border-radius: 50%;
+    background: rgb(255 255 255 / calc(0.05 * var(--fill-k)));
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.34);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition:
+      background-color 400ms var(--ease-out),
+      color 400ms var(--ease-out);
+  }
+
+  .bigcard__close:hover {
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
+  }
+
+  .bigcard__rest {
+    display: contents;
+  }
+
+  .bigcard__go {
+    display: none;
+  }
+
+  .bigcard__slot {
+    position: relative;
+  }
+
+  .bigcard__keep {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    min-height: 40px;
+    padding: 6px 14px;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+
+  .bigcard__close:focus-visible,
+  .bigcard__action:focus-visible,
+  .bigcard__block:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 3px;
+  }
+
+  .bigcard__close svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  .bigcard__body {
+    position: relative;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: clamp(var(--space-5), 4vh, var(--space-7));
+    padding: clamp(28px, 3.4vw, 56px);
+  }
+
+  .bigcard__head {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 40rem;
+  }
+
+  .bigcard__eyebrow {
+    display: flex;
+    gap: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.72);
+  }
+
+  .bigcard__eyebrow span {
+    color: rgb(var(--tone-lit));
+  }
+
+  .bigcard__name {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, min(4.4vw, 9vh), 4.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    text-shadow: 0 2px 24px rgb(var(--halo) / 0.5);
+  }
+
+  .bigcard__copy {
+    max-width: 34rem;
+    font-size: var(--type-lead);
+    line-height: 1.4;
+    color: rgb(var(--ink) / 0.88);
+    text-shadow: 0 1px 14px rgb(var(--halo) / 0.6);
+  }
+
+  .bigcard__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .bigcard__chips span {
+    padding: 5px 12px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.3);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .bigcard__quote {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 46rem;
+  }
+
+  .bigcard__quote blockquote {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.2vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.12;
+    text-shadow: 0 1px 14px rgb(var(--halo) / 0.6);
+  }
+
+  .bigcard__quote figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--tone-lit));
+  }
+
+  .bigcard__html {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 44rem;
+    color: rgb(var(--ink) / 0.86);
+    text-shadow: 0 1px 14px rgb(var(--halo) / 0.6);
+  }
+
+  .bigcard__video {
+    width: min(100%, 300px);
+    aspect-ratio: 9 / 16;
+    border-radius: 26px;
+    object-fit: cover;
+    background: var(--navy-700);
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.22);
+  }
+
+  .bigcard__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-8);
+  }
+
+  .bigcard__stats div {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .bigcard__stats dd {
+    order: -1;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.6vw, 3.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: rgb(var(--tone-lit));
+  }
+
+  .bigcard__stats dt {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .bigcard__blocks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: clamp(12px, 1.3vw, 20px);
+    width: 100%;
+  }
+
+  .bigcard__block {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    height: 100%;
+    padding: clamp(20px, 1.8vw, 28px);
+    padding-bottom: 76px;
+    overflow: hidden;
+    border-radius: 22px;
+    background: linear-gradient(165deg, rgb(255 255 255 / calc(0.13 * var(--fill-k))), rgb(255 255 255 / calc(0.05 * var(--fill-k))) 42%, rgb(255 255 255 / calc(0.025 * var(--fill-k))) 62%, rgb(255 255 255 / calc(0.07 * var(--fill-k))));
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.18),
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 24px 50px -30px rgb(var(--shade) / 0.8);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    transition:
+      translate 500ms var(--ease-out),
+      box-shadow 500ms var(--ease-out);
+  }
+
+  .bigcard__block::before {
+    content: '';
+    position: absolute;
+    inset: auto -25% -42%;
+    z-index: -1;
+    height: 70%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(var(--tone-wash) / 0.22), transparent 72%);
+  }
+
+  .bigcard__block:hover {
+    translate: 0 -4px;
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.9),
+      0 0 26px -4px rgb(var(--tone-glow) / 0.55),
+      0 24px 50px -30px rgb(var(--shade) / 0.8);
+  }
+
+  .bigcard__block:hover .bigcard__arrow {
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
+  }
+
+  .bigcard__block-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+    font-weight: 800;
+    line-height: 1.02;
+    text-transform: uppercase;
+  }
+
+  .bigcard__block-text {
+    font-size: 0.9375rem;
+    line-height: 1.42;
+    color: rgb(var(--ink) / 0.8);
+  }
+
+  .bigcard__block-list {
+    display: grid;
+    gap: 7px;
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .bigcard__block-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+  }
+
+  .bigcard__block-list span {
+    color: rgb(var(--tone-lit));
+  }
+
+  .bigcard__arrow {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgb(6 20 43 / 0.45);
+    color: var(--white);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.4);
+    transition:
+      background-color 400ms var(--ease-out),
+      color 400ms var(--ease-out);
+  }
+
+  .bigcard__arrow svg,
+  .bigcard__action svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .bigcard__action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 44px;
+    padding: 8px var(--space-5);
+    border-radius: 999px;
+    background: rgb(var(--press));
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--press-on));
+    transition: background-color 300ms var(--ease-out);
+  }
+
+  .bigcard__action:hover {
+    background: rgb(var(--press-hover));
+  }
+
+  @media (max-width: 1023px) {
+    .bigcard__image {
+      opacity: 0.32;
+      width: 100%;
+    }
+  }
+
+  /* ---------- In a deck that opens (Stride Social, desktop) ----------
+     The photo keeps a clean column with the name on it; what the card holds sits beside it on the
+     division's colour and scrolls on its own, fading out at the foot when there's more below. */
+  @media (min-width: 1024px) {
+    :global(.js .deck--open) .bigcard:not([hidden]) {
+      overflow: hidden;
+    }
+
+    :global(.js .deck--open) .bigcard__body {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      grid-template-rows: minmax(0, 1fr);
+      align-content: stretch;
+      justify-items: stretch;
+      gap: 0;
+      height: 100%;
+      padding: 0;
+    }
+
+    :global(.js .deck--open) .bigcard__image {
+      inset: 0 auto 0 0;
+      width: 33.334%;
+      height: 100%;
+      opacity: 1;
+      filter: none;
+      mask-image: none;
+    }
+
+    :global(.js .deck--open) .bigcard__close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      float: none;
+      margin: 0;
+    }
+
+    :global(.js .deck--open) .bigcard__head {
+      align-content: end;
+      min-height: 0;
+      max-width: none;
+      padding: clamp(20px, 1.9vw, 32px);
+    }
+
+    :global(.js .deck--open) .bigcard:has(.bigcard__image) .bigcard__head {
+      --ink: 255 255 255;
+      --tone-lit: 255 255 255;
+      --halo: 6 20 43;
+      background: linear-gradient(to top, rgb(6 20 43 / 0.92), rgb(6 20 43 / 0.62) 42%, rgb(6 20 43 / 0.1) 72%, rgb(6 20 43 / 0.2));
+      color: var(--white);
+    }
+
+    :global(.js .deck--open) .bigcard__name {
+      font-size: clamp(1.375rem, 1.95vw, 2.4rem);
+      line-height: 1;
+      overflow-wrap: normal;
+    }
+
+    :global(.js .deck--open) .bigcard__copy {
+      font-size: 0.9375rem;
+    }
+
+    :global(.js .deck--open) .bigcard__rest {
+      display: grid;
+      align-content: start;
+      justify-items: start;
+      gap: clamp(var(--space-4), 3vh, var(--space-6));
+      min-height: 0;
+      padding: 72px clamp(20px, 2vw, 32px) 64px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgb(var(--hair) / 0.3) transparent;
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
+    }
+
+    :global(.js .deck--open) .bigcard__rest:has(.bigcard__slot:only-child) {
+      align-content: center;
+    }
+
+    /* Only its story to tell (a case study without verified results): the photo takes the whole card. */
+    :global(.js .deck--open) .bigcard:not(:has(.bigcard__blocks, .bigcard__stats)) .bigcard__body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    :global(.js .deck--open) .bigcard:not(:has(.bigcard__blocks, .bigcard__stats)) .bigcard__image {
+      width: 100%;
+    }
+
+    :global(.js .deck--open) .bigcard:not(:has(.bigcard__blocks, .bigcard__stats)) .bigcard__head {
+      padding: clamp(28px, 3vw, 48px);
+      padding-right: 280px;
+    }
+
+    :global(.js .deck--open) .bigcard:not(:has(.bigcard__blocks, .bigcard__stats)) .bigcard__name {
+      font-size: clamp(2rem, 4vw, 4rem);
+    }
+
+    :global(.js .deck--open) .bigcard:not(:has(.bigcard__blocks, .bigcard__stats)) .bigcard__copy {
+      max-width: 44rem;
+      font-size: 1.0625rem;
+    }
+
+    :global(.js .deck--open) .bigcard:not(:has(.bigcard__blocks, .bigcard__stats)) .bigcard__rest {
+      position: absolute;
+      --press: 207 237 248;
+      --press-on: 6 20 43;
+      --press-hover: 255 255 255;
+      right: clamp(28px, 3vw, 48px);
+      bottom: clamp(28px, 3vw, 48px);
+      padding: 0;
+      overflow: visible;
+      mask-image: none;
+    }
+
+    :global(.js .deck--open) .bigcard__slot {
+      container-type: inline-size;
+    }
+
+    /* A short screen: a little tighter, so more fits before the fade. */
+    @media (max-height: 800px) {
+      :global(.js .deck--open) .bigcard__rest {
+        padding-top: 64px;
+      }
+
+      :global(.js .deck--open) .bigcard__block-list li {
+        padding-block: 4px;
+      }
+    }
+
+    :global(.js .deck--open) .bigcard__block {
+      min-height: 100%;
+      background: rgb(255 255 255 / 0.5);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    :global(.js .deck--open) .bigcard__block:hover {
+      translate: none;
+    }
+
+    /* The services read first: plain text with a hairline between, not small labels. */
+    :global(.js .deck--open) .bigcard__block-list {
+      gap: 0;
+      font-family: var(--font-text);
+      font-size: 0.9375rem;
+      line-height: 1.32;
+      letter-spacing: 0;
+      text-transform: none;
+      color: rgb(var(--ink) / 0.92);
+    }
+
+    :global(.js .deck--open) .bigcard__block-list li {
+      padding-block: 7px;
+      border-top: 1px solid rgb(var(--hair) / 0.14);
+    }
+
+    :global(.js .deck--open) .bigcard__block-list span {
+      font-family: var(--font-mono);
+      font-size: var(--type-label);
+      line-height: 1.7;
+    }
+
+    :global(.js .deck--open) .bigcard__slot:only-child .bigcard__block-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-5);
+    }
+
+    @container (min-width: 300px) {
+      :global(.js .deck--open) .bigcard__go {
+        position: absolute;
+        right: 62px;
+        bottom: 16px;
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 0.625rem;
+        letter-spacing: 0.05em;
+        line-height: 40px;
+        text-transform: uppercase;
+        color: rgb(var(--ink) / 0.8);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bigcard__block {
+      transition: none;
+    }
+
+    .bigcard__block:hover {
+      translate: none;
+    }
+  }
+</style>

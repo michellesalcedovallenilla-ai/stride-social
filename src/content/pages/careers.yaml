@@ -15,6 +15,15 @@ sections:
     status: approved
     eyebrow: Opportunities
     headline: Open roles.
+  # The team picker: interface copy written by us.
+  picker:
+    status: draft
+    items:
+      - key: pick
+        label: Which team would you fit?
+      - key: send
+        label: Write to the careers inbox
+
   apply:
     status: draft
     eyebrow: How to apply

@@ -11,21 +11,21 @@ import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
 import StrideLogo from '@/components/core/StrideLogo.astro';
 
 const colours = [
-  { name: 'Navy 900', token: '--navy-900', hex: '#06142b', note: 'Brand ink · dark surfaces', dark: true },
-  { name: 'Navy 700', token: '--navy-700', hex: '#1b2a44', note: 'Raised dark surfaces', dark: true },
-  { name: 'Paper', token: '--paper', hex: '#f5f4f0', note: 'Default light surface · navy text 16.7:1' },
-  { name: 'White', token: '--white', hex: '#ffffff', note: 'Cards, fields · navy text 18.4:1' },
-  { name: 'Line', token: '--line', hex: '#dbdbdb', note: 'Hairlines on light' },
-  { name: 'Slate', token: '--slate', hex: '#5b6577', note: 'Secondary text · 5.3:1 on paper', dark: true },
-  { name: 'Ice', token: '--ice', hex: '#c3f2fb', note: 'Group + Social accent · 15.2:1 with navy' },
-  { name: 'Peach', token: '--peach', hex: '#f4c7ae', note: 'Talent accent (proposed) · 11.9:1' },
-  { name: 'Sun', token: '--sun', hex: '#ffd45c', note: 'Education accent (proposed) · 13.0:1' },
+  { name: 'Navy 900', token: '--navy-900', hex: '#06142b', note: 'Deepest surface, ink on light · white text 18.4:1', dark: true },
+  { name: 'Navy 700', token: '--navy-700', hex: '#0c2753', note: 'Talent surface, accent on light · white text 14.7:1', dark: true },
+  { name: 'Navy 500', token: '--navy-500', hex: '#294368', note: 'Education closing surface · white text 10:1', dark: true },
+  { name: 'Steel', token: '--steel', hex: '#7892ab', note: 'Glow, focus, the mid-point of transitions', dark: true },
+  { name: 'Ice', token: '--ice', hex: '#cfedf8', note: 'Social surface and accent · navy text 15:1' },
+  { name: 'Lime', token: '--lime', hex: '#edff77', note: 'Stride Talent buttons only · navy text 16:1' },
+  { name: 'Pale ice', token: '--ice-pale', hex: '#e9fafd', note: 'Education surface and accent · navy text 17:1' },
+  { name: 'Frost', token: '--frost', hex: '#f5fcff', note: 'Group surface, for reading · navy text 18:1' },
+  { name: 'White', token: '--white', hex: '#ffffff', note: 'Legal pages, type on dark, Group accent' },
 ];
 const themes = [
   { key: 'group', label: 'Stride (group)', note: 'Paper surface · ice accent' },
   { key: 'social', label: 'Stride Social', note: 'Navy surface · ice accent' },
-  { key: 'talent', label: 'Stride Talent', note: 'Paper surface · peach accent' },
-  { key: 'education', label: 'Stride Education', note: 'White surface · sun accent' },
+  { key: 'talent', label: 'Stride Talent', note: 'Deep navy · lime buttons' },
+  { key: 'education', label: 'Stride Education', note: 'Pale ice and Navy 500 surfaces · pale ice accent' },
 ];
 const types = [
   { cls: 'type-hero', label: 'Hero · Archivo 850, width 125%', sample: 'Built around' },

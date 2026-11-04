@@ -1,0 +1,786 @@
+---
+// A wall you can move: tiles laid out on a board bigger than the screen, pinned while the visitor scrolls
+// through it and draggable in any direction with a little throw. Filters rearrange it, with the tiles
+// flying to their new places; a tile tilts towards the pointer, plays its footage on hover, and either
+// grows into a big card (BigCard) or opens its page. Used for Our Work and the creator roster.
+// `showcase` (Our Work, desktop): a glass lens for a cursor, the panel's headline becoming the client under the
+// pointer, the other tiles stepping back, columns drifting at their own speeds, a map to steer by, and the new
+// big card (src/scripts/system/wall-show.ts). Behaviour: src/scripts/system/wall.ts, filters: archive-filter.ts.
+// Below desktop, with reduced motion or without the script it is an ordinary grid.
+import BigCard from './BigCard.astro';
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import Chip from '../core/Chip.astro';
+import type { Card, Tone, Look } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export type WallItem = {
+  key: string;
+  name: string;
+  meta?: string;
+  image?: { src: string; alt: string } | null;
+  href: string;
+  video?: string;
+  filters: Record<string, string>;
+  card?: Card;
+};
+
+export interface Props {
+  items: WallItem[];
+  groups: { key: string; label: string; options: { id: string; label: string; n: number }[] }[];
+  copy: { eyebrow?: string; headline?: string; body?: string };
+  noun: string;
+  tone?: Tone;
+  /** The palette colour it lives in. */
+  look?: Look;
+  /** Tiles can go on the creator shortlist. */
+  keep?: boolean;
+  /** A button that flies the wall to a random tile. */
+  surprise?: boolean;
+  crumbs?: { label: string; href?: string }[];
+  search?: boolean;
+  /** What the big cards are called. */
+  eyebrow?: string;
+  showcase?: boolean;
+}
+
+const { items, groups, copy, noun, tone = 'group', look = 'deep', keep = false, surprise = false, crumbs, search = false, eyebrow = '', showcase = false } = Astro.props;
+const word = await interfaceCopy();
+const [one, many] = noun.split('|');
+const attrs = (f: Record<string, string>) => Object.fromEntries(Object.entries(f).map(([k, v]) => [`data-filter-${k}`, v]));
+---
+
+<section class:list={['wall', { 'wall--show deck--open': showcase }]} aria-label={copy.headline} data-wall data-archive data-tone={tone} data-look={look}>
+  <div class="wall__pin" data-wall-pin>
+    <ul class="wall__board" role="list" data-wall-board data-archive-grid>
+      {items.map((t) => (
+        <li class="wtile" data-key={t.key} {...attrs(t.filters)} data-search={t.name.toLowerCase()} data-name={showcase ? t.name : undefined} data-about={showcase ? [t.meta, ...(t.card?.chips ?? [])].filter(Boolean).join(' · ') : undefined}>
+          <a class="wtile__link on-photo" href={t.href} draggable="false" data-grow-card={t.card ? t.key : undefined}>
+            {t.image ? (
+              <img class="wtile__media" src={t.image.src} alt="" sizes="300px" loading="lazy" decoding="async" draggable="false" />
+            ) : (
+              <span class="wtile__initial" aria-hidden="true">{t.name.replace(/[^a-z0-9]/gi, '').charAt(0)}</span>
+            )}
+            {t.video && <video class="wtile__media wtile__video" muted loop playsinline preload="none" aria-hidden="true" src={t.video}></video>}
+            <span class="wtile__info">
+              {t.meta && <span class="wtile__meta">{t.meta}</span>}
+              <h2 class="wtile__name" style={`--len: ${Math.max(6, ...t.name.split(/\s+/).map((w) => w.length))}`}>{t.name}</h2>
+            </span>
+            <span class="wtile__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+            </span>
+          </a>
+          {keep && (
+            <button class="wtile__keep exp-round on-photo desk-only" type="button" aria-pressed="false" aria-label={`${word('hand.keep')}: ${t.name}`} data-keep="creators" data-keep-id={t.key} data-keep-label={t.name}>
+              <span class="keep-off" aria-hidden="true">+</span><span class="keep-on" aria-hidden="true">✓</span>
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+
+    <div class="wall__fade" aria-hidden="true" data-backdrop></div>
+
+    <div class="wall__panel">
+      {crumbs && <Breadcrumbs items={crumbs} tone="dark" />}
+      {copy.eyebrow && <p class="wall__eyebrow">{copy.eyebrow}</p>}
+      <div class="wall__say">
+        <div class="wall__said">
+          <h1 class="wall__title" data-reveal-lines="load">{copy.headline}</h1>
+          {copy.body && <p class="wall__body">{copy.body}</p>}
+        </div>
+        {showcase && (
+          <div class="wall__echo desk-only" aria-hidden="true" data-wall-echo>
+            <p class="wall__title wall__echo-name" data-echo-name></p>
+            <p class="wall__body" data-echo-meta></p>
+          </div>
+        )}
+      </div>
+      <div class="wall__filters">
+        {search && (
+          <label class="wall__search">
+            <span class="visually-hidden">Search by name</span>
+            <input type="search" placeholder="Search by name" autocomplete="off" data-filter-search />
+          </label>
+        )}
+        {groups.map((g) => (
+          <div class="wall__group">
+            <p class="wall__label" id={`wall-filter-${g.key}`}>{g.label}</p>
+            <div class="wall__chips" role="group" aria-labelledby={`wall-filter-${g.key}`} data-filter-group={g.key}>
+              <Chip value="all" tone="dark" active>All</Chip>
+              {g.options.map((o) => <Chip value={o.id} tone="dark">{o.label}</Chip>)}
+            </div>
+          </div>
+        ))}
+      </div>
+      {surprise && <button class="exp-pill exp-pill--ghost desk-only" type="button" data-wall-surprise>✦ {word('wall.surprise')}</button>}
+      <p class="wall__count" role="status" aria-live="polite" data-filter-count data-noun={noun}>{items.length} {items.length === 1 ? one : many}</p>
+      {showcase && (
+        <div class="wall__map desk-only" aria-hidden="true" data-wall-map title={word('wall.map')}>
+          <span class="wall__frame" data-wall-frame></span>
+        </div>
+      )}
+      <div class="wall__empty" hidden data-filter-empty>
+        <p>Nothing matches these filters.</p>
+        <button class="wall__clear" type="button" data-filter-clear>Clear filters</button>
+      </div>
+    </div>
+
+    {showcase ? (
+      <span class="wall__lens desk-only" aria-hidden="true" data-wall-lens data-view={word('wall.view')} data-drag={word('wall.drag')}><span></span></span>
+    ) : (
+      <p class="wall__hint" aria-hidden="true" data-wall-hint>Drag the wall · scroll to explore</p>
+    )}
+
+    <div class="wall__details">
+      {items.flatMap((t) => (t.card ? [<BigCard card={t.card} growKey={t.key} eyebrow={eyebrow} />] : []))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .wall {
+    position: relative;
+    background: radial-gradient(70% 28% at 60% 72%, rgb(var(--tone-wash) / 0.16), transparent);
+    color: rgb(var(--ink));
+  }
+
+  /* ---------- The ordinary grid: below desktop, reduced motion, no script ---------- */
+  .wall__pin {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-6);
+    padding: calc(var(--header-h) + var(--space-5)) var(--margin) var(--space-8);
+  }
+
+  .wall__board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: var(--gutter);
+  }
+
+  .wtile {
+    aspect-ratio: 4 / 5;
+  }
+
+  .wtile[hidden] {
+    display: none;
+  }
+
+  .wall__fade,
+  .wall__hint {
+    display: none;
+  }
+
+  /* ---------- The wall itself ---------- */
+  .wall.is-live {
+    overflow: clip;
+  }
+
+  .wall.is-live .wall__pin {
+    position: sticky;
+    top: 0;
+    display: block;
+    height: 100svh;
+    padding: 0;
+    overflow: clip;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .wall.is-dragging .wall__pin {
+    cursor: grabbing;
+  }
+
+  .wall.is-live .wall__board {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    will-change: transform;
+  }
+
+  .wall.is-live .wtile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    aspect-ratio: auto;
+    opacity: 0;
+    transition:
+      transform 800ms cubic-bezier(0.2, 1, 0.3, 1),
+      opacity 500ms var(--ease-out);
+  }
+
+  .wall.is-live.is-ready .wtile {
+    opacity: 1;
+  }
+
+  /* The panel's side: tiles go under it and fade away, so its type stays clear. */
+  .wall.is-live .wall__fade {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 2;
+    display: block;
+    width: calc(var(--margin) + min(24vw, 340px) + 60px);
+    background: linear-gradient(to right, rgb(var(--backdrop, var(--tone-surface))) calc(100% - 55px), transparent);
+    pointer-events: none;
+  }
+
+  .wall.is-live .wall__panel {
+    position: absolute;
+    top: calc(var(--header-h) + var(--space-3));
+    left: var(--margin);
+    z-index: 3;
+    width: min(24vw, 340px);
+    max-height: calc(100svh - var(--header-h) - var(--space-6));
+    overflow-y: auto;
+    scrollbar-width: none;
+    cursor: default;
+    user-select: text;
+  }
+
+  .wall.is-live .wall__hint {
+    position: absolute;
+    right: var(--margin);
+    bottom: var(--space-5);
+    z-index: 3;
+    display: block;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgb(6 20 43 / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    pointer-events: none;
+    transition: opacity 500ms var(--ease-out);
+  }
+
+  .wall.has-moved .wall__hint {
+    opacity: 0;
+  }
+
+  /* ---------- A tile ---------- */
+  .wtile__link {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 24px;
+    background: var(--navy-700);
+    color: rgb(var(--ink));
+    box-shadow: 0 26px 50px -30px rgb(var(--shade) / 0.8);
+    container-type: inline-size;
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--s, 1));
+    transition:
+      transform 300ms var(--ease-out),
+      box-shadow 400ms var(--ease-out);
+    -webkit-user-drag: none;
+  }
+
+  .wtile__link:hover,
+  .wtile__link:focus-visible {
+    --s: 1.03;
+    outline: none;
+    box-shadow:
+      0 0 30px -4px rgb(var(--tone-glow) / 0.6),
+      0 26px 50px -30px rgb(var(--shade) / 0.8);
+  }
+
+  .wtile__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    filter: contrast(1.1) saturate(1.18) brightness(0.94);
+    pointer-events: none;
+  }
+
+  .wtile__video {
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out);
+  }
+
+  .wtile__link:hover .wtile__video {
+    opacity: 1;
+  }
+
+  .wtile__initial {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 850;
+    text-transform: uppercase;
+    color: rgb(var(--tone-lit));
+  }
+
+  .wtile__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to top, rgb(6 20 43 / 0.88), rgb(6 20 43 / 0) 58%);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.2),
+      inset 0 1px 0 rgb(255 255 255 / 0.28);
+    transition: box-shadow 400ms var(--ease-out);
+  }
+
+  .wtile__link:hover::after,
+  .wtile__link:focus-visible::after {
+    box-shadow: inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95);
+  }
+
+  .wtile__info {
+    position: absolute;
+    right: 16px;
+    bottom: 14px;
+    left: 16px;
+    z-index: 1;
+    display: grid;
+    gap: 5px;
+  }
+
+  .wtile__meta {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    line-height: 1.3;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--tone-lit));
+  }
+
+  .wtile__name {
+    font-family: var(--font-display);
+    font-size: min(1.5rem, calc((100cqi - 32px) / (var(--len, 8) * 0.86)));
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  .wtile__arrow {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgb(6 20 43 / 0.45);
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition:
+      background-color 400ms var(--ease-out),
+      color 400ms var(--ease-out);
+  }
+
+  .wtile__link:hover .wtile__arrow {
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
+  }
+
+  .wtile__arrow svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---------- The panel ---------- */
+  .wall__panel {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--space-3);
+    container-type: inline-size;
+  }
+
+  .wall__eyebrow,
+  .wall__label,
+  .wall__count {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .wall__title {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 15cqi, 4.5rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+  }
+
+  .wall__body {
+    color: rgb(var(--ink) / 0.84);
+  }
+
+  .wall__filters {
+    display: grid;
+    gap: var(--space-3);
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+
+  .wall__group {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .wall__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .wall :global(.chip) {
+    min-height: 30px;
+    padding: 2px 11px;
+    border-radius: 999px;
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.22);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .wall__search input {
+    width: 100%;
+    min-height: 40px;
+    padding-inline: var(--space-4);
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / calc(0.07 * var(--fill-k)));
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.22);
+    color: rgb(var(--ink));
+    font: inherit;
+    font-size: 0.875rem;
+  }
+
+  .wall__search input::placeholder {
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .wall__search input:focus-visible,
+  .wall__clear:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 2px;
+  }
+
+  .wall__empty {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+
+  .wall__empty[hidden] {
+    display: none;
+  }
+
+  .wall__clear {
+    min-height: 34px;
+    padding-inline: var(--space-4);
+    border-radius: 999px;
+    background: rgb(var(--press));
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--press-on));
+  }
+
+  /* The big cards take the screen. */
+  .wall__details {
+    position: fixed;
+    inset: calc(var(--space-5)) var(--margin) var(--space-5);
+    z-index: 4;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .wall.has-big-card .wall__details {
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wtile__link,
+    .wtile__video {
+      transition: none;
+    }
+
+    .wtile__link:hover,
+    .wtile__link:focus-visible {
+      --s: 1;
+    }
+  }
+
+  /* A tile the wall has just flown to. */
+  .wtile.is-spot {
+    z-index: 3;
+  }
+
+  .wtile.is-spot .wtile__link {
+    box-shadow:
+      0 0 0 3px rgb(var(--tone-lit)),
+      0 0 46px 2px rgb(var(--tone-glow) / 0.85);
+  }
+
+  .wtile__keep {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    background: rgb(6 20 43 / 0.55);
+    font-size: 1rem;
+  }
+
+  .wtile__keep[aria-pressed='true'] {
+    background: rgb(var(--press));
+    color: rgb(var(--press-on));
+  }
+
+  /* ---------- The showcase (Our Work, desktop) ---------- */
+  .wall__say,
+  .wall__said {
+    display: contents;
+  }
+
+  .wall__lens,
+  .wall__map {
+    display: none;
+  }
+
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    /* The headline: it becomes the client under the pointer. */
+    .wall--show.is-live .wall__say {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .wall--show.is-live .wall__said,
+    .wall--show.is-live .wall__echo {
+      display: grid;
+      grid-area: 1 / 1;
+      align-content: start;
+      gap: var(--space-3);
+      transition:
+        opacity 240ms var(--ease-out),
+        translate 380ms cubic-bezier(0.2, 1, 0.3, 1);
+    }
+
+    .wall--show.is-live .wall__echo {
+      opacity: 0;
+      translate: 0 14px;
+      pointer-events: none;
+    }
+
+    .wall--show.is-peeking .wall__said {
+      opacity: 0;
+      translate: 0 -14px;
+    }
+
+    .wall--show.is-peeking .wall__echo {
+      opacity: 1;
+      translate: 0 0;
+    }
+
+    .wall--show .wall__echo-name {
+      font-size: min(clamp(2rem, 4.2vw, 4.25rem), calc(20.5vw / (var(--len, 6) * 0.98)));
+      overflow-wrap: normal;
+    }
+
+    /* The big card sits below the header, so its close button isn't under the menu's. */
+    .wall--show .wall__details {
+      top: calc(var(--header-h) + 4px);
+    }
+
+    /* A cursor of its own on the wall. */
+    .wall--show.is-live .wall__board,
+    .wall--show.is-live .wtile__link {
+      cursor: none;
+    }
+
+    .wall--show .wall__lens {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 90;
+      display: block;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+
+    .wall--show .wall__lens span {
+      position: absolute;
+      top: -46px;
+      left: -46px;
+      display: grid;
+      place-items: center;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgb(6 20 43 / 0.5);
+      box-shadow:
+        inset 0 0 0 1px rgb(255 255 255 / 0.55),
+        inset 0 1px 0 rgb(255 255 255 / 0.6),
+        0 14px 30px -10px rgb(6 20 43 / 0.6);
+      backdrop-filter: blur(8px) saturate(160%);
+      -webkit-backdrop-filter: blur(8px) saturate(160%);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--white);
+      opacity: 0;
+      scale: 0.3;
+      transition:
+        opacity 200ms var(--ease-out),
+        scale 340ms cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+
+    .wall--show .wall__lens.is-on span {
+      opacity: 1;
+      scale: 1;
+    }
+
+    .wall--show .wall__lens.is-on.is-small span {
+      scale: 0.72;
+    }
+
+    .wall--show .wall__lens.is-on.is-pressed span {
+      scale: 0.6;
+    }
+
+    /* The tile under the pointer comes forward, the rest step back, and a sheen follows. */
+    .wall--show.is-live .wtile {
+      translate: 0 calc(var(--drift, 0) * var(--r, 0) * 1px);
+    }
+
+    .wall--show.is-live .wtile.is-hot {
+      z-index: 5;
+    }
+
+    .wall--show .wtile__link {
+      transition:
+        opacity 320ms var(--ease-out),
+        scale 420ms cubic-bezier(0.2, 1.2, 0.35, 1),
+        transform 300ms var(--ease-out),
+        box-shadow 400ms var(--ease-out);
+    }
+
+    .wall--show.is-peeking .wtile:not(.is-hot) .wtile__link {
+      opacity: 0.38;
+    }
+
+    .wall--show .wtile.is-hot .wtile__link {
+      scale: 1.05;
+    }
+
+    .wall--show .wtile__link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgb(255 255 255 / 0.34), transparent 70%);
+      opacity: 0;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+      transition: opacity 280ms var(--ease-out);
+    }
+
+    .wall--show .wtile.is-hot .wtile__link::before {
+      opacity: 1;
+    }
+
+    .wall--show .wtile__arrow {
+      display: none;
+    }
+
+    /* The map. */
+    .wall--show.is-live .wall__map {
+      position: relative;
+      display: block;
+      width: min(100%, 210px);
+      margin-top: var(--space-2);
+      border-radius: 6px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .wall--show.is-live .wall__map.is-steering {
+      cursor: grabbing;
+    }
+
+    .wall--show .wall__map :global(i) {
+      position: absolute;
+      display: block;
+      border-radius: 2px;
+      background: rgb(var(--ink) / 0.26);
+      transition:
+        background-color 200ms var(--ease-out),
+        left 500ms var(--ease-out),
+        top 500ms var(--ease-out);
+    }
+
+    .wall--show .wall__map :global(i[hidden]) {
+      display: none;
+    }
+
+    .wall--show .wall__map :global(i.is-hot) {
+      background: rgb(var(--ink));
+    }
+
+    .wall--show .wall__frame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      border-radius: 3px;
+      box-shadow:
+        inset 0 0 0 1.5px rgb(var(--ink) / 0.85),
+        0 0 0 2000px transparent;
+      pointer-events: none;
+    }
+  }
+
+  /* A short screen: the panel needs the room. */
+  @media (max-height: 780px) {
+    .wall--show.is-live .wall__map {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { initArchiveFilters } from '@/scripts/system/archive-filter';
+  import { initWalls } from '@/scripts/system/wall';
+  initArchiveFilters();
+  initWalls();
+</script>

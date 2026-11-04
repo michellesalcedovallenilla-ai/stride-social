@@ -1,0 +1,92 @@
+# The words on the site's interactions: labels, hints and prompts, all written by us. Draft until the
+# owner approves them. Keys are read through src/lib/ui-copy.ts.
+sections:
+  ui:
+    status: draft
+    items:
+      # The cursor
+      - { key: cursor.open, label: Choose your cursor }
+      - { key: cursor.title, label: Your cursor }
+      - { key: cursor.finish, label: Finish }
+      - { key: cursor.finish.clear, label: Clear }
+      - { key: cursor.finish.ice, label: Ice }
+      - { key: cursor.finish.steel, label: Steel }
+      - { key: cursor.finish.ink, label: Ink }
+      - { key: cursor.size, label: Size }
+      - { key: cursor.size.small, label: Small }
+      - { key: cursor.size.medium, label: Medium }
+      - { key: cursor.size.large, label: Large }
+      - { key: cursor.ripple, label: Ripple }
+      - { key: cursor.off, label: Normal cursor }
+      # The shortlist tray
+      - { key: tray.brief.title, label: Your brief }
+      - { key: tray.brief.action, label: Start a campaign }
+      - { key: tray.creators.title, label: Your shortlist }
+      - { key: tray.creators.action, label: Enquire about these creators }
+      - { key: tray.share, label: Copy link }
+      - { key: tray.shared, label: Link copied }
+      - { key: tray.remove, label: Remove }
+      # Services
+      - { key: door.add, label: + Add to brief }
+      - { key: door.added, label: ✓ In your brief }
+      - { key: stack.hint, label: Right to keep · left to skip }
+      - { key: stack.keep, label: Keep }
+      - { key: stack.skip, label: Skip }
+      - { key: stack.keepLabel, label: Keep this and move on }
+      # Talent
+      - { key: hand.keep, label: Shortlist }
+      - { key: hand.kept, label: ✓ Shortlisted }
+      - { key: profile.flip, label: Flip the card }
+      - { key: profile.platforms, label: Find them on }
+      - { key: profile.prev, label: Previous creator }
+      - { key: profile.next, label: Next creator }
+      - { key: profile.hint, label: Swipe the card for the next creator }
+      - { key: door.handle, label: Open the door }
+      - { key: door.hint, label: Drag the handle to open the door }
+      # Work
+      - { key: wall.surprise, label: Surprise me }
+      - { key: wall.view, label: View }
+      - { key: wall.drag, label: Drag }
+      - { key: wall.map, label: Drag to move around the wall }
+      - { key: reel.chapter, label: Go to }
+      # Forms
+      - { key: steps.count, label: 'Question {n} of {total}' }
+      - { key: steps.next, label: Next }
+      - { key: steps.back, label: Back }
+      # Contact
+      - { key: chat.name, label: "What's your name?" }
+      - { key: chat.email, label: 'Nice to meet you, {name}. What email should we reply to?' }
+      - { key: chat.emailBad, label: "That doesn't look like an email address. Try again?" }
+      - { key: chat.topic, label: "What's it about?" }
+      - { key: chat.message, label: 'Go on, what would you like to say?' }
+      - { key: chat.ready, label: Ready to send it? }
+      - { key: chat.send, label: Send it }
+      - { key: chat.placeholder, label: Type here }
+      - { key: chat.submit, label: Send }
+      # Education
+      - { key: find.open, label: Find my level }
+      - { key: find.q1, label: Do you post content regularly? }
+      - { key: find.q2, label: Have you worked with a brand yet? }
+      - { key: find.q3, label: Do you know what to charge for your work? }
+      - { key: find.yes, label: 'Yes' }
+      - { key: find.no, label: Not yet }
+      - { key: find.result, label: 'Start at level {n}: {title}' }
+      # About and History
+      - { key: play.play, label: Play the story }
+      - { key: play.pause, label: Pause the story }
+      # Team
+      - { key: team.brand, label: "I'm a brand" }
+      - { key: team.creator, label: "I'm a creator" }
+      # Careers
+      - { key: ticket.tear, label: Tear to apply }
+      - { key: role.hint, label: Tick what sounds like you }
+      - { key: role.count, label: '{n} of {total} sound like you' }
+      - { key: role.tick, label: This sounds like me }
+      - { key: role.body, label: 'These parts of the role sound like me:' }
+      # Insights
+      - { key: insights.any, label: Any time }
+      - { key: insights.upto, label: '{n} min or less' }
+      - { key: article.share, label: Share on X }
+      - { key: article.copy, label: Copy link }
+      - { key: article.copied, label: Link copied }
+      - { key: article.sections, label: Sections }

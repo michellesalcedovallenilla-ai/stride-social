@@ -21,9 +21,18 @@ function initArchive(root: HTMLElement) {
   const empty = root.querySelector<HTMLElement>('[data-filter-empty]');
   const more = root.querySelector<HTMLButtonElement>('[data-load-more]');
   const groups = [...root.querySelectorAll<HTMLElement>('[data-filter-group]')];
+  const search = root.querySelector<HTMLInputElement>('[data-filter-search]');
+  // A slider: only items up to its value (data-filter-max names the item's number; the top means no limit).
+  const slider = root.querySelector<HTMLInputElement>('[data-filter-max]');
+  const sliderOut = root.querySelector<HTMLElement>('[data-filter-max-label]');
+  const sliderKey = slider?.dataset.filterMax ?? '';
+  const limit = () => (slider && Number(slider.value) < Number(slider.max) ? Number(slider.value) : Infinity);
   const params = new URLSearchParams(location.search);
   const state: Record<string, string> = {};
   let shown = pageSize;
+  let term = (params.get('q') ?? '').trim().toLowerCase();
+  if (search) search.value = term;
+  if (slider && params.get('up-to')) slider.value = params.get('up-to') as string;
 
   for (const g of groups) {
     const key = g.dataset.filterGroup!;
@@ -34,6 +43,8 @@ function initArchive(root: HTMLElement) {
 
   const render = () => {
     const matches = items.filter((item) =>
+      (!term || (item.dataset.search ?? '').includes(term)) &&
+      Number(item.dataset[sliderKey] ?? 0) <= limit() &&
       Object.entries(state).every(([key, value]) => !value || (item.getAttribute(`data-filter-${key}`) ?? '').split(' ').includes(value)),
     );
     items.forEach((item) => (item.hidden = true));
@@ -49,6 +60,10 @@ function initArchive(root: HTMLElement) {
         chip.setAttribute('aria-pressed', String(active));
       });
     }
+    if (slider && sliderOut) {
+      const top = limit() === Infinity;
+      sliderOut.textContent = top ? (slider.dataset.any ?? '') : (slider.dataset.upto ?? '').replace('{n}', slider.value);
+    }
     const visible = Math.min(shown, matches.length);
     if (count) count.textContent = `Showing ${visible} of ${matches.length} ${matches.length === 1 ? one : many}`;
     if (empty) empty.hidden = matches.length > 0;
@@ -58,6 +73,8 @@ function initArchive(root: HTMLElement) {
   const syncUrl = () => {
     const next = new URLSearchParams();
     for (const [k, v] of Object.entries(state)) if (v) next.set(k, v);
+    if (term) next.set('q', term);
+    if (slider && limit() !== Infinity) next.set('up-to', slider.value);
     const query = next.toString();
     history.replaceState(null, '', query ? `${location.pathname}?${query}` : location.pathname);
   };
@@ -73,6 +90,19 @@ function initArchive(root: HTMLElement) {
     });
   }
 
+  search?.addEventListener('input', () => {
+    term = search.value.trim().toLowerCase();
+    shown = pageSize;
+    render();
+    syncUrl();
+  });
+
+  slider?.addEventListener('input', () => {
+    shown = pageSize;
+    render();
+    syncUrl();
+  });
+
   more?.addEventListener('click', () => {
     const firstNew = items.filter((i) => !i.hidden).length;
     shown += pageSize;
@@ -83,6 +113,9 @@ function initArchive(root: HTMLElement) {
 
   root.querySelector('[data-filter-clear]')?.addEventListener('click', () => {
     Object.keys(state).forEach((k) => (state[k] = ''));
+    term = '';
+    if (search) search.value = '';
+    if (slider) slider.value = slider.max;
     shown = pageSize;
     render();
     syncUrl();

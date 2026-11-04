@@ -1,0 +1,446 @@
+---
+// Insights: the articles as a big list of headlines. Moving down the list, each headline slides forward
+// and its picture floats beside the pointer in a glass frame. Narrow it by topic and by how long you've
+// got (reading times are worked out from each article's own length). The latest stands above it all.
+// Behaviour: src/scripts/system/headlines.ts, filters: archive-filter.ts. Below desktop each row keeps a
+// small picture instead.
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import { pad } from '@/lib/experience';
+
+type Item = { id: string; title: string; href: string; cover: string; category: string; categoryLabel: string; date: string; minutes: number; standfirst?: string };
+
+export interface Props {
+  copy: { eyebrow?: string; headline?: string; body?: string };
+  lead?: Item;
+  items: Item[];
+  categories: { id: string; label: string }[];
+  /** The longest read, the top of the time slider. */
+  maxMinutes: number;
+  ui: { topic: string; time: string; all: string; any: string; upto: string; read: string; more: string; empty: string; clear: string };
+  crumbs: { label: string; href?: string }[];
+}
+
+const { copy, lead, items, categories, maxMinutes, ui, crumbs } = Astro.props;
+const longest = Math.max(5, ...(copy.headline ?? '').split(/\s+/).map((w) => w.length));
+---
+
+<section class="heads" aria-labelledby="heads-title" data-heads data-archive data-tone="group" data-look="white">
+  <div class="heads__inner container-wide">
+    <header class="heads__top">
+      <div class="heads__lead" data-reveal="from-left">
+        <Breadcrumbs items={crumbs} tone="dark" />
+        <h1 class="heads__title exp-title" id="heads-title" style={`--len: ${longest}`}>{copy.headline}</h1>
+        {copy.body && <p class="heads__body">{copy.body}</p>}
+      </div>
+      {lead && (
+        <a class="latest glass on-photo" href={lead.href}>
+          <img class="latest__image" src={lead.cover} alt="" sizes="(max-width: 1023px) 100vw, 46vw" fetchpriority="high" decoding="async" />
+          <span class="latest__text">
+            <span class="exp-label">{lead.categoryLabel} · {lead.date}</span>
+            <span class="latest__name exp-title">{lead.title}</span>
+            {lead.standfirst && <span class="latest__stand">{lead.standfirst}</span>}
+            <span class="exp-pill">
+              {ui.read} · {lead.minutes} min
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+            </span>
+          </span>
+        </a>
+      )}
+    </header>
+
+    <div class="heads__bar glass">
+      <div class="heads__group">
+        <p class="exp-label" id="heads-topic">{ui.topic}</p>
+        <div class="heads__chips" role="group" aria-labelledby="heads-topic" data-filter-group="category">
+          <button class="exp-chip" type="button" aria-pressed="true" data-value="all">{ui.all}</button>
+          {categories.map((c) => <button class="exp-chip" type="button" aria-pressed="false" data-value={c.id}>{c.label}</button>)}
+        </div>
+      </div>
+      <div class="heads__group">
+        <p class="exp-label" id="heads-time">{ui.time}</p>
+        <div class="heads__slider">
+          <input type="range" min="1" max={maxMinutes} step="1" value={maxMinutes} aria-labelledby="heads-time" data-filter-max="minutes" data-any={ui.any} data-upto={ui.upto} />
+          <output class="exp-chip" data-filter-max-label>{ui.any}</output>
+        </div>
+      </div>
+      <p class="heads__count exp-label" role="status" aria-live="polite" data-filter-count data-noun="article|articles">{items.length} articles</p>
+    </div>
+
+    <ol class="heads__list" role="list" data-archive-grid data-page-size="14" data-heads-list>
+      {items.map((a, i) => (
+        <li class="hline" data-filter-category={a.category} data-minutes={a.minutes}>
+          <a class="hline__link" href={a.href} data-cover={a.cover}>
+            <img class="hline__thumb" src={a.cover} alt="" sizes="96px" loading="lazy" decoding="async" />
+            <span class="hline__n" aria-hidden="true">{pad(i + 1)}</span>
+            <h2 class="hline__name">{a.title}</h2>
+            <span class="hline__meta">
+              <span>{a.categoryLabel}</span>
+              <span>{a.date}</span>
+              <span class="hline__min">{a.minutes} min</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+
+    <div class="heads__empty" hidden data-filter-empty>
+      <p>{ui.empty}</p>
+      <button class="exp-pill exp-pill--ghost" type="button" data-filter-clear>{ui.clear}</button>
+    </div>
+    <div class="heads__more">
+      <button class="exp-pill exp-pill--ghost" type="button" data-load-more hidden>{ui.more}</button>
+    </div>
+  </div>
+
+  <div class="heads__float" aria-hidden="true" data-heads-float>
+    <img alt="" data-heads-a />
+    <img alt="" data-heads-b />
+  </div>
+</section>
+
+<style>
+  .heads {
+    position: relative;
+    min-height: 100svh;
+    overflow: clip;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-8);
+    color: rgb(var(--ink));
+  }
+
+  .heads__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: clamp(var(--space-5), 4vh, var(--space-7));
+  }
+
+  .heads__top {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: var(--space-5) var(--gutter);
+    align-items: center;
+    min-height: calc(100svh - var(--header-h) - 200px);
+  }
+
+  .heads__lead {
+    display: grid;
+    gap: var(--space-4);
+    container-type: inline-size;
+  }
+
+  .heads__title {
+    font-size: min(7rem, calc(100cqi / (var(--len) * 0.84)));
+  }
+
+  .heads__body {
+    max-width: 28rem;
+    font-size: var(--type-lead);
+    line-height: 1.36;
+    color: rgb(var(--ink) / 0.88);
+  }
+
+  /* ---------- The latest ---------- */
+  .latest {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    height: min(60svh, 34rem);
+    overflow: hidden;
+    color: rgb(var(--ink));
+    transition:
+      translate 500ms var(--ease-out),
+      box-shadow 500ms var(--ease-out);
+  }
+
+  .latest:hover,
+  .latest:focus-visible {
+    translate: 0 -5px;
+    outline: none;
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 34px -4px rgb(var(--tone-glow) / 0.6);
+  }
+
+  .latest__image {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    filter: contrast(1.1) saturate(1.18) brightness(0.72);
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .latest:hover .latest__image {
+    transform: scale(1.04);
+  }
+
+  .latest__text {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+    width: 100%;
+    padding: clamp(20px, 2.2vw, 34px);
+    background: linear-gradient(to top, rgb(6 20 43 / 0.92), transparent);
+  }
+
+  .latest__name {
+    font-size: clamp(1.375rem, 2.3vw, 2.5rem);
+    line-height: 0.98;
+  }
+
+  .latest__stand {
+    display: -webkit-box;
+    max-width: 40rem;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: rgb(var(--ink) / 0.88);
+  }
+
+  /* ---------- The filters ---------- */
+  .heads__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-4) var(--space-7);
+    padding: clamp(14px, 1.5vw, 22px) clamp(18px, 2vw, 28px);
+  }
+
+  .heads__group {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .heads__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .heads__slider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .heads__slider input {
+    width: clamp(160px, 18vw, 280px);
+    accent-color: rgb(var(--tone-lit));
+    cursor: grab;
+  }
+
+  .heads__slider input:active {
+    cursor: grabbing;
+  }
+
+  .heads__slider input:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 4px;
+  }
+
+  .heads__slider output {
+    white-space: nowrap;
+  }
+
+  .heads__count {
+    align-self: center;
+    margin-left: auto;
+  }
+
+  /* ---------- The headlines ---------- */
+  .heads__list {
+    display: grid;
+  }
+
+  .hline[hidden] {
+    display: none;
+  }
+
+  .hline__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-5);
+    padding-block: clamp(14px, 1.5vw, 22px);
+    border-bottom: 1px solid rgb(var(--hair) / 0.14);
+    color: rgb(var(--ink));
+    transition:
+      padding-left 420ms cubic-bezier(0.2, 1.2, 0.35, 1),
+      border-color 300ms var(--ease-out);
+  }
+
+  .hline__thumb {
+    display: none;
+  }
+
+  .hline__n {
+    padding-top: 0.7em;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    color: rgb(var(--tone-lit));
+  }
+
+  /* The right of each row stays free: that's where the picture floats. */
+  .hline__name {
+    max-width: 62%;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.3vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.012em;
+    color: rgb(var(--ink) / 0.86);
+    transition: color 300ms var(--ease-out);
+  }
+
+  .hline__meta {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .hline__min {
+    color: rgb(var(--tone-lit));
+  }
+
+  .hline__link:hover,
+  .hline__link:focus-visible {
+    padding-left: var(--space-5);
+    border-color: rgb(var(--tone-lit) / 0.8);
+    outline: none;
+  }
+
+  .hline__link:hover .hline__name,
+  .hline__link:focus-visible .hline__name {
+    color: rgb(var(--ink));
+  }
+
+  .heads__empty {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+    padding-block: var(--space-6);
+    font-size: var(--type-lead);
+  }
+
+  .heads__empty[hidden] {
+    display: none;
+  }
+
+  .heads__more {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* The picture following the pointer. */
+  .heads__float {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    width: clamp(240px, 24vw, 380px);
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 22px;
+    background: var(--navy-700);
+    box-shadow:
+      0 0 0 1.5px rgb(var(--tone-lit) / 0.9),
+      0 0 40px -6px rgb(var(--tone-glow) / 0.6),
+      0 30px 60px -24px rgb(var(--shade) / 0.85);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(var(--fx, 0), var(--fy, 0), 0) rotate(var(--fr, 0deg)) scale(var(--fs, 0.86));
+    transition: opacity 240ms var(--ease-out);
+  }
+
+  .heads.is-previewing .heads__float {
+    --fs: 1;
+    opacity: 1;
+  }
+
+  .heads__float img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 280ms var(--ease-out);
+  }
+
+  .heads__float img.is-on {
+    opacity: 1;
+  }
+
+  /* ---------- Below desktop ---------- */
+  @media (max-width: 1023px) {
+    .heads__top {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .heads__float {
+      display: none;
+    }
+
+    .heads__count {
+      margin-left: 0;
+    }
+
+    .hline__link {
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: var(--space-3);
+    }
+
+    .hline__thumb {
+      display: block;
+      grid-row: span 2;
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      object-fit: cover;
+    }
+
+    .hline__n {
+      display: none;
+    }
+
+    .hline__name {
+      max-width: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .latest,
+    .latest__image,
+    .hline__link,
+    .hline__name {
+      transition: none;
+    }
+
+    .latest:hover {
+      translate: none;
+    }
+
+    .latest:hover .latest__image {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  import { initArchiveFilters } from '@/scripts/system/archive-filter';
+  import { initHeadlines } from '@/scripts/system/headlines';
+  initArchiveFilters();
+  initHeadlines();
+</script>

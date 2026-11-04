@@ -1,268 +1,392 @@
 ---
-// Careers (docs/phase-2/05-wireframes.md §E; brief §7: company information, team culture,
-// available opportunities and an application route). Replaces the Phase 1 page at the same URL.
-// Culture intro (awaiting Stride) · open roles · placement scheme highlight · how to apply.
-// Production lists only roles Stride has confirmed open; preview also shows the previous site's
-// postings, labelled.
+// Careers (brief §7: company information, team culture, available opportunities and an application
+// route): open roles as glass tickets that lean towards the pointer and grow into a big card, then a team
+// picker that addresses your application email (group/TeamPicker). Production lists only roles Stride has
+// confirmed open; preview also shows the previous site's postings, labelled. Culture copy must be Stride's own.
 import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
-import Button from '@/components/core/Button.astro';
-import DraftTag from '@/components/core/DraftTag.astro';
+import BigCard from '@/components/experience/BigCard.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import TeamPicker from '@/components/group/TeamPicker.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
 import { careersEmail } from '@/config/forms';
 import { routes } from '@/lib/routes';
 import { isPreview } from '@/lib/env';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+const t = await interfaceCopy();
 
 const s = (await getEntry('pages', 'careers'))?.data.sections;
 if (!s) throw new Error('Missing src/content/pages/careers.yaml');
 const roles = (await getCollection('roles', (r) => r.data.status === 'open' || (isPreview && r.data.status === 'legacy'))).sort((a, b) => a.data.order - b.data.order);
-const scheme = roles.find((r) => r.data.scheme);
-const mailto = `mailto:${careersEmail}?subject=${encodeURIComponent('Application')}`;
+const applyFor = (title: string) => `mailto:${careersEmail}?subject=${encodeURIComponent(`Application: ${title}`)}`;
+
+const labels = { talent: 'Talent', campaigns: 'Campaigns', social: 'Social media', sales: 'Sales', operations: 'Operations' } as const;
+const team = (await getCollection('team', (m) => m.data.visible)).sort((a, b) => a.data.order - b.data.order);
+const teams = (Object.keys(labels) as (keyof typeof labels)[])
+  .map((id) => {
+    const members = team.filter((m) => m.data.department === id);
+    return { id, label: labels[id], count: members.length, faces: members.slice(0, 9).map((m) => m.data.photo) };
+  })
+  .filter((t) => t.count > 0);
+const ui = (key: string, fallback: string) => s.picker?.items?.find((i) => i.key === key)?.label ?? fallback;
 ---
 
-<SiteLayout title="Careers | Stride" description={s.hero.body}>
-  <PageIntro crumbs={[{ label: 'Careers' }]} copy={s.hero} tone="light" />
-
-  {isPreview && (
-    <section class="culture" aria-labelledby="culture-title">
-      <div class="container-wide culture__inner">
-        <div>
-          <Eyebrow tone="light">{s.culture.eyebrow}</Eyebrow>
-          <h2 class="culture__title" id="culture-title">{s.culture.headline}</h2>
-        </div>
-        <PlaceholderNotice variant="block" label="Needed from Stride">
-          <p>{(s.culture.awaiting ?? []).join(' · ')}. Production leaves this section out until it exists.</p>
-        </PlaceholderNotice>
+<SiteLayout title="Careers | Stride" description={s.hero.body} look="navy" headerOverlay>
+  <section class="jobs" aria-labelledby="jobs-title" data-jobs data-tone="group" data-look="navy">
+    <div class="jobs__inner container-wide">
+      <div class="jobs__lead" data-reveal="from-left">
+        <Breadcrumbs items={[{ label: 'Careers' }]} tone="dark" />
+        <h1 class="jobs__title exp-title" id="jobs-title">{s.hero.headline}</h1>
+        <p class="jobs__body">{s.hero.body}</p>
+        {isPreview && <PlaceholderNotice variant="inline" label="Needed from Stride">— {(s.culture.awaiting ?? []).join(' · ')}</PlaceholderNotice>}
       </div>
-    </section>
-  )}
 
-  <section class="roles" aria-labelledby="roles-title">
-    <div class="container-wide">
-      <header class="roles__head">
-        <Eyebrow tone="light">{s.roles.eyebrow}</Eyebrow>
-        <h2 class="roles__title" id="roles-title">{s.roles.headline}</h2>
-      </header>
-      {roles.length > 0 ? (
-        <ul class="roles__list" role="list">
-          {roles.map((r) => (
-            <li>
-              <a class="role" href={routes.role(r.id)}>
-                <span class="role__title">{r.data.title}</span>
-                <span class="role__meta">{[r.data.location, r.data.salary].filter(Boolean).join(' · ')}</span>
-                {r.data.status === 'legacy' && <PlaceholderNotice variant="inline" label="To confirm">— posted on the previous site; still open?</PlaceholderNotice>}
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p class="roles__none">No open roles right now. We still like hearing from people who want to work with creators.</p>
-      )}
+      <div class="jobs__board" data-jobs-board>
+        <p class="exp-label">{s.roles.eyebrow} · {s.roles.headline}</p>
+        {roles.length > 0 ? (
+          <ul class="jobs__tickets" role="list" data-grow-row>
+            {roles.map((r, i) => (
+              <li class="jobs__ticket-wrap">
+                <a class="ticket" href={routes.role(r.id)} draggable="false" data-grow-card={r.id} data-ticket>
+                  <span class="ticket__sheen" aria-hidden="true"></span>
+                  <span class="ticket__main">
+                    {r.data.scheme && <span class="ticket__flag">Placement scheme</span>}
+                    <span class="ticket__name">{r.data.title.replace(/^Placement Scheme:\s*/i, '')}</span>
+                    <span class="ticket__meta">
+                      {[r.data.location, r.data.salary].filter(Boolean).map((x) => <span class="exp-chip">{x}</span>)}
+                    </span>
+                  </span>
+                  <span class="ticket__stub" aria-hidden="true" data-ticket-stub data-mailto={applyFor(r.data.title)}>
+                    <span class="exp-label">No. {pad(i + 1)}</span>
+                    <span class="ticket__tear desk-only">{t('ticket.tear')}</span>
+                    <span class="exp-round"><svg viewBox="0 0 24 24"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg></span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="jobs__none">No open roles right now. We still like hearing from people who want to work with creators.</p>
+        )}
+      </div>
+    </div>
+
+    <div class="jobs__details">
+      {roles.map((r) => (
+        <BigCard
+          growKey={r.id}
+          eyebrow={s.roles.eyebrow ?? ''}
+          card={{
+            name: r.data.title,
+            text: r.data.summary,
+            href: routes.role(r.id),
+            chips: [r.data.location, r.data.salary].filter((x): x is string => !!x),
+            action: { label: 'Read the role', href: routes.role(r.id) },
+            blocks: [{ title: 'Apply by email', text: careersEmail, href: applyFor(r.data.title), action: 'Apply by email' }],
+          }}
+        />
+      ))}
     </div>
   </section>
 
-  {scheme && (
-    <section class="scheme" aria-labelledby="scheme-title">
-      <div class="container-wide scheme__inner">
-        <p class="scheme__label">Placement scheme</p>
-        <h2 class="scheme__title" id="scheme-title">{scheme.data.title.replace(/^Placement Scheme:\s*/i, '')}</h2>
-        <p class="scheme__summary">{scheme.data.summary}</p>
-        <Button href={routes.role(scheme.id)} tone="light" arrow>About the placement</Button>
-      </div>
-    </section>
-  )}
-
-  <section class="apply-route" aria-labelledby="apply-route-title">
-    <div class="container-wide apply-route__inner">
-      <div>
-        <Eyebrow tone="dark">{s.apply.eyebrow}</Eyebrow>
-        <h2 class="apply-route__title" id="apply-route-title">{s.apply.headline}</h2>
-        <DraftTag status={s.apply.status} />
-      </div>
-      <div class="apply-route__body">
-        <p>{s.apply.body}</p>
-        <Button href={mailto} tone="dark">{careersEmail}</Button>
-      </div>
-    </div>
-  </section>
+  <TeamPicker eyebrow={s.apply.eyebrow} headline={s.apply.headline} body={s.apply.body} email={careersEmail} teams={teams} pick={ui('pick', 'Which team would you fit?')} send={ui('send', 'Write to the careers inbox')} />
 </SiteLayout>
 
 <style>
-  .culture,
-  .roles {
+  .jobs {
     position: relative;
-    z-index: 1;
-    padding-block: var(--space-9);
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .culture {
-    background: var(--white);
-  }
-
-  .culture__inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-    gap: var(--space-7) var(--gutter);
-  }
-
-  .culture__title,
-  .roles__title,
-  .apply-route__title {
-    font-family: var(--font-display);
-    font-size: var(--type-h1);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .roles__head {
-    display: grid;
-    gap: var(--space-4);
-    margin-bottom: var(--space-7);
-  }
-
-  .roles__list {
-    border-top: 1px solid var(--navy-900);
-  }
-
-  .role {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto 28px;
     align-items: center;
-    gap: var(--space-2) var(--space-5);
-    padding: var(--space-6) 0;
-    border-bottom: 1px solid var(--line);
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-6);
+    overflow: clip;
+    color: rgb(var(--ink));
   }
 
-  .role__title {
-    font-family: var(--font-display);
-    font-size: clamp(1.375rem, 2.4vw, 2.25rem);
-    font-weight: 800;
-    font-stretch: 108%;
-    line-height: 1.05;
-  }
-
-  .role__meta {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
-  }
-
-  .role :global(.ph-tag) {
-    grid-column: 1 / 3;
-  }
-
-  .role svg {
-    grid-column: 3;
-    grid-row: 1;
-    width: 22px;
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .role:hover svg {
-    transform: translateX(5px);
-  }
-
-  .roles__none {
-    max-width: 52ch;
-    font-size: var(--type-lead);
-  }
-
-  .scheme {
+  .jobs__inner {
     position: relative;
     z-index: 1;
-    background: var(--ice);
-    color: var(--navy-900);
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-6) var(--gutter);
+    align-items: center;
+    width: 100%;
   }
 
-  .scheme__inner {
+  .jobs__lead {
     display: grid;
-    gap: var(--space-5);
     justify-items: start;
-    padding-block: var(--space-9);
+    gap: var(--space-4);
+    container-type: inline-size;
   }
 
-  .scheme__label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+  .jobs__title {
+    font-size: clamp(2.5rem, 17cqi, 6.5rem);
   }
 
-  .scheme__title {
-    max-width: 18ch;
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 4.4vw, 4.5rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    text-transform: uppercase;
-  }
-
-  .scheme__summary {
-    max-width: 44ch;
+  .jobs__body {
+    max-width: 30rem;
     font-size: var(--type-lead);
+    line-height: 1.36;
+    color: rgb(var(--ink) / 0.88);
   }
 
-  .apply-route {
-    position: relative;
-    z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .apply-route__inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-7) var(--gutter);
-    align-items: end;
-    padding-block: clamp(64px, 8vw, 128px);
-  }
-
-  .apply-route__inner > div:first-child {
+  .jobs__board {
     display: grid;
     gap: var(--space-4);
-    justify-items: start;
+    perspective: 1400px;
   }
 
-  .apply-route__body {
+  .jobs__tickets {
     display: grid;
-    gap: var(--space-5);
-    justify-items: start;
-    max-width: 46ch;
+    gap: clamp(14px, 1.6vw, 24px);
+  }
+
+  .jobs__none {
     font-size: var(--type-lead);
-    line-height: 1.45;
+  }
+
+  /* ---------- A ticket: glass, with its stub torn along a dotted line ---------- */
+  .ticket {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    overflow: hidden;
+    border-radius: 24px;
+    color: rgb(var(--ink));
+    background: linear-gradient(120deg, rgb(255 255 255 / calc(0.15 * var(--fill-k))), rgb(255 255 255 / calc(0.05 * var(--fill-k))) 55%, rgb(var(--tone-glow) / 0.14));
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    box-shadow: 0 30px 60px -34px rgb(var(--shade) / 0.7);
+    /* Notches where the stub tears off. */
+    -webkit-mask: radial-gradient(circle 13px at calc(100% - 132px) 0, transparent 98%, #000) top, radial-gradient(circle 13px at calc(100% - 132px) 100%, transparent 98%, #000) bottom;
+    -webkit-mask-size: 100% 51%;
+    -webkit-mask-repeat: no-repeat;
+    mask: radial-gradient(circle 13px at calc(100% - 132px) 0, transparent 98%, #000) top / 100% 51% no-repeat, radial-gradient(circle 13px at calc(100% - 132px) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 240ms var(--ease-out);
+    -webkit-user-drag: none;
+  }
+
+  .ticket:focus-visible {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 3px;
+  }
+
+  .ticket__sheen {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at var(--gx, 30%) var(--gy, 20%), rgb(var(--tone-lit) / 0.36), transparent 46%);
+    pointer-events: none;
+  }
+
+  .ticket__main {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: var(--space-3);
+    min-height: clamp(150px, 20svh, 210px);
+    padding: clamp(20px, 2vw, 32px);
+  }
+
+  .ticket__flag {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgb(var(--tone-lit));
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--tone-on));
+  }
+
+  .ticket__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 2.3vw, 2.375rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 1;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+  }
+
+  .ticket__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ticket__stub {
+    display: grid;
+    align-content: space-between;
+    justify-items: center;
+    width: 132px;
+    padding: clamp(18px, 1.6vw, 26px) 12px;
+    border-left: 2px dashed rgb(var(--hair) / 0.3);
+  }
+
+  .ticket__stub {
+    cursor: grab;
+    touch-action: none;
+    transition: opacity 260ms var(--ease-out);
+  }
+
+  .ticket__tear {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+    color: rgb(var(--tone-lit));
+  }
+
+  /* The stub, torn off and following the pointer. */
+  .ticket__stub--free {
+    position: fixed;
+    z-index: 130;
+    border-radius: 18px;
+    background: rgb(var(--panel) / 0.9);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--hair) / 0.3),
+      0 30px 60px -20px rgb(var(--shade) / 0.8);
+    cursor: grabbing;
+    color: rgb(var(--ink));
+    pointer-events: none;
+  }
+
+  .ticket:hover .exp-round {
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  .jobs__details {
+    position: fixed;
+    inset: calc(50svh - min(23rem, 46svh)) max(calc((100vw - 64rem) / 2), var(--margin));
+    z-index: 120;
+    pointer-events: none;
+  }
+
+  .jobs__details :global(.bigcard) {
+    pointer-events: auto;
+  }
+
+  .jobs__details :global(.bigcard__name) {
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+    line-height: 0.98;
+  }
+
+  .jobs__inner {
+    transition:
+      opacity 400ms var(--ease-out),
+      filter 400ms var(--ease-out);
+  }
+
+  .jobs.has-big-card .jobs__inner {
+    opacity: 0.22;
+    filter: blur(6px);
   }
 
   @media (max-width: 1023px) {
-    .culture__inner,
-    .apply-route__inner {
+    .jobs__inner {
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
   @media (max-width: 599px) {
-    .role {
-      grid-template-columns: minmax(0, 1fr) 24px;
+    .ticket {
+      grid-template-columns: minmax(0, 1fr);
+      -webkit-mask: none;
+      mask: none;
     }
 
-    .role__meta,
-    .role :global(.ph-tag) {
-      grid-column: 1;
+    .ticket__stub {
+      display: none;
     }
+  }
 
-    .role svg {
-      grid-column: 2;
-      grid-row: 1 / 3;
+  @media (prefers-reduced-motion: reduce) {
+    .ticket {
+      transition: none;
     }
   }
 </style>
+
+<script>
+  import { initGrow } from '@/scripts/system/grow';
+  import { initTilt } from '@/scripts/system/ambient';
+  document.querySelectorAll<HTMLElement>('[data-jobs]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = 'true';
+    const grow = initGrow(root);
+    // Clicking the dimmed page puts the card away.
+    root.addEventListener('click', (e) => {
+      if (root.classList.contains('has-big-card') && !(e.target as HTMLElement).closest('[data-grow-card], .bigcard')) grow.close();
+    });
+    // Each ticket leans towards the pointer while it's on that ticket.
+    root.querySelectorAll<HTMLElement>('[data-ticket]').forEach((t) => initTilt(t, () => t, 8));
+
+    // Tear the stub off a ticket: pulled far enough, it opens the application email. Otherwise it goes back.
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      root.querySelectorAll<HTMLElement>('[data-ticket-stub]').forEach((stub) => {
+        const ticket = stub.closest<HTMLElement>('[data-ticket]');
+        let free: HTMLElement | null = null;
+        let startX = 0;
+        let startY = 0;
+        let pressed = false;
+        let dragged = false;
+        ticket?.addEventListener('click', (e) => {
+          if (!dragged) return;
+          dragged = false;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }, { capture: true });
+        const moveFree = (dx: number, dy: number) => {
+          if (free) free.style.transform = `translate(${dx}px, ${dy}px) rotate(${(dx * 0.05).toFixed(1)}deg)`;
+        };
+        stub.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          pressed = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          stub.setPointerCapture(e.pointerId);
+        });
+        stub.addEventListener('pointermove', (e) => {
+          if (!pressed) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          if (!free) {
+            if (Math.hypot(dx, dy) < 6) return;
+            const r = stub.getBoundingClientRect();
+            free = stub.cloneNode(true) as HTMLElement;
+            free.classList.add('ticket__stub--free');
+            Object.assign(free.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+            document.body.append(free);
+            stub.style.opacity = '0';
+            dragged = true;
+          }
+          moveFree(dx, dy);
+        });
+        stub.addEventListener('pointerup', (e) => {
+          if (!pressed) return;
+          pressed = false;
+          const piece = free;
+          free = null;
+          if (!piece) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          const torn = Math.hypot(dx, dy) > 130;
+          const end = torn ? `translate(${dx * 2.4}px, ${dy * 2.4 - 120}px) rotate(${dx * 0.12}deg)` : 'none';
+          piece.animate([{ transform: piece.style.transform, opacity: 1 }, { transform: end, opacity: torn ? 0 : 1 }], { duration: torn ? 420 : 300, easing: 'cubic-bezier(0.2, 1, 0.3, 1)' }).finished.finally(() => {
+            piece.remove();
+            stub.style.opacity = '';
+            if (torn) window.location.href = stub.dataset.mailto ?? '';
+          });
+        });
+      });
+    }
+  });
+</script>

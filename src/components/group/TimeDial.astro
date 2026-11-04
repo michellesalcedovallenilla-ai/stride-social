@@ -1,0 +1,606 @@
+---
+// About Stride's opening: the story on a dial. A huge mark (a year, or a chapter) runs the width of the screen
+// and rolls over letter by letter like an odometer as you scroll, lit by a light that travels with you; that
+// moment's story sits under it, and along the foot runs a ruler with a needle you can drag or click to travel
+// through time. Elsewhere the mark and a glass card are stacked. Behaviour: src/scripts/system/time-dial.ts.
+// Steps come from the page: milestones only where the rules allow (verified in production).
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  steps: { mark: string; title?: string; text?: string; image?: { src: string; alt: string } | null; chips?: string[] }[];
+  crumbs: { label: string; href?: string }[];
+}
+
+const { steps, crumbs } = Astro.props;
+const t = await interfaceCopy();
+---
+
+<section class="dial" aria-labelledby="dial-title" data-dial data-tone="group" data-look="deep" style={`--steps: ${steps.length}`}>
+  <div class="dial__pin" data-portal-hero>
+
+    <span class="dial__glow" aria-hidden="true"></span>
+
+    <div class="dial__crumbs"><Breadcrumbs items={crumbs} tone="dark" /></div>
+
+    <div class="dial__marks" aria-hidden="true">
+      <span class="dial__shade"></span>
+      {steps.map((s, i) => (
+        <p class:list={['dial__mark', { 'is-active': i === 0 }]} style={`--len: ${Math.max(4, s.mark.length)}`} data-dial-mark={i}>
+          {[...s.mark].map((ch, c) => <span class="dial__char" style={`--c: ${c}`}>{ch}</span>)}
+        </p>
+      ))}
+    </div>
+
+    <div class="dial__cards">
+      {steps.map((s, i) => {
+        const Heading = i === 0 ? 'h1' : 'p';
+        return (
+          <article class:list={['dial__card glass', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-dial-card={i}>
+            {s.image && <img class="dial__image" src={s.image.src} alt={s.image.alt} sizes="440px" loading="lazy" decoding="async" />}
+            <p class="exp-label">{pad(i + 1)} / {pad(steps.length)}</p>
+            {s.title && <Heading class="dial__title exp-title" id={i === 0 ? 'dial-title' : undefined}>{s.title}</Heading>}
+            {s.text && <p class="dial__text">{s.text}</p>}
+            {s.chips && s.chips.length > 0 && <p class="dial__chips">{s.chips.map((c) => <span class="exp-chip">{c}</span>)}</p>}
+          </article>
+        );
+      })}
+    </div>
+
+    <button class="dial__play exp-round desk-only" type="button" aria-pressed="false" aria-label={t('play.play')} data-play={t('play.play')} data-pause={t('play.pause')} data-dial-play><svg class="play-on" viewBox="0 0 16 16" aria-hidden="true" style="fill: currentColor; stroke: none"><path d="M4 2l10 6-10 6z"></path></svg><svg class="play-off" viewBox="0 0 16 16" aria-hidden="true" style="fill: currentColor; stroke: none"><path d="M4 2h3v12H4zM9 2h3v12H9z"></path></svg></button>
+
+    <div class="dial__ruler" role="slider" tabindex="0" aria-label="Move through the story" aria-valuemin="1" aria-valuemax={steps.length} aria-valuenow="1" data-dial-ruler>
+      <div class="dial__track">
+        <span class="dial__fill" aria-hidden="true"></span>
+        {steps.map((s, i) => (
+          <span class="dial__tick" style={`left: ${((i + 0.5) / steps.length) * 100}%`} data-dial-tick={i} aria-hidden="true">
+            <span class="dial__tick-label">{s.mark}</span>
+          </span>
+        ))}
+        <span class="dial__handle glass" aria-hidden="true"><span></span></span>
+        <span class="dial__needle" aria-hidden="true"></span>
+      </div>
+    </div>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .dial {
+    position: relative;
+    height: calc(100svh + (var(--steps) - 1) * 60svh);
+    color: rgb(var(--ink));
+  }
+
+  .dial__pin {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--space-4) var(--gutter);
+    height: 100svh;
+    min-height: 600px;
+    padding: calc(var(--header-h) + var(--space-2)) var(--margin) var(--space-6);
+    overflow: clip;
+  }
+
+  .dial__crumbs {
+    position: relative;
+    z-index: 2;
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- The huge mark ---------- */
+  .dial__marks {
+    position: relative;
+    z-index: 1;
+    grid-column: 1;
+    grid-row: 2;
+    display: grid;
+    align-items: center;
+    container-type: inline-size;
+    overflow: hidden;
+  }
+
+  .dial__mark {
+    grid-area: 1 / 1;
+    font-family: var(--font-display);
+    font-size: min(38cqi, calc(100cqi / (var(--len) * 0.76)));
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(var(--tone-lit) / 0.85);
+    background: linear-gradient(180deg, rgb(var(--tone-lit) / 0.26), rgb(255 255 255 / calc(0.02 * var(--fill-k))) 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    opacity: 0;
+    transform: translateY(60%) rotateX(-40deg);
+    transform-origin: 50% 100%;
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 720ms cubic-bezier(0.2, 1.1, 0.3, 1);
+  }
+
+  .dial__mark.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  .dial__mark.is-past {
+    transform: translateY(-60%) rotateX(40deg);
+  }
+
+  /* ---------- The moment ---------- */
+  .dial__cards {
+    position: relative;
+    z-index: 2;
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    align-items: center;
+    container-type: inline-size;
+  }
+
+  .dial__card {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: clamp(20px, 2.2vw, 36px);
+    opacity: 0;
+    transform: translateX(36px) scale(0.97);
+    pointer-events: none;
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 620ms cubic-bezier(0.2, 1.1, 0.3, 1);
+  }
+
+  .dial__card.is-active {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .dial__card.is-past {
+    transform: translateX(-36px) scale(0.97);
+  }
+
+  .dial__image {
+    width: 100%;
+    height: clamp(120px, 22svh, 220px);
+    border-radius: 18px;
+    object-fit: cover;
+  }
+
+  .dial__title {
+    font-size: clamp(1.5rem, 8.4cqi, 2.75rem);
+    line-height: 0.98;
+  }
+
+  .dial__text {
+    color: rgb(var(--ink) / 0.86);
+  }
+
+  .dial__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ---------- The ruler ---------- */
+  .dial__ruler {
+    position: relative;
+    z-index: 3;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    padding-block: 28px 34px;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+    outline: none;
+  }
+
+  .dial.is-dragging .dial__ruler {
+    cursor: grabbing;
+  }
+
+  .dial__ruler:focus-visible .dial__handle {
+    outline: 2px solid rgb(var(--tone-lit));
+    outline-offset: 3px;
+  }
+
+  .dial__track {
+    position: relative;
+    height: 22px;
+  }
+
+  .dial__track::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(to right, rgb(255 255 255 / calc(0.32 * var(--fill-k))) 0 1px, transparent 1px 14px);
+    mask-image: linear-gradient(to bottom, #000 45%, rgb(0 0 0 / 0.4));
+  }
+
+  .dial__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 100%;
+    background: repeating-linear-gradient(to right, rgb(var(--tone-lit)) 0 2px, transparent 2px 14px);
+    clip-path: inset(0 calc(100% - var(--at, 0) * 100%) 0 0);
+  }
+
+  .dial__tick {
+    position: absolute;
+    top: -8px;
+    width: 2px;
+    height: 38px;
+    margin-left: -1px;
+    background: rgb(255 255 255 / calc(0.4 * var(--fill-k)));
+    transition: background-color 300ms var(--ease-out);
+  }
+
+  .dial__tick.is-now {
+    background: rgb(var(--tone-lit));
+    box-shadow: 0 0 12px rgb(var(--tone-glow));
+  }
+
+  .dial__tick-label {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: rgb(var(--ink) / 0.74);
+    transform: translateX(-50%);
+  }
+
+  .dial__tick.is-now .dial__tick-label {
+    color: rgb(var(--ink));
+  }
+
+  .dial__handle {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--at, 0) * 100%);
+    display: grid;
+    place-items: center;
+    width: 66px;
+    height: 44px;
+    border-radius: 999px;
+    transform: translate(-50%, -50%);
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      0 0 24px -2px rgb(var(--tone-glow) / 0.75);
+  }
+
+  .dial__handle span {
+    width: 18px;
+    height: 12px;
+    background: repeating-linear-gradient(to right, rgb(255 255 255 / calc(0.85 * var(--fill-k))) 0 2px, transparent 2px 6px);
+  }
+
+  .dial__glow,
+  .dial__needle,
+  .dial__shade {
+    display: none;
+  }
+
+  .dial__char {
+    display: inline-block;
+    white-space: pre;
+  }
+
+  /* ---------- Desktop: a spread, not a card ----------
+     The mark runs the full width, its letters rolling over one after another inside their own line,
+     and the light that crosses it follows the scroll (--at). The story sits under it on the colour, title on
+     the left and words on the right, and the ruler ends in a needle clear of the play button. */
+  @media (min-width: 1024px) {
+    .dial__pin {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: clamp(var(--space-3), 2.6svh, var(--space-5));
+      padding-bottom: var(--space-4);
+      isolation: isolate;
+    }
+
+    .dial__glow {
+      position: absolute;
+      top: 8%;
+      left: 0;
+      z-index: -1;
+      display: block;
+      width: 70vw;
+      height: 62svh;
+      background: radial-gradient(50% 50% at 50% 50%, rgb(120 146 171 / 0.42), rgb(41 67 104 / 0.2) 52%, transparent 74%);
+      transform: translateX(calc(var(--at, 0) * 100vw - 50%));
+      pointer-events: none;
+    }
+
+    .dial__marks {
+      grid-column: 1;
+      grid-row: 2;
+      align-items: end;
+      overflow: visible;
+    }
+
+    /* The light on the mark: a veil of shade with a gap in it, sliding with the scroll. It runs past the
+       screen on both sides and is feathered above and below, so it never shows an edge. */
+    .dial__shade {
+      position: absolute;
+      top: -14%;
+      bottom: -14%;
+      left: 0;
+      mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+      z-index: 2;
+      display: block;
+      width: 300cqi;
+      background: linear-gradient(to right, rgb(6 20 43 / 0.62) 28%, transparent 44%, transparent 56%, rgb(6 20 43 / 0.62) 72%);
+      transform: translateX(calc(var(--at, 0) * 100cqi - 150cqi));
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    .dial__mark {
+      display: flex;
+      font-size: min(calc(100cqi / (var(--len) * 0.86)), 38svh);
+      line-height: 0.86;
+      letter-spacing: -0.035em;
+      white-space: nowrap;
+      overflow: hidden;
+      padding-block: 0.03em;
+      color: inherit;
+      -webkit-text-stroke: 0;
+      background: none;
+      -webkit-background-clip: border-box;
+      background-clip: border-box;
+      opacity: 0;
+      transform: none;
+      transition: opacity 0ms linear 620ms;
+    }
+
+    .dial__mark.is-active {
+      opacity: 1;
+      transition-delay: 0ms;
+    }
+
+    .dial__mark.is-past {
+      transform: none;
+    }
+
+    .dial__char {
+      color: transparent;
+      background: linear-gradient(180deg, var(--white) 22%, rgb(207 237 248 / 0.5) 72%, rgb(207 237 248 / 0.16));
+      -webkit-background-clip: text;
+      background-clip: text;
+      transform: translateY(105%);
+      transition: transform 620ms cubic-bezier(0.2, 0.9, 0.2, 1) calc(var(--c) * 34ms);
+    }
+
+    .is-active > .dial__char {
+      transform: none;
+    }
+
+    .is-past > .dial__char {
+      transform: translateY(-105%);
+    }
+
+    /* The story. */
+    .dial__cards {
+      grid-column: 1;
+      grid-row: 3;
+      align-items: start;
+    }
+
+    .dial__card.glass {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--gutter);
+      row-gap: var(--space-2);
+      padding: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      transform: translateY(18px);
+      transition:
+        opacity 300ms var(--ease-out),
+        transform 620ms cubic-bezier(0.2, 1, 0.3, 1);
+    }
+
+    .dial__card.glass.is-active {
+      transform: none;
+      transition-delay: 160ms;
+    }
+
+    .dial__card.glass.is-past {
+      transform: translateY(-14px);
+    }
+
+    .dial__card .exp-label {
+      grid-column: 1;
+    }
+
+    .dial__title {
+      grid-column: 1;
+      font-size: clamp(1.375rem, min(2.5vw, 4.6svh), 2.5rem);
+      line-height: 1;
+    }
+
+    .dial__text,
+    .dial__chips,
+    .dial__image {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+
+    .dial__text {
+      max-width: 42rem;
+      font-size: clamp(0.9375rem, min(1.2vw, 2.2svh), 1.1875rem);
+      line-height: 1.5;
+    }
+
+    .dial__chips {
+      align-content: start;
+    }
+
+    /* The ruler: its handle becomes a needle, with room for the play button before it. */
+    .dial__ruler {
+      grid-row: 4;
+      margin-left: 62px;
+      padding-block: 26px 30px;
+    }
+
+    .dial__track::before {
+      background: repeating-linear-gradient(to right, rgb(255 255 255 / 0.2) 0 1px, transparent 1px 12px);
+      mask-image: linear-gradient(to bottom, transparent 30%, #000 60%);
+    }
+
+    .dial__fill {
+      background: repeating-linear-gradient(to right, rgb(255 255 255 / 0.8) 0 1px, transparent 1px 12px);
+      mask-image: linear-gradient(to bottom, transparent 30%, #000 60%);
+    }
+
+    .dial__tick {
+      top: 2px;
+      width: 1px;
+      height: 20px;
+      margin-left: 0;
+      background: rgb(255 255 255 / 0.45);
+    }
+
+    .dial__tick.is-now {
+      background: var(--white);
+      box-shadow: none;
+    }
+
+    .dial__tick-label {
+      top: 28px;
+      font-size: 0.6875rem;
+      color: rgb(255 255 255 / 0.55);
+      transition:
+        color 300ms var(--ease-out),
+        translate 400ms cubic-bezier(0.2, 1.3, 0.4, 1);
+    }
+
+    .dial__tick.is-now .dial__tick-label {
+      color: var(--white);
+      translate: 0 -2px;
+    }
+
+    .dial__handle.glass {
+      display: none;
+    }
+
+    .dial__needle {
+      position: absolute;
+      top: -14px;
+      bottom: -2px;
+      left: calc(var(--at, 0) * 100%);
+      display: block;
+      width: 2px;
+      margin-left: -1px;
+      background: var(--white);
+      box-shadow: 0 0 14px 1px rgb(207 237 248 / 0.8);
+    }
+
+    /* The head of the needle: what you take hold of. */
+    .dial__needle::before {
+      content: '';
+      position: absolute;
+      top: -7px;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--white);
+      box-shadow:
+        0 0 0 5px rgb(255 255 255 / 0.16),
+        0 0 24px 4px rgb(207 237 248 / 0.7);
+      transform: translateX(-50%);
+      transition: scale 300ms cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+
+    .dial__ruler:hover .dial__needle::before,
+    .dial.is-dragging .dial__needle::before {
+      scale: 1.25;
+    }
+
+    .dial__ruler:focus-visible .dial__needle::before {
+      outline: 2px solid var(--white);
+      outline-offset: 5px;
+    }
+
+    .dial .dial__play {
+      left: var(--margin);
+      bottom: 46px;
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  /* ---------- Below desktop ---------- */
+  @media (max-width: 1023px) {
+    .dial__pin {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+
+    .dial__marks {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .dial__mark {
+      font-size: min(24cqi, calc(100cqi / (var(--len) * 0.76)));
+    }
+
+    .dial__cards {
+      grid-column: 1;
+      grid-row: 3;
+      align-items: start;
+    }
+
+    .dial__ruler {
+      grid-row: 4;
+    }
+
+    .dial__tick-label {
+      display: none;
+    }
+
+    .dial__text {
+      font-size: var(--type-small);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dial__mark,
+    .dial__card,
+    .dial__card.glass,
+    .dial__char {
+      transition: none;
+    }
+  }
+
+  .dial__play {
+    position: absolute;
+    bottom: 34px;
+    left: calc(var(--margin) - 62px);
+    z-index: 4;
+  }
+</style>
+
+<script>
+  import { initTimeDials } from '@/scripts/system/time-dial';
+  initTimeDials();
+</script>

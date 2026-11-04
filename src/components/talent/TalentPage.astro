@@ -1,0 +1,126 @@
+---
+// The Stride Talent page's content: the roster as a hand of creator cards (CreatorHand), a board to build
+// your own career plan (CareerBuilder), and the shared menu: Divisions, Creator Stories, Apply.
+// One page in two places: at /talent, and on the homepage, where the Talent card opens onto it
+// (home/PagePortal.astro; `embedded`). Copy lives in src/content/pages/talent.yaml; creators only with
+// consent (src/lib/roster.ts), no audience figures (they're unverified).
+import { getCollection, getEntry } from 'astro:content';
+import CreatorHand from './CreatorHand.astro';
+import CareerBuilder from './CareerBuilder.astro';
+import Deck from '../experience/Deck.astro';
+import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { getRoster, platformNames, platformsOf } from '@/lib/roster';
+import { routes } from '@/lib/routes';
+import { divisionArt } from '@/lib/division-art';
+import { isPreview } from '@/lib/env';
+import type { Card, StageMessage } from '@/lib/experience';
+import Tray from '@/components/experience/Tray.astro';
+
+export interface Props {
+  /** Inside another page, which has its own h1 and may not reach this for a while. */
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+
+const page = await getEntry('pages', 'talent');
+if (!page) throw new Error('Missing src/content/pages/talent.yaml');
+const s = page.data.sections;
+
+const roster = await getRoster();
+const byId = new Map(roster.map((c) => [c.id, c]));
+const allCategories = (await getCollection('categories')).sort((a, b) => a.data.order - b.data.order);
+const labels = Object.fromEntries(allCategories.map((c) => [c.id, c.data.label]));
+const categoryOf = (c: (typeof roster)[number]) => (c.data.mainCategory ? labels[c.data.mainCategory.id] : undefined);
+const idsOf = (c: (typeof roster)[number]) => [...new Set([c.data.mainCategory?.id, ...c.data.categories.map((x) => x.id)].filter((x): x is string => !!x))];
+
+// The hand: the hand-picked creators first, then a few from each category, so every filter has a deal.
+const withPhoto = roster.filter((c) => c.data.portrait);
+const picked = (s.hero.featured ?? []).map((id) => byId.get(id)).filter((c) => !!c && !!c.data.portrait) as typeof roster;
+const hand = [...picked];
+for (const cat of allCategories) {
+  withPhoto
+    .filter((c) => idsOf(c).includes(cat.id) && !hand.includes(c))
+    .slice(0, Math.max(0, 6 - hand.filter((c) => idsOf(c).includes(cat.id)).length))
+    .forEach((c) => hand.push(c));
+}
+const interim = hand.some((c) => c.data.consent.status !== 'confirmed');
+const usedCategories = allCategories.filter((cat) => hand.some((c) => idsOf(c).includes(cat.id))).map((c) => ({ id: c.id, label: c.data.label }));
+
+const apply = { label: s.hero.items?.[1]?.label ?? 'Apply For Management', href: s.hero.items?.[1]?.href ?? '/talent/apply' };
+const explore = { label: s.hero.items?.[0]?.label ?? 'Explore Our Roster', href: s.hero.items?.[0]?.href ?? '/talent/roster' };
+const look = (s.apply.items ?? []).find((i) => i.key === 'look');
+const messages: StageMessage[] = [
+  { title: (s.hero.lines ?? []).join(' '), text: s.hero.body, cta: explore },
+  { title: s.intro.eyebrow, text: s.intro.body, cta: explore },
+  { title: s.roster.headline, text: s.rosterPage.body, cta: s.roster.cta },
+  { title: s.apply.headline, text: look?.copy, cta: apply },
+];
+const ui = (key: string, fallback: string) => s.builder?.items?.find((i) => i.key === key)?.label ?? fallback;
+
+// The menu.
+const divisions: Card[] = (await getCollection('talentDivisions'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((d) => ({
+    name: d.data.name,
+    text: d.data.status === 'active' ? d.data.tagline : 'Coming soon',
+    href: `/talent/${d.id}`,
+    image: d.data.hero,
+    art: d.data.hero ? undefined : divisionArt[d.id],
+    action: { label: `Visit ${d.data.name}`, href: `/talent/${d.id}` },
+  }));
+const quotes = await getCollection('testimonials', (t) => t.data.type === 'creator' && (t.data.consent.status === 'confirmed' || (isPreview && t.data.consent.status === 'legacy')));
+const stories: Card[] = quotes
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured))
+  .map((q) => ({
+    name: q.data.name,
+    text: q.data.role,
+    href: '/talent#stories',
+    image: q.data.image,
+    quote: q.data.quote,
+    attribution: `${q.data.name}, ${q.data.role}`,
+  }));
+---
+
+<Tray list="creators" side="left" />
+
+<CreatorHand
+  level={embedded ? 'h2' : 'h1'}
+  messages={messages}
+  categories={usedCategories}
+  filterLabel={s.hand?.eyebrow ?? 'Pick a category'}
+  creators={hand.map((c) => ({
+    id: c.id,
+    name: c.data.name,
+    category: categoryOf(c),
+    categories: idsOf(c),
+    portrait: c.data.portrait!,
+    href: routes.creator(c.id),
+    platforms: platformsOf(c).map((p) => ({ label: platformNames[p.key], href: p.href })),
+  }))}
+>
+  {interim && <PlaceholderNotice label="Interim portraits">— roster photos, consent to be re-confirmed</PlaceholderNotice>}
+</CreatorHand>
+
+<CareerBuilder
+  eyebrow={s.builder?.eyebrow}
+  headline={s.services.headline}
+  body={s.builder?.body}
+  items={s.services.items ?? []}
+  planTitle={ui('title', 'Your plan')}
+  planEmpty={ui('empty', 'Nothing yet. Switch on what you need.')}
+  apply={apply}
+/>
+
+<Deck
+  variant="lineup"
+  id="talent-menu"
+  label="Explore Stride Talent"
+  tone="talent"
+  look="deep"
+  tabs={[
+    { key: 'divisions', label: 'Divisions', icon: 'star', anchor: 'divisions', atDesk: 'go', cards: divisions },
+    { key: 'stories', label: 'Creator Stories', icon: 'quote', anchor: 'stories', atDesk: 'still', cards: stories },
+  ]}
+  link={apply}
+/>

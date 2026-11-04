@@ -13,7 +13,7 @@ const contactRoutes = [
 ];
 ---
 
-<footer class="footer">
+<footer class="footer" data-look="deep">
   <div class="footer__inner">
     <div class="footer__brand">
       <a href="/" aria-label="Stride home"><StrideLogo tone="dark" /></a>
@@ -54,8 +54,11 @@ const contactRoutes = [
   .footer {
     position: relative;
     z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
+    color: rgb(var(--ink));
+  }
+
+  .footer :global(.logo) {
+    color: inherit;
   }
 
   .footer__inner {
@@ -80,7 +83,7 @@ const contactRoutes = [
     font-size: 1.5rem;
     font-style: italic;
     line-height: 1.25;
-    color: rgb(255 255 255 / 0.85);
+    color: rgb(var(--ink) / 0.85);
   }
 
   .footer__cols {
@@ -97,7 +100,7 @@ const contactRoutes = [
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: rgb(var(--tone-lit));
   }
 
   .footer__col ul {
@@ -117,13 +120,13 @@ const contactRoutes = [
 
   .footer__legal a {
     font-size: var(--type-small);
-    color: rgb(255 255 255 / 0.78);
+    color: rgb(var(--ink) / 0.78);
     transition: color var(--dur-fast) var(--ease-out);
   }
 
   .footer__col a:hover,
   .footer__legal a:hover {
-    color: var(--white);
+    color: rgb(var(--ink));
   }
 
   .footer__social {
@@ -139,7 +142,7 @@ const contactRoutes = [
     padding-top: var(--space-5);
     border-top: 1px solid var(--line-dark);
     font-size: var(--type-small);
-    color: rgb(255 255 255 / 0.6);
+    color: rgb(var(--ink) / 0.74);
   }
 
   .footer__legal {

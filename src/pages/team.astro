@@ -1,60 +1,49 @@
 ---
-// Our Team (docs/phase-2/05-wireframes.md §E; brief §7: names, roles, genuine photographs and
-// optional bios). Leadership row, filterable team grid, careers CTA.
-import { getEntry } from 'astro:content';
+// Our Team (brief §7: names, roles, genuine photographs and optional bios): a field of faces that swell
+// as you pass (group/TeamField), then the way to the open roles.
+import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import Button from '@/components/core/Button.astro';
-import TeamGrid from '@/components/group/TeamGrid.astro';
+import TeamField from '@/components/group/TeamField.astro';
+import EnquiryClose from '@/components/social/EnquiryClose.astro';
+import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
+import { asHtml, paragraphs } from '@/lib/experience';
+import { isPreview } from '@/lib/env';
 
 const s = (await getEntry('pages', 'team'))?.data.sections;
 if (!s) throw new Error('Missing src/content/pages/team.yaml');
+const labels = { leadership: 'Leadership', talent: 'Talent', campaigns: 'Campaigns', social: 'Social media', sales: 'Sales', operations: 'Operations' } as const;
+const team = (await getCollection('team', (m) => m.data.visible)).sort((a, b) => a.data.order - b.data.order);
+const ordered = [...team.filter((m) => m.data.department === 'leadership'), ...team.filter((m) => m.data.department !== 'leadership')];
+const ui = (key: string, fallback: string) => s.field?.items?.find((i) => i.key === key)?.label ?? fallback;
+const people = ordered.map((m) => ({
+  id: m.id,
+  name: m.data.name,
+  role: m.data.role,
+  department: m.data.department,
+  lead: m.data.department === 'leadership',
+  photo: m.data.photo,
+  photoAlt: m.data.photoAlt,
+  card: {
+    name: m.data.name,
+    text: m.data.role,
+    href: `#${m.id}`,
+    image: m.data.photoAlt ?? m.data.photo,
+    chips: [labels[m.data.department]],
+    html: m.data.bio ? asHtml(paragraphs(m.data.bio)) : undefined,
+    action: m.data.linkedin ? { label: 'LinkedIn', href: m.data.linkedin, external: true } : undefined,
+  },
+}));
+const departments = (Object.keys(labels) as (keyof typeof labels)[]).filter((d) => team.some((m) => m.data.department === d)).map((id) => ({ id, label: labels[id] }));
 ---
 
-<SiteLayout title="Our Team | Stride" description={s.hero.body}>
-  <PageIntro crumbs={[{ label: 'About', href: '/about' }, { label: 'Our Team' }]} copy={s.hero} tone="light" />
-  <section class="team-page" aria-label="Team members">
-    <TeamGrid />
-  </section>
-  <section class="join" aria-labelledby="join-title">
-    <div class="join__inner container-wide">
-      <h2 class="join__title" id="join-title">{s.join.headline}</h2>
-      {s.join.cta && <Button href={s.join.cta.href} tone="dark" arrow>{s.join.cta.label}</Button>}
-    </div>
-  </section>
+<SiteLayout title="Our Team | Stride" description={s.hero.body} look="frost" headerOverlay>
+  <TeamField
+    copy={s.hero}
+    people={people}
+    departments={departments}
+    crumbs={[{ label: 'About', href: '/about' }, { label: 'Our Team' }]}
+    ui={{ all: ui('all', 'Everyone'), shuffle: ui('shuffle', 'Shuffle'), hint: s.field?.body ?? 'Move across the faces · click one to meet them' }}
+  />
+  {isPreview && <PlaceholderNotice variant="inline" label="Departments proposed">— derived from job titles; confirm (Gate 2)</PlaceholderNotice>}
+  <EnquiryClose headline={s.join.headline ?? ''} label={s.join.cta?.label ?? ''} href={s.join.cta?.href} tone="group" look="navy" />
 </SiteLayout>
-
-<style>
-  .team-page {
-    position: relative;
-    z-index: 1;
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .join {
-    position: relative;
-    z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .join__inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-6);
-    padding-block: clamp(64px, 8vw, 128px);
-  }
-
-  .join__title {
-    font-family: var(--font-display);
-    font-size: clamp(2.25rem, 5vw, 5rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-</style>

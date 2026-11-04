@@ -1,19 +1,77 @@
 ---
-// Stride Social services index (docs/phase-2/03-sitemap.md): the seven services as the same
-// typographic index used on /social, each leading to its own page.
+// Stride Social services index (docs/phase-2/03-sitemap.md): the seven services as tall glass doors that
+// open as you move across them (social/GlassDoors), each leading to its own page.
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import ServiceIndex from '@/components/social/ServiceIndex.astro';
-import EnquiryCta from '@/components/social/EnquiryCta.astro';
+import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
+import GlassDoors from '@/components/social/GlassDoors.astro';
+import EnquiryClose from '@/components/social/EnquiryClose.astro';
+import Tray from '@/components/experience/Tray.astro';
 
 const page = await getEntry('pages', 'social');
 if (!page) throw new Error('Missing src/content/pages/social.yaml');
 const s = page.data.sections;
 ---
 
-<SiteLayout title="Services | Stride Social" description={s.servicesPage.body} division="social">
-  <PageIntro crumbs={[{ label: 'Stride Social', href: '/social' }, { label: 'Services' }]} copy={s.servicesPage} />
-  <ServiceIndex nameLevel="h2" />
-  <EnquiryCta headline={s.final.headline ?? ''} label={s.final.cta?.label ?? ''} />
+<SiteLayout title="Services | Stride Social" description={s.servicesPage.body} division="social" look="ice" headerOverlay>
+  <section class="svx" aria-labelledby="svx-title" data-tone="social" data-look="ice">
+    <div class="svx__inner container-wide">
+      <header class="svx__head">
+        <div class="svx__lead">
+          <Breadcrumbs items={[{ label: 'Stride Social', href: '/social' }, { label: 'Services' }]} tone="dark" />
+          <h1 class="svx__title exp-title" id="svx-title" data-reveal-lines="load">{s.servicesPage.headline}</h1>
+        </div>
+        {s.servicesPage.body && <p class="svx__body">{s.servicesPage.body}</p>}
+      </header>
+      <div class="svx__doors"><GlassDoors /></div>
+    </div>
+  </section>
+  <EnquiryClose headline={s.final.headline ?? ''} label={s.final.cta?.label ?? ''} tone="social" look="ice" />
+  <Tray list="brief" />
 </SiteLayout>
+
+<style>
+  .svx {
+    position: relative;
+    overflow: hidden;
+    color: rgb(var(--ink));
+  }
+
+  .svx__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--space-5);
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-5);
+  }
+
+  .svx__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-7);
+  }
+
+  .svx__lead {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .svx__title {
+    font-size: clamp(2.5rem, min(5.6vw, 11vh), 6rem);
+  }
+
+  .svx__body {
+    max-width: 26rem;
+    font-size: var(--type-lead);
+    line-height: 1.36;
+    color: rgb(var(--ink) / 0.86);
+  }
+
+  .svx__doors {
+    min-height: 0;
+  }
+</style>

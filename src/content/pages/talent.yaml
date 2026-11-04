@@ -44,6 +44,22 @@ sections:
       - label: Industry connections and creator community
         copy: You join a network of creators, brands and industry people who share what works.
 
+  # The hand of creator cards and the career plan board: interface copy written by us.
+  hand:
+    status: draft
+    eyebrow: Pick a category
+    body: Drag the cards · click the front one to flip it
+
+  builder:
+    status: draft
+    eyebrow: Build your plan
+    body: Switch on what you need. It goes with your application.
+    items:
+      - key: title
+        label: Your plan
+      - key: empty
+        label: Nothing yet. Switch on what you need.
+
   roster:
     status: approved
     eyebrow: The roster

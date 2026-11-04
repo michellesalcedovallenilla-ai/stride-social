@@ -1,64 +1,25 @@
 ---
-// Group homepage (docs/phase-3/homepage-magazine.md): the editorial video hero, then five navy
-// sections that respond to the pointer. Copy lives in src/content/pages/home.yaml (plus the roster and
-// logos running heads from talent.yaml and social.yaml); collections supply creators, work, brands,
-// team and insights through their status rules. Missing images get labelled placeholders.
-import { getCollection, getEntry } from 'astro:content';
+// Group homepage: one scene. The editorial video hero, then "Three sides of Stride" rising over it
+// with the brand partners ticker, then its three cards opening, in turn, onto the real Social, Talent
+// and Education pages; the footer follows. Copy lives in src/content/pages/home.yaml; brands come
+// through their status rule.
 import SiteLayout from '@/layouts/SiteLayout.astro';
 import CoverHero from '@/components/home/CoverHero.astro';
+import HeroScene from '@/components/home/HeroScene.astro';
 import ContentsIndex from '@/components/home/ContentsIndex.astro';
-import ProofSpread from '@/components/home/ProofSpread.astro';
-import PeopleSpread from '@/components/home/PeopleSpread.astro';
-import InsightsIndex from '@/components/home/InsightsIndex.astro';
-import FinalRoutes from '@/components/home/FinalRoutes.astro';
-import { getRoster } from '@/lib/roster';
-import { routes } from '@/lib/routes';
-import { isPreview } from '@/lib/env';
+import Portals from '@/components/home/Portals.astro';
+import PagePortal from '@/components/home/PagePortal.astro';
+import SocialPage from '@/components/social/SocialPage.astro';
+import TalentPage from '@/components/talent/TalentPage.astro';
+import EducationPage from '@/components/education/EducationPage.astro';
+import { getEntry } from 'astro:content';
 import { site, socials } from '@/config/site';
 
 const page = await getEntry('pages', 'home');
-const talent = await getEntry('pages', 'talent');
-const social = await getEntry('pages', 'social');
-if (!page || !talent || !social) throw new Error('Missing src/content/pages/{home,talent,social}.yaml');
+if (!page) throw new Error('Missing src/content/pages/home.yaml');
 const s = page.data.sections;
 
 type DivisionKey = 'social' | 'talent' | 'education';
-
-// Creators come through getRoster() (the consent rule), so production shows confirmed consent only.
-const roster = await getRoster();
-const portraitOf = (c: (typeof roster)[number]) => ({
-  name: c.data.name,
-  href: routes.creator(c.id),
-  src: c.data.portrait!.src,
-  alt: c.data.portrait!.alt,
-});
-const notConfirmed = (c: (typeof roster)[number]) => c.data.consent.status !== 'confirmed';
-
-// People strip: the roster minus portraits that don't suit a uniform 4:5 strip. Hand-checked list
-// (aqsaxiqbal black and white; alchemistlyy, alementary, hamajineo, tiffanydaviesfx square;
-// spencer-sebastian-yang landscape): re-check it when roster portraits or their order change.
-const unsuited = new Set(['aqsaxiqbal', 'alchemistlyy', 'alementary', 'hamajineo', 'tiffanydaviesfx', 'spencer-sebastian-yang']);
-const stripCreators = roster.filter((c) => c.data.portrait && !unsuited.has(c.id)).slice(0, 6);
-if (stripCreators.length % 2) stripCreators.pop();
-
-// Business rows: footage or an image comes up behind each on hover: a light cut of the showreel for
-// Social, a roster portrait for Talent, and a labelled placeholder wherever there is no image yet
-// (education imagery is open, Q11).
-const featuredWork = (await getCollection('work', (w) => w.data.visible && w.data.featuredOn.includes('home'))).sort(
-  (a, b) => (a.data.featuredOrder ?? 99) - (b.data.featuredOrder ?? 99),
-);
-const socialImage = featuredWork[0]?.data.hero ?? featuredWork[0]?.data.card;
-const talentCreator = stripCreators[0];
-type RowMedia = { thumb?: { src: string; alt: string; interim?: boolean }; video?: { mp4: string; poster: string; label: string }; thumbMissing?: string };
-const thumbs: Record<DivisionKey, RowMedia> = {
-  social: socialImage
-    ? { thumb: { src: socialImage.src, alt: socialImage.alt }, video: { mp4: '/assets/video/preview-social.mp4', poster: socialImage.src, label: 'Stride Social campaign footage' } }
-    : { thumbMissing: 'Campaign image needed' },
-  talent: talentCreator
-    ? { thumb: { src: talentCreator.data.portrait!.src, alt: talentCreator.data.portrait!.alt, interim: notConfirmed(talentCreator) } }
-    : { thumbMissing: 'Creator portrait — awaiting consent' },
-  education: { thumbMissing: 'Education imagery needed (Q11)' },
-};
 
 // Organization + WebSite structured data: real company facts only (no address until Q3).
 const jsonLd = [
@@ -81,59 +42,54 @@ const jsonLd = [
   headerOverlay
   jsonLd={jsonLd}
 >
-  <CoverHero
-    headline={s.hero.lines ?? []}
-    description={s.hero.body ?? ''}
-    reel={{
-      // Showreel cut from the campaign footage already on the site (scratchpad make-reel.py),
-      // until Stride's approved montage arrives.
-      label: 'Showreel of Stride creator campaigns',
-      mp4: '/assets/video/stride-reel-desktop.mp4',
-      webm: '/assets/video/stride-reel-desktop.webm',
-      poster: '/assets/site/stride-reel-desktop-poster.jpg',
-      mobile: {
-        mp4: '/assets/video/stride-reel-mobile.mp4',
-        webm: '/assets/video/stride-reel-mobile.webm',
-        poster: '/assets/site/stride-reel-mobile-poster.jpg',
-      },
-    }}
-    routes={(s.sides.items ?? []).map((item) => ({ audience: item.audience ?? '', name: item.label, href: item.href ?? '/', division: item.key as DivisionKey }))}
-    intro={{
-      // The divisions take turns after STRIDE; the last name holds as the opening ends.
-      words: [
-        { label: 'Social', division: 'social' },
-        { label: 'Talent', division: 'talent' },
-        { label: 'Education', division: 'education' },
-        { label: 'Group' },
-      ],
-    }}
-  />
+  {/* One scene: the footage stays pinned while the cards rise over it, then each card opens onto its page. */}
+  <HeroScene>
+    <CoverHero
+      headline={s.hero.lines ?? []}
+      description={s.hero.body ?? ''}
+      awards={(s.awards?.items ?? []).flatMap((a) => (a.image ? [{ src: a.image, alt: a.label }] : []))}
+      reel={{
+        // Desktop: the showreel supplied for the hero (a CapCut export, re-encoded without sound). Phones
+        // keep the cut made from the campaign footage already on the site (scratchpad make-reel.py).
+        label: 'Showreel of Stride creator campaigns',
+        mp4: '/assets/video/stride-showreel-desktop.mp4',
+        webm: '/assets/video/stride-showreel-desktop.webm',
+        poster: '/assets/site/stride-showreel-desktop-poster.jpg',
+        mobile: {
+          mp4: '/assets/video/stride-reel-mobile.mp4',
+          webm: '/assets/video/stride-reel-mobile.webm',
+          poster: '/assets/site/stride-reel-mobile-poster.jpg',
+        },
+      }}
+      routes={(s.sides.items ?? []).map((item) => ({ audience: item.audience ?? '', name: item.label, href: item.href ?? '/', division: item.key as DivisionKey }))}
+      intro={{
+        // The divisions take turns after STRIDE; the last name holds as the opening ends.
+        words: [
+          { label: 'Social', division: 'social' },
+          { label: 'Talent', division: 'talent' },
+          { label: 'Education', division: 'education' },
+          { label: 'Group' },
+        ],
+      }}
+    />
 
-  <ContentsIndex
-    eyebrow={s.sides.eyebrow ?? ''}
-    headline={s.sides.headline ?? ''}
-    items={(s.sides.items ?? []).map((item) => ({
-      key: item.key as DivisionKey,
-      audience: item.audience ?? '',
-      name: `Stride ${item.label}`,
-      copy: item.copy ?? '',
-      cta: item.cta ?? '',
-      href: item.href ?? '/',
-      ...thumbs[item.key as DivisionKey],
-    }))}
-  />
+    <ContentsIndex
+      headline={s.sides.headline ?? ''}
+      body={s.sides.body}
+      items={(s.sides.items ?? []).map((item) => ({
+        key: item.key as DivisionKey,
+        label: item.label,
+        audience: item.audience ?? '',
+        cta: item.cta ?? `Explore Stride ${item.label}`,
+        href: item.href ?? '/',
+      }))}
+      partners={s.partners ? { cue: s.partners.eyebrow ?? '', brands: s.partners.featured ?? [] } : undefined}
+    />
 
-  <ProofSpread work={s.work} logos={social.data.sections.logos} />
-
-  <PeopleSpread
-    copy={s.people}
-    roster={{ eyebrow: talent.data.sections.roster.eyebrow ?? '', cta: talent.data.sections.roster.cta }}
-    creators={stripCreators.map(portraitOf)}
-    interim={stripCreators.some(notConfirmed)}
-    teamNote={isPreview}
-  />
-
-  <InsightsIndex copy={s.insights} />
-
-  <FinalRoutes copy={s.final} />
+    <Portals>
+      <PagePortal page="social"><SocialPage embedded /></PagePortal>
+      <PagePortal page="talent"><TalentPage embedded /></PagePortal>
+      <PagePortal page="education"><EducationPage embedded /></PagePortal>
+    </Portals>
+  </HeroScene>
 </SiteLayout>

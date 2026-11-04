@@ -1,29 +1,28 @@
 /*
  * Stride design system: tokens (Phase 2 spec: docs/phase-2/04-design-system.md).
- * Division themes only change accent, surface and photographic mood; everything else is shared.
+ * Division themes only change colour: accent, surface and glow. Typography, space and motion are shared.
  * Breakpoints (literal in media queries): ≥ 1024px desktop · 768–1023px tablet · < 768px mobile.
  */
 :root {
-  /* Core palette */
+  /* Stride's palette: these nine colours make up the site. */
   --navy-900: #06142b;
-  --navy-700: #1b2a44;
-  --navy-500: #3a4a66;
-  --paper: #f5f4f0;
+  --navy-700: #0c2753;
+  --navy-500: #294368;
+  --steel: #7892ab;
+  --ice: #cfedf8;
+  --ice-pale: #e9fafd;
+  --frost: #f5fcff;
+  --lime: #edff77;
   --white: #ffffff;
-  --line: #dbdbdb;
-  --line-dark: rgb(255 255 255 / 0.16);
-  --slate: #5b6577;
-  --ice: #c3f2fb;
-  --peach: #f4c7ae;
-  --sun: #ffd45c;
-  --ice-deep: #0e6f86;
-  --peach-deep: #9a4a24;
-  --sun-deep: #7a5a00;
-  --focus: #2f6bff;
 
-  /* Semantic roles (division themes override these) */
+  /* Their roles */
+  --paper: var(--frost);
+  --line: var(--ice);
+  --line-dark: rgb(255 255 255 / 0.16);
+  --slate: var(--navy-500);
+  --focus: var(--steel);
   --accent: var(--ice);
-  --accent-ink: var(--ice-deep);
+  --accent-ink: var(--navy-700);
   --surface: var(--paper);
   --surface-ink: var(--navy-900);
 
@@ -80,6 +79,14 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* Desktop: a 180px margin keeps the radial navigation (global/EdgeNav.astro, whose longest
+   label ends about 170px from the screen's left edge) clear of all content. */
+@media (min-width: 1024px) {
+  :root {
+    --margin: 180px;
+  }
+}
+
 @media (max-width: 767px) {
   :root {
     --gutter: 16px;
@@ -99,21 +106,186 @@
 /* Division themes */
 [data-division='social'] {
   --accent: var(--ice);
-  --accent-ink: var(--ice-deep);
+  --accent-ink: var(--navy-700);
   --surface: var(--navy-900);
   --surface-ink: var(--white);
 }
 
 [data-division='talent'] {
-  --accent: var(--peach);
-  --accent-ink: var(--peach-deep);
-  --surface: var(--paper);
-  --surface-ink: var(--navy-900);
+  --accent: var(--ice);
+  --accent-ink: var(--navy-900);
+  --surface: var(--navy-900);
+  --surface-ink: var(--white);
 }
 
 [data-division='education'] {
-  --accent: var(--sun);
-  --accent-ink: var(--sun-deep);
-  --surface: var(--white);
+  --accent: var(--navy-500);
+  --accent-ink: var(--navy-500);
+  --surface: var(--ice-pale);
   --surface-ink: var(--navy-900);
+}
+
+/* ---------- Each division's accents, as RGB triples ----------
+   What's lit on a dark colour and on a light one (--lit-), what goes on top of it (--on-), its glow on dark,
+   its hover. --tone-wash is the large soft light, which isn't always the accent: it stays soft at low
+   strength, so it stays crisp, on edges and fills. */
+:root,
+[data-tone='group'] {
+  --lit-dark: 255 255 255;
+  --on-dark: 6 20 43;
+  --glow-dark: 120 146 171;
+  --hover-dark: 207 237 248;
+  --lit-light: 12 39 83;
+  --on-light: 255 255 255;
+  --hover-light: 41 67 104;
+  --tone-wash: 120 146 171;
+  --tone-depth: 41 67 104;
+}
+
+[data-division='social'],
+[data-tone='social'] {
+  --lit-dark: 207 237 248;
+  --on-dark: 6 20 43;
+  --glow-dark: 207 237 248;
+  --hover-dark: 255 255 255;
+  --lit-light: 12 39 83;
+  --on-light: 207 237 248;
+  --hover-light: 41 67 104;
+  --tone-wash: 207 237 248;
+  --tone-depth: 41 67 104;
+}
+
+[data-division='talent'],
+[data-tone='talent'] {
+  --lit-dark: 255 255 255;
+  --on-dark: 6 20 43;
+  --glow-dark: 120 146 171;
+  --hover-dark: 207 237 248;
+  --lit-light: 6 20 43;
+  --on-light: 255 255 255;
+  --hover-light: 12 39 83;
+  --tone-wash: 120 146 171;
+  --tone-depth: 41 67 104;
+}
+
+[data-division='education'],
+[data-tone='education'] {
+  --lit-dark: 233 250 253;
+  --on-dark: 6 20 43;
+  --glow-dark: 207 237 248;
+  --hover-dark: 255 255 255;
+  --lit-light: 41 67 104;
+  --on-light: 245 252 255;
+  --hover-light: 12 39 83;
+  --tone-wash: 120 146 171;
+  --tone-depth: 120 146 171;
+}
+
+/* ---------- The colours a section can live in ([data-look]) ---------- */
+:root,
+[data-look='deep'] {
+  --tone-surface: 6 20 43;
+}
+
+[data-look='navy'] {
+  --tone-surface: 12 39 83;
+}
+
+[data-look='slate'] {
+  --tone-surface: 41 67 104;
+}
+
+[data-look='ice'] {
+  --tone-surface: 207 237 248;
+  --tone-wash: 255 255 255;
+  --tone-depth: 245 252 255;
+}
+
+[data-look='pale'] {
+  --tone-surface: 233 250 253;
+  --tone-wash: 255 255 255;
+  --tone-depth: 207 237 248;
+}
+
+[data-look='frost'] {
+  --tone-surface: 245 252 255;
+  --tone-wash: 207 237 248;
+  --tone-depth: 233 250 253;
+}
+
+[data-look='white'] {
+  --tone-surface: 255 255 255;
+  --tone-wash: 233 250 253;
+  --tone-depth: 245 252 255;
+}
+
+/* ---------- The ink: what everything on the background is drawn in ----------
+   One background means one ink: scripts/system/backdrop.ts turns html[data-ink] where white and navy read
+   equally well. .on-photo keeps the dark set whatever the background, for anything on a photo or video. */
+:root,
+.on-photo {
+  --ink: 255 255 255;
+  --hair: 255 255 255;
+  --fill-k: 1; /* how strongly white glass shows */
+  --halo: 6 20 43; /* behind text */
+  --shade: 0 0 0; /* drop shadows */
+  --panel: 12 39 83; /* near-solid glass */
+  --error: #ffb4a9;
+}
+
+html[data-ink='light'] {
+  --ink: 6 20 43;
+  --hair: 12 39 83;
+  --fill-k: 3;
+  --halo: 255 255 255;
+  --shade: 41 67 104;
+  --panel: 255 255 255;
+  --error: #b42318;
+}
+
+:root,
+[data-tone],
+[data-division],
+.on-photo {
+  --tone-lit: var(--lit-dark);
+  --tone-on: var(--on-dark);
+  --tone-glow: var(--glow-dark);
+  --tone-hover: var(--hover-dark);
+}
+
+html[data-ink='light'],
+html[data-ink='light'] [data-tone],
+html[data-ink='light'] [data-division] {
+  --tone-lit: var(--lit-light);
+  --tone-on: var(--on-light);
+  --tone-glow: 120 146 171;
+  --tone-hover: var(--hover-light);
+}
+
+html[data-ink='light'] .on-photo {
+  --tone-lit: var(--lit-dark);
+  --tone-on: var(--on-dark);
+  --tone-glow: var(--glow-dark);
+  --tone-hover: var(--hover-dark);
+}
+
+/* ---------- Buttons ----------
+   A button's fill, its text and its hover. They follow the division's accent, except on Talent, where
+   buttons are lime: the only place lime appears, apart from Talent's name in the homepage intro. */
+:root,
+[data-tone],
+[data-division],
+.on-photo {
+  --press: var(--tone-lit);
+  --press-on: var(--tone-on);
+  --press-hover: var(--tone-hover);
+}
+
+[data-division='talent'],
+[data-tone='talent'],
+[data-division='talent'] .on-photo,
+[data-tone='talent'] .on-photo {
+  --press: 237 255 119;
+  --press-on: 6 20 43;
+  --press-hover: 255 255 255;
 }

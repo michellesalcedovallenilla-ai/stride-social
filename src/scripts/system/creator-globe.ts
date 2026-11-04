@@ -57,8 +57,8 @@ let dotCache: Float32Array | null = null;
 const landDots = () => {
   if (dotCache) return dotCache;
   const out: number[] = [];
-  for (let lat = -56; lat <= 82; lat += 2.4) {
-    const step = 2.4 / Math.max(0.2, Math.cos(lat * D));
+  for (let lat = -56; lat <= 82; lat += 2) {
+    const step = 2 / Math.max(0.2, Math.cos(lat * D));
     for (let lon = -180; lon < 180; lon += step) if (LAND.some((p) => inside(lon, lat, p))) out.push(lon, lat);
   }
   return (dotCache = new Float32Array(out));
@@ -73,6 +73,7 @@ function initGlobe(root: HTMLElement) {
   const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-globe-tab]')];
   const screens = [...root.querySelectorAll<HTMLElement>('[data-globe-screen]')];
   const nows = [...root.querySelectorAll<HTMLElement>('[data-globe-now]')];
+  const messages = [...root.querySelectorAll<HTMLElement>('[data-globe-message]')];
   const phone = root.querySelector<HTMLElement>('[data-globe-phone]');
   const status = root.querySelector<HTMLElement>('[data-globe-status]');
   const toggle = root.querySelector<HTMLButtonElement>('[data-globe-toggle]');
@@ -108,16 +109,17 @@ function initGlobe(root: HTMLElement) {
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const top = H * 0.08;
-    cutY = H * 0.8;
+    // A round planet: nearly its whole upper half shows, about three quarters of the screen wide.
+    const top = H * 0.1;
+    cutY = H * 0.82;
     const capH = cutY - top;
-    const halfWidth = Math.min(W * 0.46, 760);
+    const halfWidth = Math.min(W * 0.36, 640);
     R = Math.max(capH, (halfWidth ** 2 + capH ** 2) / (2 * capH));
     cx = W / 2;
     cy = top + R;
     rimA = Math.sqrt(Math.max(0, R ** 2 - (cy - cutY) ** 2));
-    // The marker (where the selected region sits) is low on the cap, just clear of the phone above it.
-    markerY = top + capH * 0.66;
+    // The marker (where the selected region sits) is low on the planet, just clear of the phone above it.
+    markerY = top + capH * 0.76;
     tilt = Math.asin(Math.min(0.97, (cy - markerY) / R)) / D;
     tLat = regions[index].lat - tilt;
     if (!raf) lat = tLat;
@@ -147,6 +149,22 @@ function initGlobe(root: HTMLElement) {
     ctx.clearRect(0, 0, W, H);
     const rimB = rimA * 0.085;
 
+    // A soft halo of atmosphere around the planet, behind everything else, fading out towards
+    // the cut so it never ends in a hard line.
+    const halo = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.25);
+    halo.addColorStop(0, 'rgba(207, 237, 248, 0.35)');
+    halo.addColorStop(0.35, 'rgba(207, 237, 248, 0.12)');
+    halo.addColorStop(1, 'rgba(207, 237, 248, 0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, W, H);
+    const fade = ctx.createLinearGradient(0, cutY - H * 0.25, 0, cutY);
+    fade.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    fade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+
     // The cross-section: a layered slab under the rim, as if the globe were cut through.
     const depth = H - cutY;
     ctx.save();
@@ -156,15 +174,23 @@ function initGlobe(root: HTMLElement) {
     ctx.ellipse(cx, cutY + depth, rimA * 0.96, rimB, 0, Math.PI, 0, true);
     ctx.closePath();
     const slab = ctx.createLinearGradient(0, cutY, 0, H);
-    slab.addColorStop(0, '#0d1f3d');
+    slab.addColorStop(0, '#7892ab');
+    slab.addColorStop(0.55, '#294368');
     slab.addColorStop(1, 'rgba(6, 20, 43, 0)');
     ctx.fillStyle = slab;
     ctx.fill();
     ctx.clip();
+    // The core, glowing through the cut.
+    const core = ctx.createRadialGradient(cx, cutY + depth * 0.25, 0, cx, cutY + depth * 0.25, rimA * 0.55);
+    core.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+    core.addColorStop(0.4, 'rgba(207, 237, 248, 0.2)');
+    core.addColorStop(1, 'rgba(207, 237, 248, 0)');
+    ctx.fillStyle = core;
+    ctx.fillRect(cx - rimA, cutY, rimA * 2, depth + rimB);
     for (let k = 1; k <= 6; k++) {
       ctx.beginPath();
       ctx.ellipse(cx, cutY + (depth * k) / 7, rimA * (1 - k * 0.006), rimB, 0, 0, Math.PI);
-      ctx.strokeStyle = `rgba(195, 242, 251, ${0.22 - k * 0.03})`;
+      ctx.strokeStyle = `rgba(207, 237, 248, ${0.45 - k * 0.06})`;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
@@ -185,15 +211,22 @@ function initGlobe(root: HTMLElement) {
     ctx.closePath();
     ctx.clip();
 
-    const sheen = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.95, 0, cx, cy - R * 0.6, R);
-    sheen.addColorStop(0, '#173462');
-    sheen.addColorStop(0.45, '#0a1c3b');
-    sheen.addColorStop(1, '#040c1b');
+    const sheen = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.85, 0, cx, cy - R * 0.4, R * 1.05);
+    sheen.addColorStop(0, '#e9fafd');
+    sheen.addColorStop(0.35, '#cfedf8');
+    sheen.addColorStop(0.75, '#7892ab');
+    sheen.addColorStop(1, '#294368');
     ctx.fillStyle = sheen;
+    ctx.fillRect(0, 0, W, H);
+    // Light catching the upper left of the planet.
+    const shine = ctx.createRadialGradient(cx - R * 0.45, cy - R * 0.8, 0, cx - R * 0.45, cy - R * 0.8, R * 0.7);
+    shine.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+    shine.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = shine;
     ctx.fillRect(0, 0, W, H);
 
     // Graticule.
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 1;
     const line = (pts: number[][]) => {
       ctx.beginPath();
@@ -213,11 +246,11 @@ function initGlobe(root: HTMLElement) {
     for (let m = -180; m < 180; m += 30) line(Array.from({ length: 46 }, (_, i) => [m, -90 + i * 4]));
     for (let p = -60; p <= 60; p += 30) line(Array.from({ length: 91 }, (_, i) => [-180 + i * 4, p]));
 
-    // Land dots, brighter towards the viewer, batched into three tones.
+    // Land dots, stronger towards the viewer, batched into three tones.
     const bins: [string, number][] = [
-      ['rgba(255, 255, 255, 0.32)', 1.2],
-      ['rgba(255, 255, 255, 0.6)', 1.5],
-      ['rgba(255, 255, 255, 0.88)', 1.8],
+      ['rgba(255, 255, 255, 0.5)', 1.3],
+      ['rgba(255, 255, 255, 0.8)', 1.7],
+      ['rgba(255, 255, 255, 1)', 2],
     ];
     bins.forEach(([fill, size], bin) => {
       ctx.beginPath();
@@ -232,26 +265,30 @@ function initGlobe(root: HTMLElement) {
       ctx.fill();
     });
 
-    // Region markers and names; the selected one in cyan.
+    // Region markers and names; the selected one strongest, with a ring.
     const active = nearest();
-    ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
+    ctx.font = '500 11px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
     regions.forEach((r, i) => {
       const [x, y, z] = project(r.lon, r.lat);
       if (z <= 0.05) return;
       const on = i === active;
       ctx.beginPath();
-      ctx.arc(x, y, on ? 5 : 3, 0, Math.PI * 2);
-      ctx.fillStyle = on ? '#c3f2fb' : `rgba(255, 255, 255, ${0.4 + z * 0.4})`;
+      ctx.arc(x, y, on ? 6 : 4, 0, Math.PI * 2);
+      ctx.fillStyle = on ? '#ffffff' : `rgba(255, 255, 255, ${0.5 + z * 0.4})`;
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowBlur = on ? 18 : 8;
       ctx.fill();
+      ctx.shadowBlur = 0;
       if (on) {
         ctx.beginPath();
-        ctx.arc(x, y, 11, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(195, 242, 251, 0.5)';
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
-      ctx.fillStyle = on ? '#c3f2fb' : `rgba(255, 255, 255, ${0.3 + z * 0.4})`;
-      ctx.fillText(r.label.toUpperCase(), x + 16, y);
+      ctx.fillStyle = on ? '#ffffff' : `rgba(255, 255, 255, ${0.45 + z * 0.4})`;
+      ctx.fillText(r.label.toUpperCase(), x + 20, y);
     });
     ctx.restore();
 
@@ -262,24 +299,28 @@ function initGlobe(root: HTMLElement) {
     ctx.clip();
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(195, 242, 251, 0.35)';
-    ctx.lineWidth = 1.2;
-    ctx.shadowColor = 'rgba(195, 242, 251, 0.45)';
-    ctx.shadowBlur = 24;
+    ctx.strokeStyle = 'rgba(207, 237, 248, 0.75)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(207, 237, 248, 0.8)';
+    ctx.shadowBlur = 36;
     ctx.stroke();
     ctx.restore();
+    ctx.save();
     ctx.beginPath();
     ctx.ellipse(cx, cutY, rimA, rimB, 0, 0, Math.PI);
-    ctx.strokeStyle = 'rgba(195, 242, 251, 0.55)';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(207, 237, 248, 0.95)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(207, 237, 248, 0.8)';
+    ctx.shadowBlur = 20;
     ctx.stroke();
+    ctx.restore();
 
     // The beam from the marker up towards the phone.
     const beam = ctx.createLinearGradient(0, markerY, 0, 0);
-    beam.addColorStop(0, 'rgba(195, 242, 251, 0.7)');
-    beam.addColorStop(1, 'rgba(195, 242, 251, 0)');
+    beam.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+    beam.addColorStop(1, 'rgba(255, 255, 255, 0)');
     ctx.fillStyle = beam;
-    ctx.fillRect(cx - 0.75, 0, 1.5, markerY);
+    ctx.fillRect(cx - 1, 0, 2, markerY);
   };
 
   /* ---------- Motion ---------- */
@@ -307,7 +348,7 @@ function initGlobe(root: HTMLElement) {
     screens.forEach((s, i) => {
       const v = s.querySelector<HTMLVideoElement>('video');
       if (!v) return;
-      if (i === index && inView && !userPaused) {
+      if (i === index && inView && !userPaused && !root.closest('.is-media-held')) {
         if (v.preload === 'none') v.preload = 'auto';
         v.play().catch(() => {});
       } else v.pause();
@@ -318,9 +359,14 @@ function initGlobe(root: HTMLElement) {
     toggle?.setAttribute('aria-label', userPaused ? 'Play video' : 'Pause video');
   };
 
+  let notifySecondReel = () => {}; // set with the notifications, below
   const showRegion = (i: number) => {
+    // "Explore Our Work" leads to this region's own campaign, where it has one.
+    const campaign = screens[i]?.dataset.work;
+    root.querySelector('[data-globe-notice-work]')?.setAttribute('href', campaign ? `/work?spotlight=${campaign}` : '/work');
     const from = index;
     index = i;
+    if (i === 1) notifySecondReel();
     tabs.forEach((t, n) => {
       t.setAttribute('aria-selected', String(n === i));
       t.tabIndex = n === i ? 0 : -1;
@@ -337,6 +383,13 @@ function initGlobe(root: HTMLElement) {
       s.setAttribute('aria-hidden', String(n !== i));
     });
     nows.forEach((n, k) => n.classList.toggle('is-active', k === i));
+    // Fewer messages than regions: they take turns, so each step brings a new one.
+    messages.forEach((m, k) => {
+      const on = k === i % messages.length;
+      m.classList.toggle('is-active', on);
+      if (on) m.removeAttribute('aria-hidden');
+      else m.setAttribute('aria-hidden', 'true');
+    });
     if (status) status.textContent = `${regions[i].label} selected`;
     syncVideo();
   };
@@ -432,10 +485,70 @@ function initGlobe(root: HTMLElement) {
   };
   window.addEventListener('scroll', onScroll, { passive: true });
 
+  /* ---------- The notifications: each once ---------- */
+  // Arrived means in view and, on the homepage, with the Social card fully open (home-portals.ts).
+  // The first comes on arrival and stays a few seconds, or until the visitor takes hold of the globe;
+  // the second replaces it at the second reel.
+  const notice = root.querySelector<HTMLElement>('[data-globe-notice]');
+  const workNotice = root.querySelector<HTMLElement>('[data-globe-notice-work]');
+  const portalPage = root.closest<HTMLElement>('[data-chapter]');
+  const arrived = () => inView && !(portalPage && !portalPage.closest('.portals:not(.is-live)') && !portalPage.classList.contains('is-open'));
+  let noticeTimer = 0;
+  let noticed = false;
+  let workNoticed = false;
+  const hideNotice = () => {
+    window.clearTimeout(noticeTimer);
+    notice?.classList.remove('is-shown');
+    workNotice?.classList.remove('is-shown');
+  };
+  const drop = (el: HTMLElement, delay: number) => {
+    window.clearTimeout(noticeTimer);
+    noticeTimer = window.setTimeout(() => {
+      el.classList.add('is-shown');
+      noticeTimer = window.setTimeout(hideNotice, 7000);
+    }, delay);
+  };
+  const maybeNotify = () => {
+    if (noticed || !notice || !arrived()) return;
+    noticed = true;
+    drop(notice, 500);
+  };
+  notifySecondReel = () => {
+    if (workNoticed || !workNotice || !arrived()) return;
+    workNoticed = true;
+    noticed = true;
+    const wasShowing = !!notice?.classList.contains('is-shown');
+    hideNotice();
+    drop(workNotice, wasShowing ? 450 : 150);
+  };
+  canvas.addEventListener('pointerdown', () => notice?.classList.remove('is-shown'));
+
+  /* ---------- No header while the stage is pinned ---------- */
+  // The logo stripe runs along the top of the screen, where the header would cover it (desktop with
+  // motion, where the stripe shows). It returns as the stage leaves, or the Social card closes.
+  const withStripe = window.matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)');
+  const updateHeader = () => {
+    const rect = root.getBoundingClientRect();
+    const open = !portalPage || portalPage.classList.contains('is-open');
+    document.documentElement.classList.toggle('is-on-globe', withStripe.matches && open && rect.top <= 1 && rect.bottom >= window.innerHeight);
+  };
+  window.addEventListener('scroll', updateHeader, { passive: true });
+  window.addEventListener('resize', updateHeader, { passive: true });
+  if (portalPage) {
+    new MutationObserver(() => {
+      maybeNotify();
+      updateHeader();
+    }).observe(portalPage, { attributes: true, attributeFilter: ['class'] });
+  }
+  updateHeader();
+
   new IntersectionObserver((entries) => {
     inView = entries.some((e) => e.isIntersecting);
     syncVideo();
+    maybeNotify();
   }, { threshold: 0.2 }).observe(root);
+  // On the homepage it waits, behind the Social card, until the card has opened (home-portals.ts).
+  root.closest('[data-media-hold]')?.addEventListener('media:hold', syncVideo);
   new ResizeObserver(() => {
     layout();
     draw();

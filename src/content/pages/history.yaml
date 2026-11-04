@@ -6,3 +6,8 @@ sections:
     eyebrow: Our group
     headline: Our history.
     body: How two friends, a camera and an online shop became a group of three businesses.
+
+  # The road: interface copy written by us.
+  road:
+    status: draft
+    body: Scroll or drag along the road

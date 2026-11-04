@@ -1,0 +1,27 @@
+---
+// The Stride Social page's content: the creator globe, then the menu that ends the page (the owner's
+// design, 2026-11-04), which leads on to the services, industries, work and enquiry pages. One page in
+// two places: at /social, and on the homepage, where the Social card opens onto it
+// (home/PagePortal.astro; `embedded`). Copy lives in src/content/pages/social.yaml.
+import { getEntry } from 'astro:content';
+import { getPartners } from '@/lib/partners';
+import CreatorGlobe from './CreatorGlobe.astro';
+import SocialMenu from './SocialMenu.astro';
+
+export interface Props {
+  /** Inside another page, which has its own h1 and may not reach this for a while. */
+  embedded?: boolean;
+}
+
+const { embedded = false } = Astro.props;
+
+const page = await getEntry('pages', 'social');
+if (!page) throw new Error('Missing src/content/pages/social.yaml');
+const s = page.data.sections;
+// The same brand partners as under the homepage's cards, for the ticker over the globe.
+const home = await getEntry('pages', 'home');
+const { shown: partners } = await getPartners(home?.data.sections.partners?.featured ?? []);
+---
+
+<CreatorGlobe copy={s.creators} brands={partners} embedded={embedded} />
+<SocialMenu whatWeDo={s.menu?.items ?? []} approach={s.approach?.items ?? []} enquire={s.final?.cta?.href ?? '/social/enquire'} />

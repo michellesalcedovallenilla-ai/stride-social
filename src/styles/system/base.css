@@ -24,6 +24,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* The colour comes from the backdrop behind everything (SiteLayout, scripts/system/backdrop.ts). */
+html.has-backdrop {
+  background-color: rgb(var(--tone-surface));
+}
+
+html.has-backdrop body {
+  background-color: transparent;
+}
+
 h1,
 h2,
 h3,

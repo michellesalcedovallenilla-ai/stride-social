@@ -5,6 +5,9 @@
 // - Inside a hero whose intro is playing (.is-intro-playing), auto videos wait, and load in the
 //   background once the hero allows it (.is-intro-buffered), so they start the moment it ends.
 //   The hero sends `hero:intro` on each change (src/scripts/system/hero-intro.ts).
+// - Inside an element marked .is-media-held (a homepage chapter still closed, or the hero once a
+//   chapter covers it), auto videos wait too, loading in the background once on screen; the nearest
+//   [data-media-hold] sends `media:hold` on each change (src/scripts/system/home-portals.ts).
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const visible = (v: HTMLVideoElement) => v.offsetParent !== null;
@@ -20,7 +23,7 @@ function initAuto(wrapper: HTMLElement) {
   let userPaused = reduced();
   let inView = false;
   const active = () => videos.find(visible);
-  const held = () => !!wrapper.closest('.is-intro-playing');
+  const held = () => !!wrapper.closest('.is-intro-playing, .is-media-held');
 
   const sync = () => {
     const v = active();
@@ -32,7 +35,7 @@ function initAuto(wrapper: HTMLElement) {
       setPaused(wrapper, false);
     } else {
       v.pause();
-      if (held() && wrapper.closest('.is-intro-buffered') && v.preload === 'none') {
+      if (inView && held() && wrapper.closest('.is-intro-buffered, .is-media-held') && v.preload === 'none') {
         v.preload = 'auto';
         v.load();
       }
@@ -50,6 +53,7 @@ function initAuto(wrapper: HTMLElement) {
   }, { threshold: 0.15 }).observe(wrapper);
   window.matchMedia('(max-width: 767px)').addEventListener('change', sync);
   wrapper.closest('[data-hero-intro]')?.addEventListener('hero:intro', sync);
+  wrapper.closest('[data-media-hold]')?.addEventListener('media:hold', sync);
   setPaused(wrapper, userPaused);
 }
 

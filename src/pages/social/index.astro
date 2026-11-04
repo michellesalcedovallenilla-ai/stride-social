@@ -1,55 +1,19 @@
 ---
-// Stride Social landing: the eight sections from the client brief (PDF §4;
-// docs/phase-2/05-wireframes.md §B), plus the creator globe and content world after the intro
-// (docs/phase-3/homepage-magazine.md). Copy lives in src/content/pages/social.yaml; services,
-// brands, industries and work come from the Phase 3 collections. Interim media is labelled.
+// Stride Social landing. The content is shared with the homepage, where the Social card opens onto
+// it (components/social/SocialPage.astro).
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import SocialHero from '@/components/social/SocialHero.astro';
-import LogoStrip from '@/components/social/LogoStrip.astro';
-import IntroSplit from '@/components/social/IntroSplit.astro';
-import CreatorGlobe from '@/components/social/CreatorGlobe.astro';
-import ContentWorld from '@/components/social/ContentWorld.astro';
-import ServiceIndex from '@/components/social/ServiceIndex.astro';
-import IndustryRail from '@/components/social/IndustryRail.astro';
-import WorkSpreads from '@/components/social/WorkSpreads.astro';
-import ApproachChapters from '@/components/social/ApproachChapters.astro';
-import FinalEnquiry from '@/components/social/FinalEnquiry.astro';
+import SocialPage from '@/components/social/SocialPage.astro';
 
 const page = await getEntry('pages', 'social');
 if (!page) throw new Error('Missing src/content/pages/social.yaml');
-const s = page.data.sections;
-
-// Interim hero footage: the live-campaign clips from the previous site, until the reel is approved.
-const clip = (id: string, label: string) => ({
-  mp4: `/assets/video/${id}-transcode.mp4`,
-  webm: `/assets/video/${id}-transcode.webm`,
-  poster: `/assets/site/${id}-poster-00001.jpg`,
-  label,
-});
-const clips = [
-  clip('f2fc912c-video1', 'A creator filming a product campaign in her kitchen'),
-  clip('c5e52ea3-video-2', 'Creator campaign clip'),
-  clip('fccbe600-video-5', 'Creator campaign clip'),
-];
-// The same clips as light six-second loops for the content world's reels window.
-const reels = clips.map((c, i) => ({ mp4: `/assets/video/preview-reel-${i + 1}.mp4`, poster: c.poster, label: c.label }));
 ---
 
 <SiteLayout
   title="Stride Social | Influencer Marketing Agency"
-  description={s.hero.body}
+  description={page.data.sections.hero.body}
   division="social"
   headerOverlay
 >
-  <SocialHero eyebrow={s.hero.eyebrow} lines={s.hero.lines ?? []} body={s.hero.body ?? ''} actions={(s.hero.items ?? []).map((i) => ({ label: i.label, href: i.href ?? '/' }))} clips={clips} interim />
-  <LogoStrip copy={s.logos} />
-  <IntroSplit copy={s.intro} />
-  <CreatorGlobe copy={s.creators} />
-  <ContentWorld copy={s.world} campaigns={['temu-scaling-paid-social-with-500-ugc-videos', 'holafly-app---driving-app-downloads-with-travel-influencers']} reels={reels} />
-  <ServiceIndex copy={s.services} />
-  <IndustryRail copy={s.industries} />
-  <WorkSpreads copy={s.featured} />
-  <ApproachChapters copy={s.approach} />
-  <FinalEnquiry copy={s.final} form={s.enquiry} />
+  <SocialPage />
 </SiteLayout>

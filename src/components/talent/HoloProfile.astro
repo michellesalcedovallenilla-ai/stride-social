@@ -1,0 +1,352 @@
+---
+// A creator's profile: their portrait as a big holographic card that leans towards the pointer, its sheen
+// following, beside their name, biography and platforms in glass.
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  name: string;
+  portrait?: { src: string; alt: string } | null;
+  label: string;
+  bio?: string;
+  fallback: string;
+  platforms: { label: string; href: string }[];
+  enquire: { label: string; href: string };
+  creatorId: string;
+  /** The creators either side, for swiping through. */
+  prev?: string;
+  next?: string;
+  crumbs: { label: string; href?: string }[];
+}
+
+const { name, portrait, label, bio, fallback, platforms, enquire, crumbs, creatorId, prev, next } = Astro.props;
+const t = await interfaceCopy();
+---
+
+<section class="holo" aria-labelledby="holo-title" data-holo data-tone="talent" data-look="deep">
+  <div class="holo__inner container-wide">
+    <div class="holo__copy" data-reveal="from-left">
+      <Breadcrumbs items={crumbs} tone="dark" />
+      <p class="exp-label">{label}</p>
+      <h1 class="holo__name exp-title" id="holo-title" style={`--len: ${Math.max(5, ...name.split(/\s+/).map((w) => w.length))}`}>{name}</h1>
+      <div class="holo__bio glass" data-lenis-prevent>
+        {bio ? <div class="holo__text" set:html={bio} /> : <p class="holo__text">{fallback}</p>}
+      </div>
+      {platforms.length > 0 && (
+        <ul class="holo__platforms" role="list" aria-label="Platforms">
+          {platforms.map((p) => <li><a class="exp-chip" href={p.href} target="_blank" rel="noopener">{p.label}<span class="visually-hidden"> (opens in a new tab)</span></a></li>)}
+        </ul>
+      )}
+      <a class="exp-pill" href={enquire.href}>
+        {enquire.label}
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+      </a>
+    </div>
+
+    <div class="holo__stage" data-holo-stage data-prev={prev} data-next={next}>
+      <div class="holo__card on-photo" data-holo-card>
+        <div class="holo__flip">
+          <div class="holo__face holo__face--front">
+            {portrait ? (
+              <img src={portrait.src} alt={portrait.alt} sizes="(max-width: 1023px) 80vw, 34vw" fetchpriority="high" decoding="async" draggable="false" />
+            ) : (
+              <span class="holo__initial" aria-hidden="true">{name.replace(/[^a-z0-9]/gi, '').charAt(0)}</span>
+            )}
+            <span class="holo__sheen" aria-hidden="true"></span>
+            <span class="holo__tag" aria-hidden="true"><span class="exp-label">Stride Talent</span><span class="holo__tag-name">{name}</span></span>
+          </div>
+          <div class="holo__face holo__face--back" data-holo-back inert>
+            <p class="exp-label">{t('profile.platforms')}</p>
+            <p class="holo__back-name exp-title" style={`--len: ${Math.max(5, ...name.split(/\s+/).map((w) => w.length))}`}>{name}</p>
+            {platforms.length > 0 && (
+              <ul class="holo__back-links" role="list">
+                {platforms.map((p) => <li><a class="exp-chip" href={p.href} target="_blank" rel="noopener">{p.label}<span class="visually-hidden"> (opens in a new tab)</span></a></li>)}
+              </ul>
+            )}
+            <button class="exp-pill desk-only" type="button" aria-pressed="false" data-keep="creators" data-keep-id={creatorId} data-keep-label={name}>
+              <span class="keep-off">+ {t('hand.keep')}</span><span class="keep-on">{t('hand.kept')}</span>
+            </button>
+          </div>
+        </div>
+        <button class="holo__turn exp-round" type="button" aria-label={t('profile.flip')} data-holo-flip>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 9"></path><path d="M20 4v5h-5"></path><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15"></path><path d="M4 20v-5h5"></path></svg>
+        </button>
+      </div>
+      {(prev || next) && (
+        <div class="holo__nav desk-only">
+          {prev && <a class="exp-round" href={prev} aria-label={t('profile.prev')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5.5M11 6.5 5.5 12l5.5 5.5"></path></svg></a>}
+          <p class="exp-label" aria-hidden="true">{t('profile.hint')}</p>
+          {next && <a class="exp-round" href={next} aria-label={t('profile.next')}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg></a>}
+        </div>
+      )}
+    </div>
+  </div>
+  <slot />
+</section>
+
+<style>
+  .holo {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-6);
+    overflow: hidden;
+    color: rgb(var(--ink));
+  }
+
+  .holo__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: var(--space-6) var(--gutter);
+    align-items: center;
+    width: 100%;
+  }
+
+  .holo__copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    container-type: inline-size;
+  }
+
+  .holo__name {
+    font-size: min(5.5rem, calc(100cqi / (var(--len) * 0.84)));
+  }
+
+  .holo__bio {
+    width: 100%;
+    max-height: 34svh;
+    padding: clamp(18px, 1.8vw, 28px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--hair) / 0.3) transparent;
+  }
+
+  .holo__text {
+    display: grid;
+    gap: var(--space-3);
+    color: rgb(var(--ink) / 0.88);
+  }
+
+  .holo__platforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ---------- The card ---------- */
+  .holo__stage {
+    display: grid;
+    place-items: center;
+    perspective: 1400px;
+  }
+
+  .holo__card {
+    position: relative;
+    width: min(100%, 26rem, 52svh);
+    aspect-ratio: 5 / 7;
+    cursor: grab;
+    transform:
+      translateX(var(--drag-x, 0px))
+      rotate(var(--drag-r, 0deg))
+      rotateX(var(--rx, 0deg))
+      rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition: transform 220ms var(--ease-out);
+    will-change: transform;
+  }
+
+  .holo__card.is-held {
+    cursor: grabbing;
+    transition: none;
+  }
+
+  /* Two sides: the portrait, and where to find them. */
+  .holo__flip {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 720ms cubic-bezier(0.3, 1.2, 0.4, 1);
+  }
+
+  .holo__card.is-flipped .holo__flip {
+    transform: rotateY(180deg);
+  }
+
+  .holo__face {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 28px;
+    background: var(--navy-700);
+    box-shadow:
+      0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 50px -6px rgb(var(--tone-glow) / 0.6),
+      0 40px 80px -30px rgb(var(--shade) / 0.85);
+    backface-visibility: hidden;
+  }
+
+  .holo__face--back {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: var(--space-4);
+    padding: clamp(22px, 2.4vw, 36px);
+    background:
+      radial-gradient(90% 70% at 20% 0%, rgb(var(--tone-wash) / 0.36), transparent 70%),
+      var(--navy-700);
+    transform: rotateY(180deg);
+    container-type: inline-size;
+  }
+
+  .holo__back-name {
+    font-size: min(2.75rem, calc(100cqi / (var(--len) * 0.9)));
+  }
+
+  .holo__back-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .holo__turn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    transform: translateZ(2px);
+  }
+
+  .holo__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .holo__card img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .holo__initial {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 8rem;
+    font-weight: 850;
+    text-transform: uppercase;
+    color: rgb(var(--tone-lit));
+  }
+
+  .holo__sheen {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at var(--gx, 40%) var(--gy, 25%), rgb(255 255 255 / calc(0.42 * var(--fill-k))), transparent 44%),
+      linear-gradient(115deg, transparent 30%, rgb(var(--tone-lit) / 0.3) 46%, rgb(207 237 248 / 0.28) 52%, transparent 70%);
+    background-size: 100% 100%, 240% 240%;
+    background-position: 0 0, var(--gx, 40%) var(--gy, 25%);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  .holo__tag {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    gap: 4px;
+    padding: 48px 22px 20px;
+    background: linear-gradient(to top, rgb(6 20 43 / 0.92), transparent);
+    container-type: inline-size;
+  }
+
+  .holo__tag-name {
+    font-family: var(--font-display);
+    font-size: min(1.75rem, 8cqi);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 1023px) {
+    .holo__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .holo__stage {
+      grid-row: 1;
+    }
+
+    .holo__card {
+      width: min(70vw, 40svh);
+    }
+  }
+</style>
+
+<script>
+  import { initTilt } from '@/scripts/system/ambient';
+  document.querySelectorAll<HTMLElement>('[data-holo]').forEach((root) => {
+    if (root.dataset.holoReady) return;
+    root.dataset.holoReady = 'true';
+    initTilt(root, () => root.querySelector<HTMLElement>('[data-holo-card]'), 18);
+
+    // A click flips the card; a swipe goes to the next creator.
+    const card = root.querySelector<HTMLElement>('[data-holo-card]');
+    const stage = root.querySelector<HTMLElement>('[data-holo-stage]');
+    const back = root.querySelector<HTMLElement>('[data-holo-back]');
+    if (!card || !stage) return;
+    const flip = () => {
+      const flipped = card.classList.toggle('is-flipped');
+      back?.toggleAttribute('inert', !flipped);
+    };
+    root.querySelector('[data-holo-flip]')?.addEventListener('click', flip);
+    let startX = 0;
+    let pressed = false;
+    let moved = false;
+    card.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || (e.target as HTMLElement).closest('a, button')) return;
+      pressed = true;
+      moved = false;
+      startX = e.clientX;
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!pressed) return;
+      const dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) < 6) return;
+      moved = true;
+      card.classList.add('is-held');
+      card.style.setProperty('--drag-x', `${dx.toFixed(0)}px`);
+      card.style.setProperty('--drag-r', `${(dx * 0.03).toFixed(2)}deg`);
+    });
+    window.addEventListener('pointerup', (e) => {
+      if (!pressed) return;
+      pressed = false;
+      card.classList.remove('is-held');
+      const dx = e.clientX - startX;
+      const to = dx < -110 ? stage.dataset.next : dx > 110 ? stage.dataset.prev : undefined;
+      if (moved && to) {
+        card.style.setProperty('--drag-x', `${dx < 0 ? -120 : 120}vw`);
+        window.setTimeout(() => (location.href = to), 220);
+        return;
+      }
+      card.style.removeProperty('--drag-x');
+      card.style.removeProperty('--drag-r');
+      if (!moved) flip();
+    });
+    card.addEventListener('dragstart', (e) => e.preventDefault());
+  });
+</script>

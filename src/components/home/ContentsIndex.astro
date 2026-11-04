@@ -1,327 +1,468 @@
 ---
-// Homepage section 2: the three Stride businesses as destinations, not cards. Each row is one
-// big name ("01 — Stride Social", "For brands"); hovering it widens the name along Archivo's
-// width axis, reveals the one-line descriptor, turns the arrow and brings the business's footage
-// or image up behind the row. On touch screens the descriptor simply shows. The name is the link;
-// the rest of the row extends its hit area. Missing imagery gets a labelled placeholder.
-import Media from '../core/Media.astro';
-import Eyebrow from '../core/Eyebrow.astro';
+// Homepage section 2, "Three sides of Stride": the intro (heading, one line) above the three
+// businesses as a row of glass cards (an icon, the name, who it is for, an arrow),
+// each with its own restrained glow; hovering a card lifts it a little, warms its glow and turns
+// the arrow. Below, the brand partners: a scroll cue and the logos on their ticker (core/BrandTicker).
+// On desktop this sits over the hero's frosted footage (home/HeroScene.astro); elsewhere on its own
+// navy. Logos follow the brand approval rule (lib/partners.ts).
+import BrandTicker from '../core/BrandTicker.astro';
 import PlaceholderNotice from '../core/PlaceholderNotice.astro';
+import { getPartners } from '@/lib/partners';
 
 type Division = 'social' | 'talent' | 'education';
 
 export interface Props {
-  eyebrow: string;
   headline: string;
+  body?: string;
   items: {
     key: Division;
-    audience: string;
-    name: string;
-    copy: string;
-    cta: string;
+    label: string; // "Social"
+    audience: string; // "For brands"
+    cta: string; // "Explore Stride Social" (the link's description)
     href: string;
-    thumb?: { src: string; alt: string; interim?: boolean }; // image behind the row on hover
-    video?: { mp4: string; poster: string; label: string }; // footage behind the row on hover (wins over thumb)
-    thumbMissing?: string; // placeholder label when there is no image yet
   }[];
+  /** The brand partners strip: its cue and the brands (ids in the brands collection), in order. */
+  partners?: { cue: string; brands: string[] };
 }
 
-const { eyebrow, headline, items } = Astro.props;
-const pad = (n: number) => String(n).padStart(2, '0');
+const { headline, body, items, partners } = Astro.props;
+
+const { shown, awaiting, interim } = await getPartners(partners?.brands ?? []);
+const full = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
 ---
 
-<section class="dest" aria-labelledby="dest-title">
-  <div class="dest__inner container-wide">
-    <header class="dest__head">
-      <Eyebrow tone="dark">{eyebrow}</Eyebrow>
-      <h2 class="dest__title" id="dest-title" data-reveal="from-left">{headline}</h2>
+<section class="sides on-photo" aria-labelledby="sides-title">
+  <div class="sides__inner container-wide">
+    <header class="sides__intro">
+      <h2 class="sides__title" id="sides-title" data-reveal="from-left">{headline}</h2>
+      {body && <p class="sides__lede" data-reveal="from-left" style="--reveal-delay: 0.08s">{body}</p>}
     </header>
 
-    <ol class="dest__list" role="list">
+    <ol class="sides__cards" role="list">
       {items.map((item, i) => (
-        <li class={`dest__row dest__row--${item.key}`} data-media-hover data-reveal="wipe" style={`--reveal-delay: ${i * 0.12}s`}>
-          <div class="dest__media" aria-hidden="true">
-            {item.video ? (
-              <Media video={item.video} play="hover" />
-            ) : item.thumb ? (
-              <Media image={{ src: item.thumb.src, alt: '' }} />
-            ) : (
-              <PlaceholderNotice variant="block" label={item.thumbMissing ?? 'Image needed'} class="dest__empty" />
-            )}
-            {item.thumb?.interim && !item.video && <PlaceholderNotice label="Interim image" />}
-          </div>
-
-          <span class="dest__num" aria-hidden="true">{pad(i + 1)} —</span>
-          <h3 class="dest__name"><a href={item.href}>{item.name}</a></h3>
-          <p class="dest__audience">{item.audience}</p>
-          <p class="dest__desc">{item.copy}</p>
-          <span class="dest__cta" aria-hidden="true">
-            <span class="dest__cta-label">{item.cta}</span>
-            <span class="dest__arrow"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M8 6h10v10" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg></span>
-          </span>
+        <li data-reveal="from-right" style={`--reveal-delay: ${(0.08 + i * 0.09).toFixed(2)}s`}>
+          <a class={`sides__card sides__card--${item.key}`} href={item.href} aria-label={`${item.cta}: ${full(item.audience)}`}>
+            <span class="sides__icon" aria-hidden="true">
+              {item.key === 'social' && (
+                <svg viewBox="0 0 24 24"><path d="M12 3.5 3 8l9 4.5L21 8l-9-4.5Z"></path><path d="m3 12 9 4.5 9-4.5"></path><path d="m3 16 9 4.5 9-4.5"></path></svg>
+              )}
+              {item.key === 'talent' && (
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.2 19.5c0-3.2 2.6-5.8 5.8-5.8s5.8 2.6 5.8 5.8"></path><circle cx="16.8" cy="9" r="2.5"></circle><path d="M15.8 14c2.8.3 5 2.6 5 5.5"></path></svg>
+              )}
+              {item.key === 'education' && (
+                <svg viewBox="0 0 24 24"><path d="M12 4.5 1.8 9.2 12 14l10.2-4.8L12 4.5Z"></path><path d="M6.2 11.4v4.4c0 1.4 2.6 3 5.8 3s5.8-1.6 5.8-3v-4.4"></path><path d="M22.2 9.2v5.3"></path></svg>
+              )}
+            </span>
+            <span class="sides__text">
+              <span class="sides__name"><span>Stride</span> <span>{item.label}</span></span>
+              <span class="sides__audience">{full(item.audience)}</span>
+            </span>
+            <span class="sides__arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+            </span>
+          </a>
         </li>
       ))}
     </ol>
   </div>
+
+  {partners && (
+    <div class="sides__partners">
+      <p class="sides__cue">
+        <span>{partners.cue}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9.5 6 6 6-6"></path></svg>
+      </p>
+      <BrandTicker brands={shown} />
+      {(interim || awaiting.length > 0) && (
+        <div class="sides__notes container-wide">
+          {interim && <PlaceholderNotice variant="inline" label="Interim logos">— from the previous site, awaiting approval (Q5)</PlaceholderNotice>}
+          {awaiting.length > 0 && <PlaceholderNotice variant="inline" label="Logos needed">— {awaiting.join(', ')}: logo files and display approval</PlaceholderNotice>}
+        </div>
+      )}
+    </div>
+  )}
 </section>
 
 <style>
-  .dest {
-    padding-block: clamp(72px, 9vw, 160px);
-    background: var(--navy-900);
-    color: var(--white);
+  .sides {
+    position: relative;
+    padding-block: clamp(80px, 9vw, 150px) clamp(56px, 6vw, 96px);
+    color: rgb(var(--ink));
+    /* On its own (tablet, phone): deep navy lit softly from two corners. */
+    background:
+      radial-gradient(60% 55% at 12% 18%, rgb(41 67 104 / 0.5), transparent 70%),
+      radial-gradient(55% 50% at 88% 78%, rgb(207 237 248 / 0.07), transparent 70%),
+      linear-gradient(180deg, var(--navy-700), var(--navy-900));
   }
 
-  .dest__head {
+  .sides__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(40px, 5vw, 96px);
+  }
+
+  /* ---------- Intro ---------- */
+  .sides__intro {
     display: grid;
     gap: var(--space-4);
-    margin-bottom: var(--space-8);
+    align-content: center;
   }
 
-  .dest__title {
-    max-width: 14ch;
+  .sides__title {
     font-family: var(--font-display);
-    font-size: var(--type-h2);
-    font-weight: 750;
-    line-height: 1;
-    letter-spacing: -0.01em;
-    text-transform: uppercase;
+    font-size: clamp(2.4rem, 3.7vw, 4.25rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
   }
 
-  .dest__list {
-    border-top: 1px solid var(--line-dark);
+  .sides__lede {
+    max-width: 30ch;
+    font-size: clamp(1rem, 1.15vw, 1.2rem);
+    line-height: 1.5;
+    color: rgb(var(--ink) / 0.72);
   }
 
-  /* ---------- Row ---------- */
-  .dest__row {
+  /* ---------- The cards: frosted glass panes ----------
+     A translucent pane (the scene behind softly blurred), a hairline edge that catches the light at
+     the top and picks up the card's own tone at the foot, a highlight along the top, a soft glow of
+     that tone rising from below, and a shadow beneath. */
+  .sides__cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(14px, 1.4vw, 24px);
+  }
+
+  .sides__card {
+    --tone: var(--ice);
     position: relative;
     isolation: isolate;
-    display: grid;
-    grid-template-columns: 6rem minmax(0, 1fr) minmax(0, 26rem) 56px;
-    grid-template-areas:
-      'num name name arrow'
-      '. audience desc .';
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-4) var(--gutter);
-    padding-block: var(--space-6);
-    border-bottom: 1px solid var(--line-dark);
+    justify-content: space-between;
+    gap: var(--space-5);
+    min-height: 280px;
+    padding: clamp(26px, 2.3vw, 38px) clamp(16px, 1.4vw, 24px);
     overflow: hidden;
+    border-radius: 26px;
+    text-align: center;
+    color: rgb(var(--ink));
+    background: linear-gradient(
+      165deg,
+      rgb(255 255 255 / 0.13),
+      rgb(255 255 255 / 0.05) 42%,
+      rgb(255 255 255 / 0.025) 62%,
+      rgb(255 255 255 / 0.07)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      0 30px 60px -34px rgb(0 0 0 / 0.7),
+      0 2px 8px -4px rgb(0 0 0 / 0.3);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    transition:
+      translate 600ms var(--ease-out),
+      box-shadow 600ms var(--ease-out);
   }
 
-  /* The whole row answers to the name's link. */
-  .dest__name a::after {
+  .sides__card--talent {
+    --tone: var(--white);
+  }
+
+  .sides__card--education {
+    --tone: var(--frost);
+  }
+
+  /* The glow of the card's tone, rising from below. */
+  .sides__card::before {
+    content: '';
+    position: absolute;
+    inset: auto -25% -42%;
+    z-index: -1;
+    height: 78%;
+    background: radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--tone) 30%, transparent), transparent 72%);
+    opacity: 0.72;
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  /* The hairline edge: bright at the top, the card's tone at the foot, clear on the sides. */
+  .sides__card::after {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 1;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      170deg,
+      rgb(255 255 255 / 0.42),
+      rgb(255 255 255 / 0.08) 30%,
+      rgb(255 255 255 / 0.04) 62%,
+      color-mix(in srgb, var(--tone) 45%, transparent)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    opacity: 0.75;
+    pointer-events: none;
+    transition: opacity 600ms var(--ease-out);
   }
 
-  .dest__num {
-    grid-area: num;
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.14em;
-    color: rgb(255 255 255 / 0.55);
-    transition: color var(--dur-base) var(--ease-out);
-  }
-
-  /* The name widens along Archivo's width axis on hover: playful but still typographic. Its line
-     spans the row, so even the widest name has room to grow. */
-  .dest__name {
-    grid-area: name;
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 5.6vw, 5.75rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-normal);
-    line-height: 0.9;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition:
-      font-stretch 600ms var(--ease-out),
-      transform 600ms var(--ease-out);
-  }
-
-  .dest__audience {
-    grid-area: audience;
-    align-self: start;
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .dest__desc {
-    grid-area: desc;
-    align-self: start;
-    max-width: 34ch;
-    font-size: var(--type-body);
-    line-height: 1.45;
-    color: rgb(255 255 255 / 0.82);
-  }
-
-  .dest__cta {
-    grid-area: arrow;
-    justify-self: end;
-  }
-
-  .dest__cta-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-
-  .dest__arrow {
+  .sides__icon {
     display: grid;
     place-items: center;
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .sides__icon svg {
+    width: 30px;
+    height: 30px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .sides__text {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .sides__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 1.9vw, 2.05rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+  }
+
+  .sides__name span {
+    display: block;
+  }
+
+  .sides__audience {
+    font-size: clamp(0.9rem, 0.95vw, 1rem);
+    line-height: 1.35;
+    color: rgb(var(--ink) / 0.7);
+  }
+
+  .sides__arrow {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+    background: rgb(255 255 255 / calc(0.05 * var(--fill-k)));
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.34);
     transition:
-      background-color var(--dur-base) var(--ease-out),
-      color var(--dur-base) var(--ease-out),
-      transform 500ms var(--ease-out);
+      background-color 500ms var(--ease-out),
+      color 500ms var(--ease-out),
+      box-shadow 500ms var(--ease-out);
   }
 
-  .dest__arrow svg {
-    width: 20px;
-    height: 20px;
-    transition: transform 500ms var(--ease-out);
+  .sides__arrow svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: translate 500ms var(--ease-out);
   }
 
-  /* ---------- Footage behind the row ---------- */
-  .dest__media {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    opacity: 0;
-    scale: 1.08;
-    filter: blur(10px) saturate(1.1);
-    transition:
-      opacity 500ms var(--ease-out),
-      scale 900ms var(--ease-out),
-      filter 600ms var(--ease-out);
+  /* Hover and keyboard focus: the card lifts a little, its glow and edge warm, the arrow fills. */
+  .sides__card:hover,
+  .sides__card:focus-visible {
+    translate: 0 -6px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      0 40px 70px -34px rgb(0 0 0 / 0.75),
+      0 0 46px -18px color-mix(in srgb, var(--tone) 45%, transparent);
   }
 
-  /* A navy veil keeps the white type readable over any footage. */
-  .dest__media::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, rgb(6 20 43 / 0.82), rgb(6 20 43 / 0.35) 60%, rgb(6 20 43 / 0.6));
+  .sides__card:hover::before,
+  .sides__card:focus-visible::before {
+    opacity: 1;
   }
 
-  .dest :global(.dest__empty) {
-    position: absolute;
-    inset: 0;
-    border: 0;
+  .sides__card:hover::after,
+  .sides__card:focus-visible::after {
+    opacity: 1;
   }
 
-  /* ---------- Hover and focus (desktop): the destination wakes up ---------- */
-  @media (hover: hover) and (pointer: fine) {
-    .dest__desc {
-      opacity: 0;
-      transform: translateY(12px);
-      transition:
-        opacity 400ms var(--ease-out),
-        transform 500ms var(--ease-out);
-    }
-
-    .dest__row:hover .dest__name,
-    .dest__row:focus-within .dest__name {
-      font-stretch: var(--stretch-wide);
-      transform: translateX(0.04em);
-    }
-
-    .dest__row:hover .dest__desc,
-    .dest__row:focus-within .dest__desc {
-      opacity: 1;
-      transform: none;
-    }
-
-    .dest__row:hover .dest__media,
-    .dest__row:focus-within .dest__media {
-      opacity: 1;
-      scale: 1;
-      filter: none;
-    }
-
-    .dest__row:hover .dest__num,
-    .dest__row:focus-within .dest__num {
-      color: var(--ice);
-    }
-
-    .dest__row:hover .dest__arrow,
-    .dest__row:focus-within .dest__arrow {
-      background: var(--ice);
-      color: var(--navy-900);
-      transform: scale(1.08);
-    }
-
-    .dest__row:hover .dest__arrow svg,
-    .dest__row:focus-within .dest__arrow svg {
-      transform: rotate(45deg);
-    }
+  .sides__card:hover .sides__arrow,
+  .sides__card:focus-visible .sides__arrow {
+    background: var(--tone);
+    color: rgb(var(--tone-on));
+    box-shadow: inset 0 0 0 1px var(--white);
   }
 
-  .dest__name a:focus-visible {
-    outline: none;
+  .sides__card--talent:hover .sides__arrow,
+  .sides__card--talent:focus-visible .sides__arrow {
+    background: var(--lime);
+    color: var(--navy-900);
   }
 
-  .dest__row:has(a:focus-visible) {
+  .sides__card:hover .sides__arrow svg,
+  .sides__card:focus-visible .sides__arrow svg {
+    translate: 2px 0;
+  }
+
+  .sides__card:focus-visible {
     outline: 2px solid var(--ice);
-    outline-offset: -2px;
+    outline-offset: 3px;
   }
 
-  /* ---------- Tablet ---------- */
-  @media (max-width: 1023px) {
-    .dest__row {
-      grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 1fr) 48px;
+  /* ---------- Brand partners ---------- */
+  .sides__partners {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-5);
+    margin-top: clamp(64px, 7vw, 112px);
+  }
+
+  .sides__cue {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .sides__cue svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    animation: sides-cue 2.4s var(--ease-in-out) infinite;
+  }
+
+  @keyframes sides-cue {
+    0%,
+    100% {
+      translate: 0 0;
+      opacity: 0.6;
     }
 
-    .dest__arrow {
-      width: 48px;
-      height: 48px;
+    50% {
+      translate: 0 4px;
+      opacity: 1;
     }
   }
 
-  /* ---------- Phones: name first, everything readable without hover ---------- */
+  .sides__notes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  /* ---------- Desktop: all of it, down to the ticker, fits one screen, sized to its height too ---------- */
+  @media (min-width: 1024px) {
+    .sides__inner {
+      gap: clamp(24px, 4vh, 48px);
+    }
+
+    .sides__title {
+      font-size: clamp(2.4rem, min(3vw, 6vh), 3.25rem);
+    }
+
+    .sides__card {
+      min-height: clamp(210px, 31vh, 300px);
+    }
+
+    .sides__name {
+      font-size: clamp(1.35rem, 1.6vw, 1.75rem);
+    }
+
+    .sides__partners {
+      margin-top: clamp(28px, 5vh, 64px);
+    }
+  }
+
+  /* Short laptop screens: the cards tighten up. */
+  @media (min-width: 1024px) and (max-height: 800px) {
+    .sides__card {
+      gap: var(--space-3);
+      padding-block: 20px;
+    }
+
+    .sides__icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .sides__arrow {
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  /* ---------- Phones: the cards as glass rows (icon, name, arrow) ---------- */
   @media (max-width: 767px) {
-    .dest__row {
-      grid-template-columns: minmax(0, 1fr) 44px;
-      grid-template-areas:
-        'num arrow'
-        'name name'
-        'audience audience'
-        'desc desc';
-      row-gap: var(--space-3);
-      padding-block: var(--space-5);
+    .sides__cards {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
     }
 
-    .dest__name {
-      font-size: clamp(2.25rem, 11.5vw, 3.5rem);
-      white-space: normal;
+    .sides__card {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: var(--space-4);
+      min-height: 0;
+      padding: 18px 18px 18px 14px;
+      border-radius: 20px;
+      text-align: left;
     }
 
-    .dest__arrow {
-      width: 44px;
-      height: 44px;
+    .sides__card::before {
+      inset: -40% auto -40% -30%;
+      width: 70%;
+      height: auto;
     }
 
-    .dest__desc {
-      font-size: var(--type-small);
+    .sides__text {
+      flex: 1;
+      gap: 4px;
+    }
+
+    .sides__name span {
+      display: inline;
+    }
+
+    .sides__arrow {
+      flex: none;
+      width: 40px;
+      height: 40px;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .dest__name,
-    .dest__media,
-    .dest__arrow,
-    .dest__arrow svg {
+    .sides__card,
+    .sides__card::before,
+    .sides__card::after,
+    .sides__arrow,
+    .sides__arrow svg {
       transition: none;
+    }
+
+    .sides__card:hover,
+    .sides__card:focus-visible {
+      translate: none;
+    }
+
+    .sides__cue svg {
+      animation: none;
     }
   }
 </style>

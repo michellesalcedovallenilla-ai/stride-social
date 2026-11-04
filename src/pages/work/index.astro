@@ -1,15 +1,15 @@
 ---
-// Our Work archive (docs/phase-2/05-wireframes.md §E): every visible case study in a mixed-size
-// mosaic, filterable by industry and service (chips, URL-synced: /work?industry=technology), with
-// "Load more". Only industries and services that have case studies get a chip. Tags are proposed
-// until Stride approves the Gate 2 mapping.
-import { getCollection, getEntry } from 'astro:content';
+// Our Work: every visible case study on a wall you can move (experience/Wall). Scroll it, drag it, throw
+// it; filter by industry and service (URL-synced: /work?industry=technology) and the tiles fly to their
+// new places. A tile grows into a big card with the case in short (verified results only), which leads to
+// its page. Only industries and services that have case studies get a filter. Tags are proposed until
+// Stride approves the Gate 2 mapping.
+import { getCollection, getEntries, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import WorkGrid from '@/components/social/WorkGrid.astro';
-import EnquiryCta from '@/components/social/EnquiryCta.astro';
-import Chip from '@/components/core/Chip.astro';
-import Button from '@/components/core/Button.astro';
+import Wall from '@/components/experience/Wall.astro';
+import EnquiryClose from '@/components/social/EnquiryClose.astro';
+import { routes } from '@/lib/routes';
+import { workPreviews } from '@/lib/previews';
 
 const work = (await getCollection('work', (w) => w.data.visible)).sort((a, b) => a.data.order - b.data.order);
 const industries = (await getCollection('industries')).sort((a, b) => a.data.order - b.data.order);
@@ -22,138 +22,38 @@ const groups = [
   { key: 'service', label: 'Service', options: services.map((s) => ({ id: s.id, label: s.data.name, n: serviceCount(s.id) })).filter((o) => o.n > 0) },
 ];
 
+const items = await Promise.all(
+  work.map(async (w) => {
+    const name = (await getEntry(w.data.client))?.data.name ?? w.data.title;
+    const tagged = await getEntries(w.data.services);
+    const labels = (await getEntries(w.data.industries)).map((i) => i.data.label);
+    return {
+      key: w.id,
+      name,
+      meta: tagged.map((s) => s.data.name).join(' · '),
+      image: w.data.card,
+      href: routes.caseStudy(w.id),
+      video: workPreviews[w.id],
+      filters: { industry: w.data.industries.map((i) => i.id).join(' '), service: w.data.services.map((s) => s.id).join(' ') },
+      card: {
+        name,
+        text: w.data.summary,
+        href: routes.caseStudy(w.id),
+        image: w.data.hero ?? w.data.card,
+        chips: [...labels, ...w.data.markets, ...(w.data.year ? [String(w.data.year)] : [])],
+        stats: w.data.results.filter((r) => r.status === 'verified').slice(0, 3),
+        action: { label: 'View case study', href: routes.caseStudy(w.id) },
+      },
+    };
+  }),
+);
+
 const copy = (await getEntry('pages', 'work'))?.data.sections.hero;
 const final = (await getEntry('pages', 'social'))?.data.sections.final;
 if (!copy) throw new Error('Missing src/content/pages/work.yaml');
 ---
 
-<SiteLayout title="Our Work | Stride Social case studies" description={copy.body} division="social">
-  <PageIntro crumbs={[{ label: 'Our Work' }]} copy={copy} />
-
-  <section class="archive" aria-label="Case studies" data-archive>
-    <div class="archive__bar container-wide">
-      {groups.map((g) => (
-        <div class="archive__group">
-          <p class="archive__label" id={`filter-${g.key}`}>{g.label}</p>
-          <div class="archive__chips" role="group" aria-labelledby={`filter-${g.key}`} data-filter-group={g.key}>
-            <Chip value="all" tone="dark" active>All</Chip>
-            {g.options.map((o) => <Chip value={o.id} tone="dark">{o.label} <span class="archive__n">{o.n}</span></Chip>)}
-          </div>
-        </div>
-      ))}
-      <p class="archive__count" role="status" aria-live="polite" data-filter-count data-noun="case study|case studies">{work.length} case studies</p>
-    </div>
-
-    <div class="container-wide">
-      <WorkGrid items={work} nameLevel="h2" pageSize={12} />
-      <div class="archive__empty" hidden data-filter-empty>
-        <p>No case studies match these filters.</p>
-        <Button tone="dark" variant="secondary" data-filter-clear>Clear filters</Button>
-      </div>
-      <div class="archive__more">
-        <Button tone="dark" variant="secondary" data-load-more hidden>Load more</Button>
-      </div>
-    </div>
-  </section>
-
-  <EnquiryCta headline={final?.headline ?? ''} label={final?.cta?.label ?? ''} />
+<SiteLayout title="Our Work | Stride Social case studies" description={copy.body} division="social" look="ice" headerOverlay>
+  <Wall items={items} groups={groups} copy={copy} noun="case study|case studies" tone="social" look="ice" surprise showcase crumbs={[{ label: 'Our Work' }]} eyebrow="Case study" />
+  <EnquiryClose headline={final?.headline ?? ''} label={final?.cta?.label ?? ''} tone="social" look="ice" />
 </SiteLayout>
-
-<style>
-  .archive {
-    position: relative;
-    z-index: 1;
-    padding-bottom: var(--section-pad);
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  /* Filters need the script; without it every case study is listed. */
-  .archive__bar {
-    display: none;
-  }
-
-  :global(.js) .archive .archive__bar {
-    display: grid;
-    gap: var(--space-5);
-    padding-block: var(--space-6);
-    margin-bottom: var(--space-7);
-    border-top: 1px solid var(--line-dark);
-    border-bottom: 1px solid var(--line-dark);
-  }
-
-  .archive__group {
-    display: grid;
-    grid-template-columns: 7rem minmax(0, 1fr);
-    align-items: baseline;
-    gap: var(--space-4);
-  }
-
-  .archive__label,
-  .archive__count {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: rgb(255 255 255 / 0.7);
-  }
-
-  .archive__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .archive__n {
-    margin-left: 4px;
-    opacity: 0.6;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .archive__empty {
-    display: grid;
-    gap: var(--space-5);
-    justify-items: start;
-    padding: var(--space-8) 0;
-    font-size: var(--type-lead);
-  }
-
-  .archive__empty[hidden] {
-    display: none;
-  }
-
-  .archive__more {
-    display: flex;
-    justify-content: center;
-    padding-top: var(--space-8);
-  }
-
-  .archive__more :global([hidden]) {
-    display: none;
-  }
-
-  @media (max-width: 767px) {
-    .archive__group {
-      grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-2);
-    }
-
-    /* Chips scroll sideways on phones rather than stacking into a wall. */
-    .archive__chips {
-      flex-wrap: nowrap;
-      margin-inline: calc(-1 * var(--margin));
-      padding-inline: var(--margin);
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .archive__chips :global(.chip) {
-      flex: none;
-    }
-  }
-</style>
-
-<script>
-  import { initArchiveFilters } from '@/scripts/system/archive-filter';
-  initArchiveFilters();
-</script>

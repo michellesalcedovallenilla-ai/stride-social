@@ -1,0 +1,61 @@
+---
+// The whole homepage as one scene (desktop): the hero (home/CoverHero.astro) stays pinned while
+// "Three sides of Stride" (home/ContentsIndex.astro) scrolls up over it, so the visitor goes deeper
+// into the same world rather than on to a new section. As the cards rise, the hero's type fades
+// away, its footage blurs and dims under a frosted navy glass (still moving underneath), and the
+// cards and the brand ticker arrive on top. Then the cards open, in turn, onto the real Social page
+// and the Talent and Education chapters (home/Portals.astro), the last leading to the footer. Phones
+// and tablets scroll as before. Behaviour: src/scripts/system/hero-scene.ts and home-portals.ts.
+---
+
+<div class="scene" data-scene data-media-hold>
+  <slot />
+</div>
+
+<style>
+  @media (min-width: 1024px) {
+    /* The hero stays in place for the whole scene. */
+    .scene :global(.cover) {
+      position: sticky;
+      top: 0;
+    }
+
+    /* The three sides rise over it: no background of their own (the hero's glass is theirs), some
+       room before the heading so the hero's type has gone by the time it arrives. The brand ticker
+       ends the page, so below it there is only a short fade into the footer's navy. */
+    .scene :global(.sides) {
+      --foot: 8px;
+      position: relative;
+      z-index: 1;
+      padding-top: 40vh;
+      padding-bottom: var(--foot);
+      background: linear-gradient(to bottom, transparent calc(100% - var(--foot)), rgb(6 20 43 / var(--foot-a, 1)));
+    }
+  }
+
+  /* With motion, the three sides then hold still with their foot at the bottom of the screen
+     (--sides-stick, set by src/scripts/system/home-portals.ts) while their cards open into the
+     pages (home/Portals.astro). Without the script there's no --sides-stick, so no hold. While one fills the screen, the hero under it isn't drawn and the
+     ticker rests. */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .scene :global(.sides) {
+      position: sticky;
+      top: var(--sides-stick, auto);
+    }
+
+    .scene.is-covered :global(.cover) {
+      visibility: hidden;
+    }
+
+    .scene.is-covered :global(.sides .brand-ticker__track) {
+      animation-play-state: paused;
+    }
+  }
+</style>
+
+<script>
+  import { initHeroScene } from '@/scripts/system/hero-scene';
+  import { initHomePortals } from '@/scripts/system/home-portals';
+  initHeroScene();
+  initHomePortals();
+</script>

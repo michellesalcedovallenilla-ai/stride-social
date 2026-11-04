@@ -1,0 +1,327 @@
+---
+// A service page's opening: the service's own picture full-bleed behind frosted light, its name and what
+// it is on the left, and on the right a stack of glass cards, one for each thing it includes. Scrolling
+// throws the top card away to reveal the next; so does dragging it, the arrows, or clicking it. The last
+// card is the way to talk to Stride. Behaviour: src/scripts/system/service-stack.ts.
+import Breadcrumbs from '../global/Breadcrumbs.astro';
+import { pad } from '@/lib/experience';
+import { interfaceCopy } from '@/lib/ui-copy';
+
+export interface Props {
+  name: string;
+  descriptor: string;
+  body: string[];
+  items: string[];
+  image?: { src: string; alt: string } | null;
+  crumbs: { label: string; href?: string }[];
+  talk: { label: string; href: string };
+  /** The service these belong to, for the brief. */
+  serviceId: string;
+}
+
+const { name, descriptor, body, items, image, crumbs, talk, serviceId } = Astro.props;
+const t = await interfaceCopy();
+const total = items.length + 1;
+const messages = body.length ? body : [''];
+---
+
+<section class="sstack" aria-labelledby="sstack-title" data-sstack data-service={serviceId} data-tone="social" data-look="deep" style={`--steps: ${total}`}>
+  <div class="sstack__pin on-photo" data-portal-hero>
+    {image && <img class="sstack__image" src={image.src} alt={image.alt} fetchpriority="high" decoding="async" />}
+    <div class="sstack__scrim" aria-hidden="true"></div>
+
+    <div class="sstack__copy" data-reveal="from-left">
+      <Breadcrumbs items={crumbs} tone="dark" />
+      <h1 class="sstack__title exp-title" id="sstack-title" style={`--len: ${Math.max(6, ...name.split(/\s+/).map((w) => w.length))}`}>{name}</h1>
+      <p class="sstack__line">{descriptor}</p>
+      <div class="sstack__messages">
+        {messages.map((m, i) => (
+          <p class:list={['sstack__body', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-sstack-message={i}>{m}</p>
+        ))}
+      </div>
+    </div>
+
+    <div class="sstack__table">
+      <div class="sstack__pile" data-sstack-pile>
+        {items.map((item, i) => (
+          <article class="scard glass" data-sstack-card={i} data-label={item}>
+            <span class="scard__stamp scard__stamp--keep" aria-hidden="true">{t('stack.keep')}</span>
+            <span class="scard__stamp scard__stamp--skip" aria-hidden="true">{t('stack.skip')}</span>
+            <p class="exp-label scard__count"><span>{pad(i + 1)}</span> / {pad(total - 1)}</p>
+            <p class="scard__name exp-title">{item}</p>
+            <span class="scard__hint exp-label" aria-hidden="true">{t('stack.hint')}</span>
+          </article>
+        ))}
+        <article class="scard scard--last glass" data-sstack-card={items.length}>
+          <p class="exp-label">{name}</p>
+          <p class="scard__name exp-title">{talk.label}</p>
+          <a class="exp-pill" href={talk.href} data-keep-cta="brief" data-keep-base={talk.href}>
+            Start here
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+          </a>
+        </article>
+      </div>
+      <div class="sstack__controls">
+        <button class="exp-round" type="button" aria-label="Previous" data-sstack-prev>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5.5M11 6.5 5.5 12l5.5 5.5"></path></svg>
+        </button>
+        <div class="sstack__dots" aria-hidden="true">
+          {Array.from({ length: total }, (_, i) => <span data-sstack-dot={i}></span>)}
+        </div>
+        <button class="exp-round" type="button" aria-label="Next" data-sstack-next>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+        </button>
+        <button class="exp-pill desk-only" type="button" aria-label={t('stack.keepLabel')} data-sstack-keep>✓ {t('stack.keep')}</button>
+      </div>
+    </div>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .sstack {
+    position: relative;
+    height: calc(100svh + (var(--steps) - 1) * 55svh);
+    color: rgb(var(--ink));
+  }
+
+  .sstack__pin {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    align-items: center;
+    gap: var(--space-7) var(--gutter);
+    height: 100svh;
+    min-height: 620px;
+    padding: calc(var(--header-h) + var(--space-3)) var(--margin) var(--space-6);
+    overflow: clip;
+  }
+
+  .sstack__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    filter: contrast(1.1) saturate(1.18) brightness(0.94);
+    transform: scale(calc(1.04 + var(--at, 0) * 0.1));
+  }
+
+  .sstack__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to right, rgb(6 20 43 / 0.9) 0%, rgb(6 20 43 / 0.66) 48%, rgb(6 20 43 / 0.3) 100%),
+      linear-gradient(to top, rgb(6 20 43 / 0.8), transparent 40%),
+      linear-gradient(to bottom, rgb(6 20 43 / 0.6), transparent 26%);
+  }
+
+  /* ---------- The words ---------- */
+  .sstack__copy {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: var(--space-4);
+    container-type: inline-size;
+  }
+
+  .sstack__title {
+    font-size: min(5.5rem, calc(100cqi / (var(--len) * 0.84)));
+  }
+
+  .sstack__line {
+    max-width: 30rem;
+    font-size: var(--type-lead);
+    line-height: 1.32;
+    color: rgb(var(--tone-lit));
+  }
+
+  .sstack__messages {
+    display: grid;
+    max-width: 34rem;
+  }
+
+  .sstack__body {
+    grid-area: 1 / 1;
+    color: rgb(var(--ink) / 0.88);
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 500ms var(--ease-out);
+  }
+
+  .sstack__body.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- The stack: each card told its place (--d: 0 on top, negative once thrown) ---------- */
+  .sstack__table {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-5);
+  }
+
+  .sstack__pile {
+    position: relative;
+    width: min(100%, 26rem);
+    height: min(52svh, 26rem);
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .scard {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: space-between;
+    justify-items: start;
+    gap: var(--space-4);
+    padding: clamp(22px, 2.4vw, 36px);
+    background: linear-gradient(165deg, rgb(120 146 171 / 0.42), rgb(12 39 83 / 0.72) 60%, rgb(41 67 104 / 0.72));
+    cursor: grab;
+    transform:
+      translate(var(--drag-x, 0px), calc(var(--drag-y, 0px) + var(--d, 0) * 16px))
+      rotate(var(--drag-r, 0deg))
+      scale(calc(1 - var(--d, 0) * 0.05));
+    opacity: calc(1 - var(--d, 0) * 0.22);
+    z-index: calc(40 - var(--d, 0));
+    transition:
+      transform 620ms cubic-bezier(0.2, 1.2, 0.3, 1),
+      opacity 400ms var(--ease-out),
+      box-shadow 400ms var(--ease-out);
+  }
+
+  .scard.is-top {
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      0 0 34px -6px rgb(var(--tone-glow) / 0.6),
+      0 30px 60px -30px rgb(var(--shade) / 0.8);
+  }
+
+  .scard.is-gone {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(calc(var(--throw, 1) * 120%), -30%) rotate(calc(var(--throw, 1) * 18deg));
+  }
+
+  .scard.is-held {
+    cursor: grabbing;
+    transition: none;
+  }
+
+  .scard__count span {
+    color: rgb(var(--tone-lit));
+  }
+
+  .scard__name {
+    font-size: clamp(1.625rem, 2.9vw, 2.875rem);
+    line-height: 0.98;
+  }
+
+  .scard__hint {
+    font-size: 0.625rem;
+    color: rgb(var(--ink) / 0.74);
+  }
+
+  .scard--last {
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 40px -6px rgb(var(--tone-glow) / 0.7);
+  }
+
+  .sstack__controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .sstack__dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .sstack__dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / calc(0.26 * var(--fill-k)));
+    transition:
+      background-color 300ms var(--ease-out),
+      transform 300ms var(--ease-out);
+  }
+
+  .sstack__dots span.is-now {
+    background: rgb(var(--tone-lit));
+    transform: scale(1.35);
+  }
+
+  @media (max-width: 1023px) {
+    .sstack__pin {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      align-items: start;
+      padding-top: calc(var(--header-h) + var(--space-2));
+    }
+
+    .sstack__copy {
+      gap: var(--space-2);
+    }
+
+    .sstack__messages {
+      display: none;
+    }
+
+    .sstack__pile {
+      height: min(36svh, 22rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sstack__body,
+    .scard {
+      transition: none;
+    }
+  }
+
+  /* What a throw will do, shown on the card as it leans. */
+  .scard__stamp {
+    position: absolute;
+    top: 18px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 140ms linear;
+  }
+
+  .scard__stamp--keep {
+    right: 18px;
+    background: rgb(var(--tone-lit));
+    color: rgb(var(--tone-on));
+  }
+
+  .scard__stamp--skip {
+    left: 18px;
+    box-shadow: inset 0 0 0 1px rgb(var(--hair) / 0.6);
+  }
+
+  .scard.is-keep .scard__stamp--keep,
+  .scard.is-skip .scard__stamp--skip {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  import { initServiceStacks } from '@/scripts/system/service-stack';
+  initServiceStacks();
+</script>

@@ -1,36 +1,32 @@
 ---
-// Talent application page (docs/phase-2/03-sitemap.md: /talent/apply): the C7 section on its own,
-// with the page's h1. The same form ends the /talent page.
+// Talent application page (docs/phase-2/03-sitemap.md: /talent/apply): who Stride looks for and what
+// happens next, beside the application form.
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
-import ApplySection from '@/components/talent/ApplySection.astro';
+import FormStage from '@/components/experience/FormStage.astro';
+import ApplicationForm from '@/components/talent/ApplicationForm.astro';
 
-const copy = (await getEntry('pages', 'talent'))?.data.sections.apply;
+const talent = (await getEntry('pages', 'talent'))?.data.sections;
+const copy = talent?.apply;
 if (!copy) throw new Error('Missing apply in src/content/pages/talent.yaml');
-const hero = (await getEntry('pages', 'talent'))?.data.sections.hero;
+const item = (key: string) => copy.items?.find((i) => i.key === key);
+const msg = (key: string) => item(key)?.label ?? '';
+const points = ['look', 'need', 'next'].map(item).filter((p) => p !== undefined);
 ---
 
-<SiteLayout title="Apply for management | Stride Talent" description={hero?.body ?? copy.headline} division="talent">
-  <div class="apply-crumbs">
-    <div class="container-wide">
-      <Breadcrumbs items={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Apply' }]} tone="light" />
-    </div>
-  </div>
-  <ApplySection copy={copy} headingLevel="h1" />
+<SiteLayout title="Apply for management | Stride Talent" description={talent?.hero?.body ?? copy.headline} division="talent" look="deep" headerOverlay>
+  <FormStage tone="talent" look="deep" crumbs={[{ label: 'Stride Talent', href: '/talent' }, { label: 'Apply' }]} eyebrow={copy.eyebrow} headline={copy.headline ?? ''} status={copy.status} points={points.map((p) => ({ label: p!.label, copy: p!.copy }))}>
+    <ApplicationForm
+      tone="dark"
+      messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }}
+      after={{ text: msg('education'), href: '/education', label: 'Explore Stride Education' }}
+    />
+  </FormStage>
 </SiteLayout>
 
-<style>
-  .apply-crumbs {
-    /* Muted text (slate) is too light on peach; use navy for 4.5:1 contrast. */
-    --slate: var(--navy-700);
-    position: relative;
-    z-index: 1;
-    padding-block: var(--space-6) 0;
-    background: var(--peach);
-  }
-
-  .apply-crumbs + :global(.apply) {
-    padding-top: var(--space-8);
-  }
-</style>
+<script>
+  // The career plan built on /talent starts the introduction.
+  const needs = new URLSearchParams(location.search).get('needs');
+  const intro = document.querySelector<HTMLTextAreaElement>('textarea[name="intro"]');
+  if (needs && intro && !intro.value) intro.value = `I'd like help with: ${needs.split('|').join(', ')}.`;
+</script>

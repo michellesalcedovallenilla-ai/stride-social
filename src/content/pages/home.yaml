@@ -6,12 +6,27 @@ sections:
   hero:
     status: approved
     lines: [Built, around, creators.]
-    body: One global group. Three businesses shaping how creators build careers, how brands reach audiences, and how the next generation gets started.
+    # "build careers,", "reach audiences," and "and how the next generation gets started." are joined
+    # by non-breaking spaces, so the hero never splits them across lines.
+    body: One global group. Three businesses shaping how creators build careers, how brands reach audiences, and how the next generation gets started.
+
+  # The award badges on the hero (each label is its image's alt text). Supplied by the owner on
+  # 2026-11-04 as one image, split into these files. Confirm with Stride before launch.
+  awards:
+    status: approved
+    items:
+      - label: Hello Partner, Top Influencer Marketing Agencies 2024
+        image: /assets/site/award-hello-partner-2024.webp
+      - label: Influencer Marketing Hub, Top Influencer Marketing Agencies 2025
+        image: /assets/site/award-imh-influencer-marketing-2025.webp
+      - label: Influencer Marketing Hub, Top TikTok Talent Management Agencies 2025
+        image: /assets/site/award-imh-tiktok-talent-2025.webp
 
   sides:
     status: approved
-    eyebrow: Explore Stride
     headline: Three sides of Stride.
+    # The supporting line comes from the section's design brief (2026-11-03); confirm with Stride.
+    body: A connected ecosystem for brands, creators, and the next generation.
     items:
       - key: social
         audience: For brands
@@ -31,6 +46,20 @@ sections:
         copy: Learn the industry, develop your content, and build your creator career.
         cta: Explore Stride Education
         href: /education
+
+  # The brand partners ticker under the three sides: its cue and the brands it names, in order
+  # (ids in src/content/brands). The first twenty are the live site's logo ticker, in its order; the
+  # last three were named in the section's design brief (2026-11-03) and have no logo yet. Logos show
+  # only under the brand approval rule.
+  partners:
+    status: approved
+    eyebrow: Keep scrolling
+    featured:
+      [
+        student-minds, blitz, unidentified-logo-03, genshin-impact, voodoo, azar, fairy, anker, bloom, zovoo,
+        aliexpress, tooletries, tinder, bulldog-skincare, ace, nordvpn, bolt, manscaped, cash-app, merge-gardens,
+        samsung, hellofresh, meta,
+      ]
 
   group:
     status: draft

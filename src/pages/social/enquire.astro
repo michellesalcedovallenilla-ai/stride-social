@@ -1,11 +1,9 @@
 ---
-// Brand enquiry form page (docs/phase-2/03-sitemap.md: /social/enquire). The same form ends the
-// /social page. Service and creator can be prefilled: /social/enquire?service=ugc-production.
+// Brand enquiry form page (docs/phase-2/03-sitemap.md: /social/enquire). Service and creator can be
+// prefilled: /social/enquire?service=ugc-production.
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import Breadcrumbs from '@/components/global/Breadcrumbs.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
-import DraftTag from '@/components/core/DraftTag.astro';
+import FormStage from '@/components/experience/FormStage.astro';
 import EnquiryForm from '@/components/social/EnquiryForm.astro';
 import { enquiryEmail } from '@/config/forms';
 
@@ -15,110 +13,26 @@ const { enquiry, final } = page.data.sections;
 const msg = (key: string) => enquiry.items?.find((i) => i.key === key)?.label ?? '';
 ---
 
-<SiteLayout title="Start a campaign | Stride Social" description={enquiry.body} division="social">
-  <section class="enquire" aria-labelledby="enquire-title">
-    <div class="enquire__inner container-wide">
-      <div class="enquire__lead">
-        <Breadcrumbs items={[{ label: 'Stride Social', href: '/social' }, { label: 'Start a campaign' }]} tone="dark" />
-        <Eyebrow tone="dark">{enquiry.eyebrow}</Eyebrow>
-        <h1 class="enquire__title" id="enquire-title" data-reveal-lines="load">
-          <span class="reveal-line"><span class="reveal-line__inner">{final.headline}</span></span>
-        </h1>
-        <p class="enquire__body">{enquiry.body}</p>
-        <DraftTag status={enquiry.status} />
-        <p class="enquire__direct">
-          Prefer email? <a href={`mailto:${enquiryEmail}`}>{enquiryEmail}</a>
-        </p>
-      </div>
-      <div class="enquire__form">
-        <EnquiryForm tone="dark" messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }} />
-      </div>
-    </div>
-  </section>
+<SiteLayout title="Start a campaign | Stride Social" description={enquiry.body} division="social" look="ice" headerOverlay>
+  <FormStage tone="social" look="ice" crumbs={[{ label: 'Stride Social', href: '/social' }, { label: 'Start a campaign' }]} eyebrow={enquiry.eyebrow} headline={final.headline ?? ''} body={enquiry.body} status={enquiry.status} email={enquiryEmail}>
+    <EnquiryForm tone="dark" messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }} />
+  </FormStage>
 </SiteLayout>
 
-<style>
-  .enquire {
-    position: relative;
-    z-index: 1;
-    background: var(--navy-900);
-    color: var(--white);
-  }
-
-  .enquire__inner {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-8) var(--gutter);
-    align-items: start;
-    padding-block: var(--space-7) var(--section-pad);
-  }
-
-  .enquire__lead {
-    grid-column: 1 / 6;
-    display: grid;
-    gap: var(--space-5);
-    justify-items: start;
-    position: sticky;
-    top: calc(var(--header-h) + var(--division-bar-h) + var(--space-6));
-  }
-
-  .enquire__lead > :global(.crumbs) {
-    margin-bottom: var(--space-6);
-  }
-
-  .enquire__title {
-    font-family: var(--font-display);
-    font-size: clamp(2.75rem, 5.6vw, 6rem);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.88;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-  }
-
-  .enquire__body {
-    max-width: 38ch;
-    font-size: var(--type-lead);
-    line-height: 1.4;
-    color: rgb(255 255 255 / 0.85);
-  }
-
-  .enquire__direct {
-    font-size: var(--type-small);
-    color: rgb(255 255 255 / 0.72);
-  }
-
-  .enquire__direct a {
-    color: var(--accent);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .enquire__form {
-    grid-column: 7 / -1;
-    min-width: 0;
-    padding-top: var(--space-9);
-  }
-
-  @media (max-width: 1023px) {
-    .enquire__lead,
-    .enquire__form {
-      grid-column: 1 / -1;
-    }
-
-    .enquire__lead {
-      position: static;
-    }
-
-    .enquire__form {
-      padding-top: 0;
+<script>
+  // What the visitor picked on their way here starts their brief: services, and creators the roster shows.
+  const brief = document.querySelector<HTMLTextAreaElement>('textarea[name="brief"]');
+  if (brief && !brief.value) {
+    const q = new URLSearchParams(location.search);
+    const lines: string[] = [];
+    const services = (q.get('brief') ?? '').split('|').map((x) => x.trim()).filter(Boolean).slice(0, 24);
+    if (services.length) lines.push(`I'm interested in: ${services.join(', ')}.`);
+    const names = JSON.parse(brief.form?.dataset.names ?? '{}') as Record<string, string>;
+    const creators = (q.get('creators') ?? '').split(',').map((id) => names[id]).filter(Boolean);
+    if (creators.length) lines.push(`Creators I'd like to work with: ${creators.join(', ')}.`);
+    if (lines.length) {
+      brief.value = `${lines.join('\n')}\n\n`;
+      brief.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
-
-  @media (max-width: 479px) {
-    .enquire__title {
-      font-size: 10.4vw;
-      font-stretch: 112%;
-    }
-  }
-</style>
+</script>

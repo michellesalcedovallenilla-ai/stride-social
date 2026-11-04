@@ -5,6 +5,9 @@
 //   tag:    small corner label over media ("Interim footage — awaiting approved assets")
 //   inline: the same label in the text flow (e.g. "Draft copy" next to a heading)
 //   block:  full panel standing in for a missing section or page
+// With site.showReviewTags off, tags are hidden (still in the HTML) and block labels lose the yellow.
+import { site } from '@/config/site';
+
 export interface Props {
   variant?: 'tag' | 'inline' | 'block';
   label?: string;
@@ -12,15 +15,16 @@ export interface Props {
 }
 
 const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props;
+const show = site.showReviewTags;
 ---
 
 {variant !== 'block' ? (
-  <span class:list={['ph-tag', { 'ph-tag--inline': variant === 'inline' }, className]} data-placeholder>
+  <span class:list={['ph-tag', { 'ph-tag--inline': variant === 'inline', 'ph-tag--off': !show }, className]} data-placeholder hidden={!show}>
     <span class="ph-tag__label">{label}</span>
     <slot />
   </span>
 ) : (
-  <div class:list={['ph-block', className]} data-placeholder role="note">
+  <div class:list={['ph-block', { 'ph-block--quiet': !show }, className]} data-placeholder role="note">
     <p class="ph-block__label">{label}</p>
     <div class="ph-block__body"><slot /></div>
   </div>
@@ -36,7 +40,7 @@ const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props
     gap: 0.4em;
     max-width: calc(100% - 2 * var(--space-3));
     padding: 4px 10px;
-    background: var(--sun);
+    background: var(--lime);
     color: var(--navy-900);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
@@ -58,6 +62,11 @@ const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props
     max-width: 100%;
   }
 
+  /* Review tags switched off (site.showReviewTags): beats any page rule that positions the tag. */
+  .ph-tag--off {
+    display: none !important;
+  }
+
   /* Takes the text colour of the surface it sits on, so it reads on paper and on navy alike. */
   .ph-block {
     display: grid;
@@ -71,13 +80,20 @@ const { variant = 'tag', label = 'Placeholder', class: className } = Astro.props
   .ph-block__label {
     justify-self: start;
     padding: 4px 10px;
-    background: var(--sun);
+    background: var(--lime);
     color: var(--navy-900);
     font-family: var(--font-mono);
     font-size: var(--type-label);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+  }
+
+  .ph-block--quiet .ph-block__label {
+    padding: 0;
+    background: none;
+    color: inherit;
+    opacity: 0.7;
   }
 
   .ph-block__body {

@@ -36,7 +36,7 @@ All divisions share the logo system, type families, grid, spacing, components an
 ## 2. Brand identity: what we keep
 
 - **Logo:** the Stride mark (four triangles) plus the wordmark. **The "Stride Social" wordmark currently doubles as the group logo.** We need a **parent "Stride" lockup** and three division lockups (Stride Social / Talent / Education). These are an asset request, not something we design without approval (see the checklist).
-- **Navy `#06142b`** and **ice `#c3f2fb`** remain the brand core.
+- **Navy `#06142b`** and **ice `#cfedf8`** are the brand core.
 - **Inter** remains the text face. **IBM Plex Mono** remains the label face (a recognisable trait of the current site).
 - The heavy uppercase display voice continues, in a more refined form (see §4).
 
@@ -46,16 +46,28 @@ All divisions share the logo system, type families, grid, spacing, components an
 
 | Token | Hex | Use |
 |---|---|---|
-| `--navy-900` | `#06142b` | Brand ink, dark surfaces, footer, primary text on light |
-| `--navy-700` | `#1b2a44` | Raised dark surfaces, dropdown panels |
-| `--paper` | `#f5f4f0` | Default light surface (warmer, more editorial than pure grey) |
-| `--white` | `#ffffff` | Cards on paper, form fields |
-| `--line` | `#dbdbdb` | Hairlines and dividers on light surfaces |
-| `--slate` | `#5b6577` | Secondary text on light surfaces |
-| `--ice` | `#c3f2fb` | Group and Social accent |
-| `--peach` *(proposed)* | `#f4c7ae` | Talent accent |
-| `--sun` *(proposed)* | `#ffd45c` | Education accent |
-| `--ice-deep`, `--peach-deep`, `--sun-deep` | `#0e6f86`, `#9a4a24`, `#7a5a00` | Accent-coloured **text** on light surfaces (links, small labels) |
+| `--navy-900` | `#06142b` | Deepest surface; Social's globe, Group, footer; ink on every light colour (white on it 18.4:1) |
+| `--navy-700` | `#0c2753` | Talent's main surface; the accent on light for Social and Group (white on it 14.7:1) |
+| `--navy-500` | `#294368` | Education's opening surface; the accent on light for Education (white on it 10:1) |
+| `--steel` | `#7892ab` | Glow, focus rings and the middle of every dark-to-light transition; not a surface for text |
+| `--ice` | `#cfedf8` | Social's light surface; its accent on dark (navy on it 15:1) |
+| `--lime` | `#edff77` | Stride Talent's buttons only, never a surface or accent (navy on it 16:1) |
+| `--ice-pale` | `#e9fafd` | Education's light surface; its accent on dark (navy on it 17:1) |
+| `--frost` | `#f5fcff` | Group's light surface: Team, the menus, the contact form (navy on it 18:1) |
+| `--white` | `#ffffff` | Group's reading pages: Insights, articles, roles, legal; type on dark; Group's accent on dark |
+
+*The owner's palette of 2026-11-04, which replaces the colours first proposed here.*
+
+**Where each colour lives (each section's `data-look`):**
+
+| | Scrolling down the page |
+|---|---|
+| Stride Social | `ice` on every page; the service page opens on a full-screen photo |
+| Stride Talent | `deep` on every page; lime buttons |
+| Stride Education | `slate` on every page |
+| Group | `deep` or `navy` → `frost`; Insights, articles, roles and legal read on `white`; History travels `deep` → `frost` along its road |
+
+The background is one layer that follows the scroll along the palette, dark to light (`src/scripts/system/backdrop.ts`); lime branches off at ice. Text, hairlines and glass turn from white to navy together, where both read equally well (4.2:1). Anything on a photo stays white (`.on-photo`).
 
 ### Measured contrast (WCAG 2.2)
 

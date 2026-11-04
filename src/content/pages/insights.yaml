@@ -5,3 +5,22 @@ sections:
     eyebrow: Insights and news
     headline: Insights.
     body: Company news, creator economy developments, marketing insights and educational articles.
+
+  # The filters and their labels: interface copy written by us.
+  filters:
+    status: draft
+    items:
+      - key: topic
+        label: Topic
+      - key: time
+        label: How long have you got?
+      - key: all
+        label: All
+      - key: read
+        label: Read the article
+      - key: more
+        label: Load more
+      - key: empty
+        label: No articles match. Try another topic or time.
+      - key: clear
+        label: Show all articles

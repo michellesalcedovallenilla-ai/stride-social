@@ -1,0 +1,97 @@
+---
+// How the Social service pages end: the enquiry headline in the page's wide type, over the lit horizon
+// of the Social menu, and the way to the form (with the service prefilled, when there is one).
+export interface Props {
+  headline: string;
+  label: string;
+  service?: string;
+  /** Instead of the Social enquiry form. */
+  href?: string;
+  tone?: 'social' | 'talent' | 'education' | 'group';
+  /** The palette colour it lives in. */
+  look?: 'deep' | 'navy' | 'slate' | 'ice' | 'pale' | 'frost' | 'white';
+}
+
+const { headline, label, service, href, tone = 'group', look = 'navy' } = Astro.props;
+---
+
+<section class="eclose" aria-labelledby="eclose-title" data-tone={tone} data-look={look}>
+  <div class="eclose__inner container-wide">
+    <h2 class="eclose__title" id="eclose-title" data-reveal-lines>{headline}</h2>
+    <a class="eclose__action" href={href ?? `/social/enquire${service ? `?service=${service}` : ''}`} data-reveal="rise">
+      {label}
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg>
+    </a>
+  </div>
+</section>
+
+<style>
+  .eclose {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(96px, 16vh, 180px);
+    background: radial-gradient(70% 42% at 50% 58%, rgb(var(--tone-wash) / 0.2), transparent);
+    color: rgb(var(--ink));
+  }
+
+  .eclose::after {
+    content: '';
+    position: absolute;
+    inset: auto 12% 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgb(var(--tone-lit) / 0.8), transparent);
+    box-shadow: 0 0 22px 2px rgb(var(--tone-glow) / 0.5);
+  }
+
+  .eclose__inner {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-6);
+  }
+
+  .eclose__title {
+    max-width: 14ch;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 6rem);
+    font-weight: 850;
+    font-stretch: var(--stretch-wide);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .eclose__action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 48px;
+    padding-inline: var(--space-5);
+    border-radius: 999px;
+    background: rgb(var(--press));
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--press-on));
+    transition: background-color 300ms var(--ease-out);
+  }
+
+  .eclose__action:hover {
+    background: rgb(var(--press));
+  }
+
+  .eclose__action:focus-visible {
+    outline: 2px solid var(--ice);
+    outline-offset: 3px;
+  }
+
+  .eclose__action svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>

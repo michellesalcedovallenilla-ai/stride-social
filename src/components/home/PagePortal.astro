@@ -1,0 +1,119 @@
+---
+// One of the homepage's three destinations: a real division page (its slot, e.g. social/SocialPage.astro),
+// in full, as what its card opens onto. On desktop with motion it starts invisible, held at the top of
+// the screen and clipped to the card, and src/scripts/system/home-portals.ts opens it as the visitor
+// scrolls; once it fills the screen it scrolls on as an ordinary page, its own header bar and all. At
+// its foot it holds again while it closes back into the card and the next one opens. On phones, tablets
+// and with reduced motion, or until the script runs, it is an ordinary stretch of the page.
+import Ambient from '../experience/Ambient.astro';
+
+export interface Props {
+  page: 'social' | 'talent' | 'education';
+}
+
+const { page } = Astro.props;
+---
+
+<div class:list={['page-portal', `page-portal--${page}`]} data-page-portal>
+  <div class="page-portal__page" data-chapter={page} data-division={page}>
+    {/* It lies over the cards, so it needs its own solid background: the same colour as the backdrop's. */}
+    <div class="page-portal__bg" aria-hidden="true" data-backdrop>
+      <div class="page-portal__sky"><Ambient /></div>
+    </div>
+    <div class="chapter__edge" aria-hidden="true" data-chapter-edge></div>
+    <slot />
+  </div>
+  {/* The scroll its opening takes, with the page held at the top of the screen. */}
+  <div class="page-portal__hold" aria-hidden="true" data-portal-hold></div>
+</div>
+
+<style>
+  .page-portal {
+    position: relative;
+  }
+
+  .page-portal__page {
+    position: relative;
+    isolation: isolate;
+    color: rgb(var(--ink));
+  }
+
+  .page-portal__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgb(var(--backdrop, var(--tone-surface)));
+    transform: translateZ(0);
+    pointer-events: none;
+  }
+
+  /* The atmosphere stays on screen while the page scrolls past, as the backdrop's does elsewhere. */
+  .page-portal__sky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* The card's lit edge as it opens (home/Portals.astro). */
+  .page-portal--social .page-portal__page {
+    --edge: 207 237 248;
+    --edge-glow: 207 237 248;
+  }
+
+  .page-portal--talent .page-portal__page {
+    --edge: 255 255 255;
+    --edge-glow: 207 237 248;
+  }
+
+  .page-portal--education .page-portal__page {
+    --edge: 233 250 253;
+    --edge-glow: 207 237 248;
+  }
+
+  .page-portal__hold {
+    display: none;
+  }
+
+  /* Phones and tablets scroll straight into Social: its footage fades up out of the cards' navy. */
+  @media (max-width: 1023px) {
+    .page-portal--social .page-portal__page::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      z-index: 3;
+      height: 18vh;
+      background: linear-gradient(to bottom, var(--navy-900), transparent);
+      pointer-events: none;
+    }
+  }
+
+  /* Two holds, one inside the other. The page sticks to the top of the screen for the length of
+     .__hold while the card opens, then scrolls; the whole portal sticks once the page's foot reaches
+     the bottom of the screen (its --stick, from the script), while the page closes. Pulled up a screen,
+     each one's top is at the top of the screen just as the one before reaches its foot. */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    :global(.portals.is-live) .page-portal {
+      position: sticky;
+      top: var(--stick, auto);
+      z-index: 2;
+      margin-top: -100vh;
+      pointer-events: none; /* it lies over the cards until the page has opened */
+    }
+
+    :global(.portals.is-live) .page-portal__page {
+      position: sticky;
+      top: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    :global(.portals.is-live) .page-portal__page.is-open {
+      pointer-events: auto;
+    }
+
+    :global(.portals.is-live) .page-portal__hold {
+      display: block;
+    }
+  }
+</style>

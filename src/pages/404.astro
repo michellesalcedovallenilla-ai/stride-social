@@ -1,9 +1,8 @@
 ---
-// 404 (docs/phase-2/05-wireframes.md §E): a short message and routes to the three divisions and
-// home, inside the normal site chrome so visitors can navigate on. Replaces the Phase 1 page.
+// 404: three huge outlined digits that lean towards the pointer, a short message, and glass routes to the
+// three divisions and home, inside the normal site chrome so visitors can navigate on.
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
 
 const copy = (await getEntry('pages', 'system'))?.data.sections.notFound;
 if (!copy) throw new Error('Missing notFound in src/content/pages/system.yaml');
@@ -11,26 +10,26 @@ const routes = [
   { key: 'social', label: 'Stride Social', note: 'For brands', href: '/social' },
   { key: 'talent', label: 'Stride Talent', note: 'For creators', href: '/talent' },
   { key: 'education', label: 'Stride Education', note: 'For the next generation', href: '/education' },
-  { key: 'home', label: 'Homepage', note: 'Start again', href: '/' },
+  { key: 'group', label: 'Homepage', note: 'Start again', href: '/' },
 ];
 ---
 
-<SiteLayout title="Page not found | Stride" description={copy.body} noindex>
-  <section class="nf" aria-labelledby="nf-title">
+<SiteLayout title="Page not found | Stride" description={copy.body} noindex headerOverlay>
+  <section class="nf" aria-labelledby="nf-title" data-tone="group" data-look="deep" data-nf>
     <div class="nf__inner container-wide">
-      <p class="nf__code" aria-hidden="true">404</p>
+      <p class="nf__code" aria-hidden="true" data-nf-code><span>4</span><span>0</span><span>4</span></p>
       <div class="nf__text">
-        <Eyebrow tone="light">{copy.eyebrow}</Eyebrow>
-        <h1 class="nf__title" id="nf-title">{copy.headline}</h1>
+        <p class="exp-label">{copy.eyebrow}</p>
+        <h1 class="nf__title exp-title" id="nf-title">{copy.headline}</h1>
         <p class="nf__body">{copy.body}</p>
       </div>
       <ul class="nf__routes" role="list">
         {routes.map((r) => (
-          <li>
-            <a class={`nf__route nf__route--${r.key}`} href={r.href}>
-              <span class="nf__swatch" aria-hidden="true"></span>
+          <li data-tone={r.key}>
+            <a class="nf__route glass" href={r.href}>
               <span class="nf__label">{r.label}</span>
               <span class="nf__note">{r.note}</span>
+              <span class="exp-round" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13.5M13 6.5 18.5 12 13 17.5"></path></svg></span>
             </a>
           </li>
         ))}
@@ -42,100 +41,211 @@ const routes = [
 <style>
   .nf {
     position: relative;
-    z-index: 1;
-    background: var(--paper);
-    color: var(--navy-900);
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-3)) var(--space-6);
+    overflow: clip;
+    color: rgb(var(--ink));
   }
 
   .nf__inner {
+    position: relative;
+    z-index: 1;
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-7) var(--gutter);
-    align-content: center;
-    min-height: calc(100svh - var(--header-h));
-    padding-block: var(--space-9);
-    container-type: inline-size;
+    gap: var(--space-5);
+    width: 100%;
+    perspective: 1200px;
   }
 
-  /* Outlined numerals sized to the container, so they never overflow. */
   .nf__code {
-    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
     font-family: var(--font-display);
-    font-size: min(34cqi, 22rem);
+    font-size: clamp(7rem, min(24vw, 42svh), 24rem);
     font-weight: 850;
     font-stretch: var(--stretch-wide);
-    line-height: 0.8;
-    letter-spacing: -0.04em;
+    line-height: 0.86;
+    letter-spacing: -0.03em;
     color: transparent;
-    -webkit-text-stroke: 2px var(--navy-900);
+    -webkit-text-stroke: 1.5px rgb(var(--tone-lit) / 0.85);
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 260ms var(--ease-out);
+    user-select: none;
+  }
+
+  .nf__code span {
+    display: inline-block;
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+    background: linear-gradient(180deg, rgb(var(--tone-lit) / 0.26), rgb(255 255 255 / calc(0.02 * var(--fill-k))) 82%);
+    -webkit-background-clip: text;
+    background-clip: text;
   }
 
   .nf__text {
-    grid-column: 1 / 7;
     display: grid;
-    gap: var(--space-4);
-    align-content: start;
+    justify-items: center;
+    gap: var(--space-2);
+    text-align: center;
   }
 
   .nf__title {
-    font-family: var(--font-display);
-    font-size: var(--type-h1);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    text-transform: uppercase;
+    font-size: clamp(1.75rem, 3.4vw, 3.25rem);
   }
 
   .nf__body {
-    max-width: 40ch;
-    font-size: var(--type-lead);
+    color: rgb(var(--ink) / 0.86);
   }
 
   .nf__routes {
-    grid-column: 8 / -1;
-    border-top: 1px solid var(--navy-900);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(10px, 1.1vw, 18px);
   }
 
   .nf__route {
+    position: relative;
     display: grid;
-    grid-template-columns: 14px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--line);
+    gap: 4px;
+    height: 100%;
+    padding: clamp(16px, 1.5vw, 22px);
+    padding-right: 72px;
+    color: rgb(var(--ink));
+    transition:
+      translate 400ms var(--ease-out),
+      box-shadow 400ms var(--ease-out);
   }
 
-  .nf__swatch {
-    width: 14px;
-    height: 14px;
-    border: 1px solid var(--navy-900);
+  .nf__route:hover,
+  .nf__route:focus-visible {
+    translate: 0 -5px;
+    outline: none;
+    box-shadow:
+      inset 0 0 0 1.5px rgb(var(--tone-lit) / 0.95),
+      0 0 30px -4px rgb(var(--tone-glow) / 0.65);
   }
 
-  .nf__route--social .nf__swatch { background: var(--navy-900); }
-  .nf__route--talent .nf__swatch { background: var(--peach); }
-  .nf__route--education .nf__swatch { background: var(--sun); }
+  .nf__route .exp-round {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    margin-top: -23px;
+  }
 
   .nf__label {
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 1.3vw, 1.25rem);
+    font-weight: 800;
   }
 
   .nf__note {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
-  }
-
-  .nf__route:hover .nf__label {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    font-size: 0.8125rem;
+    color: rgb(var(--ink) / 0.76);
   }
 
   @media (max-width: 1023px) {
-    .nf__text,
     .nf__routes {
-      grid-column: 1 / -1;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 599px) {
+    .nf__routes {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-nf]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = 'true';
+    const code = root.querySelector<HTMLElement>('[data-nf-code]');
+    if (!code) return;
+    // The digits lean wherever the pointer is on the page, not only over them.
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        code.style.setProperty('--ry', `${((e.clientX / window.innerWidth - 0.5) * 26).toFixed(2)}deg`);
+        code.style.setProperty('--rx', `${((0.5 - e.clientY / window.innerHeight) * 18).toFixed(2)}deg`);
+      },
+      { passive: true },
+    );
+
+    // Throw the digits around: they bounce off the screen's edges, then drift home.
+    if (!window.matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)').matches) return;
+    type Digit = { el: HTMLElement; x: number; y: number; vx: number; vy: number; r: number; held: boolean; lastX: number; lastY: number; thrown: number };
+    const digits: Digit[] = ([...code.children] as HTMLElement[]).map((el) => ({ el, x: 0, y: 0, vx: 0, vy: 0, r: 0, held: false, lastX: 0, lastY: 0, thrown: 0 }));
+    let raf = 0;
+    const tick = (t: number) => {
+      raf = 0;
+      let moving = false;
+      for (const d of digits) {
+        if (d.held) {
+          moving = true;
+          continue;
+        }
+        if (t - d.thrown > 2600) {
+          d.vx += -d.x * 0.012;
+          d.vy += -d.y * 0.012;
+          d.vx *= 0.9;
+          d.vy *= 0.9;
+        } else {
+          d.vx *= 0.985;
+          d.vy *= 0.985;
+        }
+        d.x += d.vx;
+        d.y += d.vy;
+        d.r += (d.vx * 0.6 - d.r * 0.02);
+        const box = d.el.getBoundingClientRect();
+        if (box.left < 0 && d.vx < 0) d.vx *= -0.72;
+        if (box.right > window.innerWidth && d.vx > 0) d.vx *= -0.72;
+        if (box.top < 0 && d.vy < 0) d.vy *= -0.72;
+        if (box.bottom > window.innerHeight && d.vy > 0) d.vy *= -0.72;
+        d.el.style.transform = `translate(${d.x.toFixed(1)}px, ${d.y.toFixed(1)}px) rotate(${d.r.toFixed(1)}deg)`;
+        if (Math.abs(d.x) > 0.3 || Math.abs(d.y) > 0.3 || Math.abs(d.vx) > 0.05 || Math.abs(d.vy) > 0.05) moving = true;
+        else {
+          d.x = d.y = d.r = 0;
+          d.el.style.transform = '';
+        }
+      }
+      if (moving) raf = requestAnimationFrame(tick);
+    };
+    const run = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    digits.forEach((d) => {
+      d.el.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        d.held = true;
+        d.lastX = e.clientX;
+        d.lastY = e.clientY;
+        d.vx = d.vy = 0;
+        d.el.setPointerCapture(e.pointerId);
+        d.el.style.cursor = 'grabbing';
+        run();
+      });
+      d.el.addEventListener('pointermove', (e) => {
+        if (!d.held) return;
+        d.vx = e.clientX - d.lastX;
+        d.vy = e.clientY - d.lastY;
+        d.lastX = e.clientX;
+        d.lastY = e.clientY;
+        d.x += d.vx;
+        d.y += d.vy;
+        d.el.style.transform = `translate(${d.x.toFixed(1)}px, ${d.y.toFixed(1)}px) rotate(${d.r.toFixed(1)}deg)`;
+      });
+      const release = () => {
+        if (!d.held) return;
+        d.held = false;
+        d.thrown = performance.now();
+        d.el.style.cursor = '';
+        run();
+      };
+      d.el.addEventListener('pointerup', release);
+      d.el.addEventListener('pointercancel', release);
+    });
+  });
+</script>

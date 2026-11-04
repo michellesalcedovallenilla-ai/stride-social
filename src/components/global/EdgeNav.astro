@@ -1,0 +1,315 @@
+---
+// The site's radial navigation, after Core-A Studios: no panel and no visible wheel. The Stride
+// mark sits at the left centre of the screen and the areas lie on an invisible circle around
+// it. The circle turns (with a soft spring) so the active area always rests horizontally at
+// 3 o'clock, inside a capsule of liquid glass that stays there and reshapes to fit each label as it
+// arrives; the others sit above and below along the arc, turned with it and fading with distance. Clicking an area glides there behind a soft full-screen gradient wash
+// (the chapter transition); crossing into a new area while scrolling tints the screen faintly.
+// Desktop only for now (phones and tablets use the Menu panel).
+// Its expanded form is the glass menu panel that grows from the header's Menu button
+// (global/SiteHeader.astro); both share the active area. Behaviour: src/scripts/system/edge-nav.ts.
+import { modes, type ModeKey } from '@/config/navigation';
+
+export interface Props {
+  current: ModeKey;
+  home?: boolean;
+}
+
+const { current, home = false } = Astro.props;
+const active = Math.max(0, modes.findIndex((m) => m.key === current));
+// Labels fade with their distance from the active one (as in the script).
+const fade = (d: number) => Math.max(0, 1 - Math.abs(d) * 0.2 - d * d * 0.045).toFixed(3);
+---
+
+<nav class="radial" id="radial-nav" aria-label="Stride areas" data-radial data-home={home ? '' : undefined} data-current={active}>
+  {/* Somewhere to take hold of the arc between its labels, to drag it (the script). */}
+  <span class="radial__grab" aria-hidden="true"></span>
+  <span class="radial__hub" aria-hidden="true">
+    <svg viewBox="0 0 106 106">
+      <path d="M53 53H0L53 0v53Z" fill="currentColor"></path>
+      <path d="M53 106H0l53-53v53Z" fill="currentColor"></path>
+      <path d="M106 53H53l53-53v53Z" fill="currentColor"></path>
+      <path d="M106 106H53l53-53v53Z" fill="currentColor"></path>
+    </svg>
+  </span>
+  {/* The active area's glass capsule: fixed at 3 o'clock; the script sizes it to the label there. */}
+  <span class="radial__glass" aria-hidden="true" data-radial-glass></span>
+  <ol class="radial__list" role="list">
+    {modes.map((m, i) => (
+      <li class="radial__slot" style={`--i: ${i}; --a: ${(i - active) * 12}deg; --o: ${fade(i - active)}`}>
+        <a
+          class:list={['radial__item', { 'is-active': i === active }]}
+          href={m.href}
+          data-radial-item={m.key}
+          aria-current={!home && i === active ? 'page' : undefined}
+        >{m.label}</a>
+      </li>
+    ))}
+  </ol>
+</nav>
+
+{/* The chapter transition: a soft full-screen gradient in the destination area's colours. */}
+<div class="wash" aria-hidden="true" data-wash></div>
+
+<style>
+  /* ---------- Desktop: the arc on the left ----------
+     The circle's centre sits well off-screen (--hub-x) with a wide radius (--r), so the arc curves
+     gently and the labels above and below tilt only a little: the active label starts 40px from
+     the edge and the longest ends about 155px in, inside the 180px margin. The Stride mark sits
+     just left of the active pill. */
+  .radial {
+    --hub-x: -320px;
+    --r: 360px;
+    position: fixed;
+    top: 50%;
+    left: 0;
+    z-index: 101;
+    width: 0;
+    height: 0;
+    color: var(--white);
+    pointer-events: none;
+  }
+
+  .radial__grab {
+    display: none;
+  }
+
+  @media (min-width: 1024px) and (hover: hover) {
+    .radial__grab {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: -170px;
+      width: 170px;
+      height: 340px;
+      cursor: grab;
+      pointer-events: auto;
+    }
+  }
+
+  :global(html.is-radial-dragging),
+  :global(html.is-radial-dragging) * {
+    cursor: grabbing !important;
+  }
+
+  .radial__hub {
+    position: absolute;
+    left: 12px;
+    top: -8px;
+    width: 16px;
+    height: 16px;
+    opacity: 0.9;
+  }
+
+  .radial__hub svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .radial__slot {
+    position: absolute;
+    left: var(--hub-x);
+    top: 0;
+    width: max-content;
+    transform-origin: 0 0;
+    rotate: var(--a);
+    opacity: var(--o);
+  }
+
+  .radial__item {
+    display: block;
+    padding: 8px 16px;
+    border-radius: 999px;
+    translate: var(--r) -50%;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: rgb(255 255 255 / 0.84);
+    text-shadow:
+      0 1px 2px rgb(6 20 43 / 0.45),
+      0 0 18px rgb(6 20 43 / 0.5);
+    pointer-events: auto;
+    transition:
+      background-color 260ms var(--ease-out),
+      color 260ms var(--ease-out);
+  }
+
+  /* The longest label stays inside the 180px margin. */
+  .radial__item[data-radial-item='sponsoring'] {
+    padding-inline: 10px;
+    font-size: 0.9375rem;
+  }
+
+  /* Faded far-off labels drop out of reach of the pointer (keyboard users still Tab through all). */
+  .radial__slot.is-far .radial__item {
+    pointer-events: none;
+  }
+
+  .radial__item:hover,
+  .radial__item:focus-visible {
+    color: var(--white);
+    outline: none;
+  }
+
+  .radial__item.is-active {
+    color: var(--white);
+    text-shadow: 0 1px 2px rgb(6 20 43 / 0.35);
+  }
+
+  .radial__item:focus-visible {
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.75);
+  }
+
+  /* ---------- The capsule: liquid glass ----------
+     A translucent capsule floating over the page where the active label rests: the scene behind
+     strongly blurred, lifted in colour and dimmed a touch (so the white label holds on any footage),
+     a delicate rim, a bright edge where light catches the top, a glow pooling at the base, a soft
+     reflection across the upper half, and a shadow beneath. Its width follows the label in it
+     (--glass-w, set every frame by the script as the arc turns). */
+  .radial__glass {
+    position: absolute;
+    left: calc(var(--hub-x) + var(--r));
+    top: 0;
+    width: var(--glass-w, 88px);
+    height: var(--glass-h, 35px);
+    translate: 0 -50%;
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 0.24) 0%,
+      rgb(255 255 255 / 0.08) 46%,
+      rgb(255 255 255 / 0.03) 54%,
+      rgb(255 255 255 / 0.11) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.22),
+      inset 0 1px 0.5px rgb(255 255 255 / 0.65),
+      inset 0 -1px 0.5px rgb(255 255 255 / 0.16),
+      inset 0 -10px 16px -12px rgb(255 255 255 / 0.3),
+      0 14px 30px -16px rgb(0 0 0 / 0.55),
+      0 2px 6px -2px rgb(0 0 0 / 0.22);
+    backdrop-filter: blur(24px) saturate(190%) brightness(0.86);
+    -webkit-backdrop-filter: blur(24px) saturate(190%) brightness(0.86);
+    pointer-events: none;
+  }
+
+  .radial__glass::before {
+    content: '';
+    position: absolute;
+    inset: 1.5px 10% 54%;
+    border-radius: 999px;
+    background: linear-gradient(to bottom, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0));
+  }
+
+  /* While the homepage's entrance plays, the capsule skips its blur: it sits over blurred footage
+     anyway, and the graphics card has its hands full. */
+  :global(body:has(.cover.is-entrance)) .radial__glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* On a light background the labels and mark turn navy, with everything else on the page. */
+  :global(html[data-ink='light']) .radial {
+    color: var(--navy-900);
+  }
+
+  :global(html[data-ink='light']) .radial .radial__item:not(.is-active) {
+    color: rgb(6 20 43 / 0.76);
+    text-shadow: none;
+  }
+
+  :global(html[data-ink='light']) .radial .radial__item:not(.is-active):hover {
+    color: var(--navy-900);
+  }
+
+  /* On paper the glass turns milky, with a navy label, so it still reads as a capsule. */
+  :global(html[data-ink='light']) .radial .radial__glass {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.6) 55%, rgb(255 255 255 / 0.72));
+    box-shadow:
+      inset 0 0 0 1px rgb(6 20 43 / 0.1),
+      inset 0 1px 0.5px rgb(255 255 255 / 1),
+      inset 0 -8px 14px -12px rgb(6 20 43 / 0.12),
+      0 14px 28px -16px rgb(6 20 43 / 0.4),
+      0 2px 6px -2px rgb(6 20 43 / 0.14);
+  }
+
+  :global(html[data-ink='light']) .radial .radial__item.is-active {
+    color: var(--navy-900);
+    text-shadow: none;
+  }
+
+
+  .radial__item {
+    transition:
+      background-color 260ms var(--ease-out),
+      color 400ms var(--ease-out);
+  }
+
+  /* Hovering the arc brings the faded areas up a little. */
+  .radial:hover .radial__slot,
+  .radial:focus-within .radial__slot {
+    opacity: max(var(--o), 0.55);
+  }
+
+  /* Desktop only for now: phones and tablets use the header's Menu panel. */
+  @media (max-width: 1023px) {
+    .radial {
+      display: none;
+    }
+  }
+
+  /* ---------- Chapter wash ---------- */
+  .wash {
+    --c1: var(--navy-500);
+    --c2: var(--navy-900);
+    position: fixed;
+    inset: 0;
+    z-index: 99; /* over the page, under the header and the navigation, which stay in view */
+    background:
+      radial-gradient(90% 120% at 0% 100%, var(--c1), transparent 70%),
+      linear-gradient(135deg, var(--c2), var(--c1));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 700ms var(--ease-in-out);
+  }
+
+  .wash.is-on {
+    opacity: 0.94;
+    transition-duration: 420ms;
+  }
+
+  .wash.is-tint {
+    opacity: 0.16;
+    transition-duration: 500ms;
+  }
+
+  .wash[data-tone='group'] { --c1: var(--navy-500); --c2: var(--navy-900); }
+  .wash[data-tone='social'] { --c1: var(--steel); --c2: var(--navy-900); }
+  .wash[data-tone='talent'] { --c1: var(--navy-500); --c2: var(--navy-700); }
+  .wash[data-tone='education'] { --c1: var(--steel); --c2: var(--navy-500); }
+  .wash[data-tone='work'] { --c1: var(--steel); --c2: var(--navy-900); }
+  .wash[data-tone='about'] { --c1: var(--navy-500); --c2: var(--navy-900); }
+  .wash[data-tone='contact'] { --c1: var(--navy-500); --c2: var(--navy-900); }
+  .wash[data-tone='sponsoring'] { --c1: var(--navy-500); --c2: var(--navy-900); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .radial__slot,
+    .radial__item,
+    .radial__glass,
+    .wash {
+      transition: none;
+    }
+
+    .wash {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { initEdgeNav } from '@/scripts/system/edge-nav';
+  initEdgeNav();
+</script>

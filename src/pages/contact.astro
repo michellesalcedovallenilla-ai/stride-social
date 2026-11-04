@@ -1,12 +1,10 @@
 ---
-// Contact hub (docs/phase-2/05-wireframes.md §E; brief §7: separate paths for brands, established
-// creators, emerging creators and general enquiries). Replaces the Phase 1 page at the same URL.
-// Four large route panels in division colours · direct contact details · the general form.
+// Contact hub (brief §7: separate paths for brands, established creators, emerging creators and general
+// enquiries): a conversation that points you to the right team (group/ContactChat), then the general form.
 import { getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
-import DraftTag from '@/components/core/DraftTag.astro';
+import ContactChat from '@/components/group/ContactChat.astro';
+import FormStage from '@/components/experience/FormStage.astro';
 import GeneralForm from '@/components/group/GeneralForm.astro';
 import { careersEmail, enquiryEmail } from '@/config/forms';
 import { site, socials } from '@/config/site';
@@ -14,229 +12,19 @@ import { site, socials } from '@/config/site';
 const s = (await getEntry('pages', 'contact'))?.data.sections;
 if (!s) throw new Error('Missing src/content/pages/contact.yaml');
 const msg = (key: string) => s.general.items?.find((i) => i.key === key)?.label ?? '';
+const details = [
+  { label: 'Email', links: [{ label: enquiryEmail, href: `mailto:${enquiryEmail}` }] },
+  { label: 'Careers', links: [{ label: careersEmail, href: `mailto:${careersEmail}` }] },
+  { label: 'Phone', links: [{ label: site.phone.label.replace(/^Office - /, ''), href: site.phone.href }] },
+  { label: 'Social', links: socials.map((so) => ({ label: so.label, href: so.href, external: true })) },
+];
 ---
 
-<SiteLayout title="Contact | Stride" description={s.hero.body}>
-  <PageIntro crumbs={[{ label: 'Contact' }]} copy={s.hero} tone="light" />
-
-  <section class="routes" aria-label="Who are you?">
-    <div class="container-wide">
-      <DraftTag status={s.routes.status} />
-      <ul class="routes__grid" role="list">
-        {(s.routes.items ?? []).map((r) => (
-          <li class={`route route--${r.key}`}>
-            <a class="route__link" href={r.href}>
-              <span class="route__audience">{r.audience}</span>
-              <span class="route__label">{r.label}</span>
-              <span class="route__copy">{r.copy}</span>
-              <svg class="route__arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  <section class="general" id="general" aria-labelledby="general-title">
-    <div class="container-wide general__inner">
-      <div class="general__lead">
-        <Eyebrow tone="light">{s.general.eyebrow}</Eyebrow>
-        <h2 class="general__title" id="general-title">{s.general.headline}</h2>
-        <dl class="general__details">
-          <div><dt>Email</dt><dd><a href={`mailto:${enquiryEmail}`}>{enquiryEmail}</a></dd></div>
-          <div><dt>Careers</dt><dd><a href={`mailto:${careersEmail}`}>{careersEmail}</a></dd></div>
-          <div><dt>Phone</dt><dd><a href={site.phone.href}>{site.phone.label.replace(/^Office - /, '')}</a></dd></div>
-          <div>
-            <dt>Social</dt>
-            <dd>
-              {socials.map((so, i) => <>{i > 0 && ' · '}<a href={so.href} target="_blank" rel="noopener">{so.label}<span class="visually-hidden"> (opens in a new tab)</span></a></>)}
-            </dd>
-          </div>
-        </dl>
-      </div>
-      <div class="general__form">
-        <DraftTag status={s.general.status} />
-        <GeneralForm messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }} />
-      </div>
-    </div>
-  </section>
+<SiteLayout title="Contact | Stride" description={s.hero.body} headerOverlay>
+  <ContactChat copy={s.hero} routes={s.routes.items ?? []} details={details} crumbs={[{ label: 'Contact' }]} />
+  <div id="general">
+    <FormStage tone="group" look="frost" steps={false} level="h2" eyebrow={s.general.eyebrow} headline={s.general.headline ?? ''} status={s.general.status}>
+      <GeneralForm tone="dark" messages={{ success: msg('success'), error: msg('error'), unavailable: msg('unavailable'), consent: msg('consent') }} />
+    </FormStage>
+  </div>
 </SiteLayout>
-
-<style>
-  .routes,
-  .general {
-    position: relative;
-    z-index: 1;
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .routes {
-    padding-bottom: var(--space-9);
-  }
-
-  .routes .container-wide {
-    display: grid;
-    gap: var(--space-4);
-    justify-items: start;
-  }
-
-  .routes__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-3);
-    width: 100%;
-  }
-
-  .route {
-    --route-bg: var(--white);
-    --route-ink: var(--navy-900);
-  }
-
-  .route--social { --route-bg: var(--navy-900); --route-ink: var(--white); }
-  .route--talent { --route-bg: var(--peach); }
-  .route--education { --route-bg: var(--sun); }
-  .route--general { --route-bg: var(--white); }
-
-  .route__link {
-    position: relative;
-    container-type: inline-size;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: var(--space-4);
-    min-height: clamp(280px, 26vw, 380px);
-    height: 100%;
-    padding: var(--space-6) var(--space-5);
-    background: var(--route-bg);
-    color: var(--route-ink);
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .route--general .route__link {
-    border: 1px solid var(--navy-900);
-  }
-
-  .route__link:hover {
-    transform: translateY(-4px);
-  }
-
-  .route__audience {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  /* Sized to the panel so "MANAGEMENT" stays whole. */
-  .route__label {
-    align-self: end;
-    font-family: var(--font-display);
-    font-size: min(11.4cqi, 2.75rem);
-    font-weight: 850;
-    font-stretch: 110%;
-    line-height: 0.95;
-    letter-spacing: -0.015em;
-    text-transform: uppercase;
-  }
-
-  .route__copy {
-    padding-right: var(--space-7);
-    font-size: var(--type-small);
-    line-height: 1.45;
-  }
-
-  .route__arrow {
-    position: absolute;
-    right: var(--space-5);
-    bottom: var(--space-6);
-    width: 22px;
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .route__link:hover .route__arrow {
-    transform: translateX(4px);
-  }
-
-  .general {
-    padding-block: var(--space-9) var(--section-pad);
-    border-top: 1px solid var(--line);
-    scroll-margin-top: var(--header-h);
-  }
-
-  .general__inner {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-8) var(--gutter);
-    align-items: start;
-  }
-
-  .general__lead {
-    grid-column: 1 / 6;
-    display: grid;
-    gap: var(--space-5);
-  }
-
-  .general__title {
-    font-family: var(--font-display);
-    font-size: var(--type-h1);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .general__details {
-    display: grid;
-    gap: var(--space-4);
-    margin-top: var(--space-4);
-  }
-
-  .general__details dt {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
-  }
-
-  .general__details a {
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .general__form {
-    grid-column: 7 / -1;
-    display: grid;
-    gap: var(--space-4);
-    min-width: 0;
-  }
-
-  @media (max-width: 1023px) {
-    .routes__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .general__lead,
-    .general__form {
-      grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 599px) {
-    .routes__grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .route__link {
-      min-height: 200px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .route__link:hover {
-      transform: none;
-    }
-  }
-</style>

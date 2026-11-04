@@ -1,0 +1,86 @@
+---
+// What the glass sits over: slow pools of light drifting over the page's colour, and a soft light that
+// follows the pointer. There's one for the whole screen, in the backdrop (SiteLayout), so it never ends at
+// a section's edge; its colours follow the scroll with the background's (src/scripts/system/backdrop.ts).
+// Behaviour: src/scripts/system/ambient.ts.
+---
+
+<div class="ambient" aria-hidden="true" data-ambient>
+  <span class="ambient__pool ambient__pool--a"></span>
+  <span class="ambient__pool ambient__pool--b"></span>
+  <span class="ambient__pool ambient__pool--c"></span>
+  <span class="ambient__spot"></span>
+</div>
+
+<style>
+  .ambient {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ambient__pool {
+    position: absolute;
+    width: 70vmax;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    animation: ambient-drift 26s ease-in-out infinite alternate;
+  }
+
+  .ambient__pool--a {
+    top: -35vmax;
+    left: -18vmax;
+    background: radial-gradient(closest-side, rgb(var(--backdrop-wash, var(--tone-wash)) / 0.26), transparent);
+  }
+
+  .ambient__pool--b {
+    right: -26vmax;
+    bottom: -40vmax;
+    background: radial-gradient(closest-side, rgb(var(--backdrop-wash, var(--tone-wash)) / 0.2), transparent);
+    animation-duration: 34s;
+    animation-direction: alternate-reverse;
+  }
+
+  .ambient__pool--c {
+    top: 15%;
+    left: 34%;
+    width: 46vmax;
+    background: radial-gradient(closest-side, rgb(var(--backdrop-depth, var(--tone-depth)) / 0.4), transparent);
+    animation-duration: 41s;
+  }
+
+  .ambient__spot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 44vmax;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(var(--backdrop-wash, var(--tone-wash)) / 0.16), transparent);
+    transform: translate3d(calc(var(--mx, 50vw) - 22vmax), calc(var(--my, 40vh) - 22vmax), 0);
+    opacity: var(--spot, 0);
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  @keyframes ambient-drift {
+    from {
+      transform: translate3d(-5vmax, -3vmax, 0) scale(0.92);
+    }
+
+    to {
+      transform: translate3d(6vmax, 5vmax, 0) scale(1.1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ambient__pool {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initAmbient } from '@/scripts/system/ambient';
+  initAmbient();
+</script>

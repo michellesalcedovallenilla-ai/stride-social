@@ -1,23 +1,59 @@
 ---
-// About Stride (docs/phase-2/05-wireframes.md §E; brief §7: company, business model, mission,
-// values, international presence). Replaces the Phase 1 page at the same URL.
-// Hero statement · the three sides, one paragraph each, linking out · mission and values (awaiting
-// Stride) · markets · founders' story · links to History, Team and Careers.
-import { getEntry } from 'astro:content';
+// About Stride (brief §7: company, business model, mission, values, international presence): the story
+// on a dial you can drag through time (group/TimeDial), then the shared menu: Our Team, Three Sides,
+// More. Milestones are verified only in production. Mission and values must be Stride's own:
+// nothing is drafted, and only a preview note stands in for them.
+import { getCollection, getEntry } from 'astro:content';
 import SiteLayout from '@/layouts/SiteLayout.astro';
-import PageIntro from '@/components/global/PageIntro.astro';
-import Eyebrow from '@/components/core/Eyebrow.astro';
-import DraftTag from '@/components/core/DraftTag.astro';
+import TimeDial from '@/components/group/TimeDial.astro';
+import Deck from '@/components/experience/Deck.astro';
 import PlaceholderNotice from '@/components/core/PlaceholderNotice.astro';
-import MarketsDisplay from '@/components/home/MarketsDisplay.astro';
 import { isPreview } from '@/lib/env';
+import { asHtml, chunks, paragraphs } from '@/lib/experience';
+import type { Card } from '@/lib/experience';
 
 const page = await getEntry('pages', 'about');
 const home = await getEntry('pages', 'home');
 if (!page || !home) throw new Error('Missing src/content/pages/about.yaml or home.yaml');
 const s = page.data.sections;
 const sides = home.data.sections.sides.items ?? [];
-const story = (s.founders.body ?? '').split(/\n\s*\n/).filter(Boolean);
+const story = paragraphs(s.founders.body);
+const markets = await getCollection('markets', (m) => m.data.status === 'verified');
+const talentMarkets = markets.filter((m) => m.data.roles.includes('talent-market')).map((m) => m.data.label);
+const team = (await getCollection('team', (m) => m.data.visible)).sort((a, b) => a.data.order - b.data.order);
+const milestones = (await getCollection('milestones', (m) => m.data.status === 'verified' || isPreview)).sort((a, b) => a.data.order - b.data.order);
+const more = s.more.items ?? [];
+
+const steps = [
+  { mark: 'Stride', title: s.hero.headline, text: s.hero.body },
+  ...(milestones.length
+    ? [
+        { mark: s.founders.eyebrow ?? 'Our story', title: s.founders.headline, text: story[0] ? chunks(story[0], 360)[0] : undefined },
+        ...milestones.map((m) => ({ mark: String(m.data.year), title: m.data.title, text: chunks(paragraphs(m.data.body)[0] ?? '', 360)[0], image: m.data.image })),
+      ]
+    : story.flatMap((p, i) => chunks(p, 360).map((text, k) => ({ mark: s.founders.eyebrow ?? 'Our story', title: i === 0 && k === 0 ? s.founders.headline : undefined, text })))),
+  ...(talentMarkets.length ? [{ mark: s.presence.eyebrow ?? 'Where we work', title: s.presence.headline, chips: talentMarkets }] : []),
+];
+
+const teamCards: Card[] = [
+  ...team.slice(0, 11).map((m) => ({
+    name: m.data.name,
+    text: m.data.role,
+    href: '/team',
+    image: m.data.photo,
+    html: m.data.bio ? asHtml(paragraphs(m.data.bio)) : undefined,
+    action: m.data.linkedin ? { label: 'LinkedIn', href: m.data.linkedin, external: true } : undefined,
+  })),
+  { name: more[1]?.label ?? 'Our Team', text: more[1]?.copy, href: more[1]?.href ?? '/team', direct: true },
+];
+const sideCards: Card[] = sides.map((side) => ({
+  name: `Stride ${side.label}`,
+  text: side.copy,
+  href: side.href ?? '/',
+  chips: [side.audience ?? ''].filter(Boolean),
+  action: { label: side.cta ?? `Explore Stride ${side.label}`, href: side.href ?? '/' },
+}));
+const moreCards: Card[] = more.map((m) => ({ name: m.label, text: m.copy, href: m.href ?? '/', direct: true }));
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -28,272 +64,21 @@ const jsonLd = [
 ];
 ---
 
-<SiteLayout title="About Stride | Creators, Brands and Education" description={s.hero.body} jsonLd={jsonLd}>
-  <PageIntro crumbs={[{ label: 'About' }]} copy={s.hero} tone="light" />
+<SiteLayout title="About Stride | Creators, Brands and Education" description={s.hero.body} jsonLd={jsonLd} headerOverlay>
+  <TimeDial steps={steps} crumbs={[{ label: 'About' }]}>
+    {isPreview && <PlaceholderNotice label="Needed from Stride">{(s.mission.awaiting ?? []).join(' · ')}</PlaceholderNotice>}
+  </TimeDial>
 
-  <section class="model" aria-labelledby="model-title">
-    <div class="container-wide">
-      <header class="model__head">
-        <Eyebrow tone="light">{s.model.eyebrow}</Eyebrow>
-        <h2 class="model__title" id="model-title">{s.model.headline}</h2>
-      </header>
-      <ul class="model__list" role="list">
-        {sides.map((side, i) => (
-          <li class={`model__side model__side--${side.key}`}>
-            <a href={side.href}>
-              <span class="model__n">{String(i + 1).padStart(2, '0')} · {side.audience}</span>
-              <span class="model__name">Stride {side.label}</span>
-              <span class="model__copy">{side.copy}</span>
-              <span class="model__cta">{side.cta}<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  {isPreview && (
-    <section class="values" aria-labelledby="values-title">
-      <div class="container-wide values__inner">
-        <div>
-          <Eyebrow tone="light">{s.mission.eyebrow}</Eyebrow>
-          <h2 class="values__title" id="values-title">{s.mission.headline}</h2>
-        </div>
-        <PlaceholderNotice variant="block" label="Needed from Stride">
-          <p>{(s.mission.awaiting ?? []).join(' · ')}. In Stride's own words: nothing is drafted here (brief §7, §9).</p>
-        </PlaceholderNotice>
-      </div>
-    </section>
-  )}
-
-  <MarketsDisplay copy={s.presence} />
-
-  <section class="story" aria-labelledby="story-title">
-    <div class="container-wide story__inner">
-      <div class="story__head">
-        <Eyebrow tone="light">{s.founders.eyebrow}</Eyebrow>
-        <h2 class="story__title" id="story-title">{s.founders.headline}</h2>
-        <DraftTag status={s.founders.status} />
-      </div>
-      <div class="story__body">
-        {story.map((p, i) => <p class:list={{ 'story__lead': i === 0 }}>{p}</p>)}
-        {isPreview && (
-          <PlaceholderNotice variant="inline" label="To verify">— the follower figure, plus founder portraits and titles to approve</PlaceholderNotice>
-        )}
-      </div>
-    </div>
-  </section>
-
-  <nav class="more" aria-labelledby="more-title">
-    <div class="container-wide">
-      <h2 class="more__label" id="more-title">{s.more.eyebrow}</h2>
-      <ul class="more__list" role="list">
-        {(s.more.items ?? []).map((item) => (
-          <li>
-            <a href={item.href}>
-              <span class="more__name">{item.label}</span>
-              <span class="more__copy">{item.copy}</span>
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 8h13M9 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </nav>
+  <Deck
+    id="about-menu"
+    label="More about Stride"
+    tone="group"
+    look="frost"
+    tabs={[
+      { key: 'team', label: more[1]?.label ?? 'Our Team', icon: 'people', cards: teamCards },
+      { key: 'sides', label: s.model.headline?.replace(/\.$/, '') ?? 'Three sides of Stride', icon: 'layers', cards: sideCards },
+      { key: 'more', label: s.more.eyebrow ?? 'More about the group', icon: 'grid', cards: moreCards },
+    ]}
+    link={{ label: 'Contact', href: '/contact' }}
+  />
 </SiteLayout>
-
-<style>
-  .model,
-  .values,
-  .story,
-  .more {
-    position: relative;
-    z-index: 1;
-    padding-block: var(--section-pad);
-    background: var(--paper);
-    color: var(--navy-900);
-  }
-
-  .model {
-    padding-top: var(--space-6);
-  }
-
-  .model__head {
-    display: grid;
-    gap: var(--space-4);
-    margin-bottom: var(--space-7);
-  }
-
-  .model__title,
-  .values__title,
-  .story__title {
-    font-family: var(--font-display);
-    font-size: var(--type-h1);
-    font-weight: 850;
-    font-stretch: var(--stretch-wide);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .model__list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--gutter);
-  }
-
-  .model__side a {
-    display: grid;
-    gap: var(--space-4);
-    align-content: start;
-    height: 100%;
-    padding: var(--space-6) 0 var(--space-5);
-    border-top: 6px solid var(--side-accent);
-    transition: padding var(--dur-slow) var(--ease-out);
-  }
-
-  .model__side--social { --side-accent: var(--navy-900); }
-  .model__side--talent { --side-accent: var(--peach); }
-  .model__side--education { --side-accent: var(--sun); }
-
-  .model__n,
-  .more__label {
-    font-family: var(--font-mono);
-    font-size: var(--type-label);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--slate);
-  }
-
-  .model__name {
-    font-family: var(--font-display);
-    font-size: clamp(1.75rem, 2.8vw, 2.75rem);
-    font-weight: 850;
-    font-stretch: 112%;
-    line-height: 0.95;
-    text-transform: uppercase;
-  }
-
-  .model__copy {
-    max-width: 34ch;
-    font-size: var(--type-lead);
-    line-height: 1.4;
-  }
-
-  .model__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-weight: 600;
-  }
-
-  .model__cta svg,
-  .more svg {
-    width: 16px;
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-
-  .model__side a:hover .model__cta svg,
-  .more a:hover svg {
-    transform: translateX(4px);
-  }
-
-  .values {
-    background: var(--white);
-  }
-
-  .values__inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-    gap: var(--space-7) var(--gutter);
-    align-items: start;
-  }
-
-  .story__inner {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: var(--space-7) var(--gutter);
-  }
-
-  .story__head {
-    grid-column: 1 / 5;
-    display: grid;
-    gap: var(--space-4);
-    align-content: start;
-    justify-items: start;
-  }
-
-  .story__body {
-    grid-column: 6 / -1;
-    display: grid;
-    gap: var(--space-5);
-    justify-items: start;
-    max-width: 64ch;
-    font-size: var(--type-lead);
-    line-height: 1.55;
-  }
-
-  .story__lead {
-    font-family: var(--font-serif);
-    font-size: clamp(1.75rem, 2.6vw, 2.5rem);
-    font-style: italic;
-    line-height: 1.15;
-  }
-
-  .more {
-    padding-block: var(--space-9);
-    border-top: 1px solid var(--line);
-  }
-
-  .more__list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--gutter);
-    margin-top: var(--space-5);
-  }
-
-  .more a {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--space-2) var(--space-4);
-    padding: var(--space-5) 0;
-    border-top: 1px solid var(--navy-900);
-  }
-
-  .more__name {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 2.4vw, 2.25rem);
-    font-weight: 850;
-    font-stretch: 112%;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .more__copy {
-    grid-column: 1;
-    color: var(--slate);
-  }
-
-  .more svg {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: center;
-    width: 22px;
-  }
-
-  @media (max-width: 1023px) {
-    .model__list,
-    .more__list {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .values__inner {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .story__head,
-    .story__body {
-      grid-column: 1 / -1;
-    }
-  }
-</style>
